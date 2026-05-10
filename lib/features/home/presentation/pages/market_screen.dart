@@ -390,6 +390,24 @@ class _StallCard extends StatelessWidget {
                       child: Image.network(
                         vendor['imageUrl'] as String? ?? '',
                         fit: BoxFit.cover,
+                        gaplessPlayback: true, // Prevents flicker on image load
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          // Skeleton placeholder during load
+                          return Container(
+                            color: const Color(0xFFE2E8F0),
+                            child: const Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF0B372B),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                         errorBuilder: (_, _, _) {
                           return Container(
                             color: const Color(0xFFF3F4F6),

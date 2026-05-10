@@ -288,7 +288,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                   _twoFactorEnabled = value;
                                 });
                               },
-                              activeColor: const Color(0xFF0B372B),
+                              activeTrackColor: const Color(0xFF0B372B),
                             ),
                           ],
                         ),

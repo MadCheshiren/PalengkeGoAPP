@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/utils/page_transitions.dart';
 import 'vendor_dashboard_screen.dart';
 
 /// Vendor Onboarding Screen
@@ -77,10 +78,10 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // Last step - go to vendor dashboard
+      // Last step - go to vendor dashboard with smooth transition
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const VendorDashboardScreen(),
+        PageTransitions.slideFromRight(
+          const VendorDashboardScreen(),
         ),
         (route) => false,
       );

@@ -104,7 +104,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                       height: 280,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         height: 280,
                         color: const Color(0xFFE2E8F0),
                         child: const Icon(Icons.image, size: 60, color: Color(0xFF94A3B8)),
@@ -335,7 +335,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: ingredients.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final ingredient = ingredients[index];
         final name = ingredient['name'] ?? ingredient.toString();
@@ -427,7 +427,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         width: 48,
                         height: 48,
                         color: const Color(0xFFF1F5F9),
@@ -450,7 +450,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: steps.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final step = steps[index];
         final number = index + 1;

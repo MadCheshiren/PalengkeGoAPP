@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
 import 'package:palengkego/features/auth/presentation/pages/registration_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {

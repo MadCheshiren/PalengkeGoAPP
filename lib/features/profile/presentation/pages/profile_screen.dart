@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_onboarding_screen.dart';
 import 'edit_profile_screen.dart';
@@ -77,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
                         child: Image.network(
                           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             color: const Color(0xFFE8F5E9),
                             child: const Icon(
                               Icons.person_rounded,
@@ -118,8 +119,8 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Edit Profile',
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const EditProfileScreen(),
+                          PageTransitions.slideFromRight(
+                            const EditProfileScreen(),
                           ),
                         );
                       },
@@ -129,8 +130,8 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Security',
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const SecuritySettingsScreen(),
+                          PageTransitions.slideFromRight(
+                            const SecuritySettingsScreen(),
                           ),
                         );
                       },
@@ -140,8 +141,8 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Start Selling',
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const VendorOnboardingScreen(),
+                          PageTransitions.slideFromRight(
+                            const VendorOnboardingScreen(),
                           ),
                         );
                       },

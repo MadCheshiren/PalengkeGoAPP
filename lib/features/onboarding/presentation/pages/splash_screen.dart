@@ -9,18 +9,11 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _loadingController;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _loadingController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-
+    // Navigate after 3 seconds - no animation controller needed
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -28,12 +21,6 @@ class _SplashScreenState extends State<SplashScreen>
         );
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _loadingController.dispose();
-    super.dispose();
   }
 
   @override
@@ -50,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen>
               width: 220,
               height: 220,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 width: 180,
                 height: 180,
                 decoration: BoxDecoration(
@@ -89,33 +76,16 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
             const SizedBox(height: 80),
-            // Loading Spinner
-            AnimatedBuilder(
-              animation: _loadingController,
-              builder: (context, child) {
-                return Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.transparent,
-                      width: 4,
-                    ),
-                  ),
-                  child: CircularProgressIndicator(
-                    value: null,
-                    strokeWidth: 4,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color.lerp(
-                        const Color(0xFFF59E0B),
-                        const Color(0xFF6D9773),
-                        _loadingController.value,
-                      )!,
-                    ),
-                  ),
-                );
-              },
+            // Loading Spinner (static color, no per-frame animation cost)
+            const SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 4,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Color(0xFFF59E0B), // Static warm yellow
+                ),
+              ),
             ),
             const SizedBox(height: 48),
           ],

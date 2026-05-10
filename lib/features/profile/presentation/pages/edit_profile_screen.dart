@@ -96,7 +96,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: Image.network(
                                 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                errorBuilder: (_, _, _) => Container(
                                   color: const Color(0xFFE8F5E9),
                                   child: const Icon(
                                     Icons.person_rounded,

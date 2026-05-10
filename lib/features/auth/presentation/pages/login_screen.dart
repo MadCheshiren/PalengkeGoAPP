@@ -194,29 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _backButton() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(9999),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 1),
-            blurRadius: 2,
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.arrow_back_ios_new_rounded,
-        size: 16,
-        color: Color(0xFF0B372B),
-      ),
-    );
-  }
-
   Widget _buildField({
     required String label,
     required String hintText,
@@ -294,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
               icon,
               width: 20,
               height: 20,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (_, _, _) => const Icon(
                 Icons.login,
                 size: 20,
                 color: Color(0xFF64748B),
@@ -448,7 +425,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _iconPlaceholder(double size) {
-    return Container(width: size, height: size, color: const Color(0xFF94A3B8));
-  }
 }

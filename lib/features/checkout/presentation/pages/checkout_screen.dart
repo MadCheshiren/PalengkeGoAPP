@@ -580,6 +580,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             'card' => 'Card selected',
             _ => 'Payment method updated',
           };
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(message)),
           );

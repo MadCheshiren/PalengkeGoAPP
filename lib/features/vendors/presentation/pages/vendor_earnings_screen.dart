@@ -181,7 +181,7 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final values = [0.3, 0.5, 0.4, 0.8, 0.6, 0.9, 0.4];
 
-    return Container(
+    return SizedBox(
       height: 120,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

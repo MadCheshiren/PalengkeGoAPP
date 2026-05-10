@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/utils/page_transitions.dart';
 import 'recipe_details_screen.dart';
 
 class RecipesScreen extends StatelessWidget {
@@ -144,8 +145,8 @@ class RecipesScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => RecipeDetailsScreen(
+          PageTransitions.slideFromRight(
+            RecipeDetailsScreen(
               recipe: {
                 'name': recipe['title'],
                 'imageUrl': recipe['image'],
@@ -304,8 +305,8 @@ class RecipesScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => RecipeDetailsScreen(
+          PageTransitions.slideFromRight(
+            RecipeDetailsScreen(
               recipe: {
                 'name': recipe['title'],
                 'imageUrl': recipe['image'],

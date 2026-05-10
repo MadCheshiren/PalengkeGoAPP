@@ -11,8 +11,8 @@ class AnimatedEntrance extends StatefulWidget {
     super.key,
     required this.child,
     this.index = 0,
-    this.delay = const Duration(milliseconds: 50),
-    this.duration = const Duration(milliseconds: 400),
+    this.delay = const Duration(milliseconds: 30), // Faster stagger
+    this.duration = const Duration(milliseconds: 250), // Snappier entrance
   });
 
   @override
@@ -70,11 +70,14 @@ class _AnimatedEntranceState extends State<AnimatedEntrance>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: widget.child,
+    // RepaintBoundary isolates this animation from parent repaints
+    return RepaintBoundary(
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: widget.child,
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:palengkego/core/utils/page_transitions.dart';
 import '../widgets/vendor_screen_header.dart';
 import 'vendor_add_product_screen.dart';
 
@@ -158,8 +158,8 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const VendorAddProductScreen(),
+                          PageTransitions.slideFromRight(
+                            const VendorAddProductScreen(),
                           ),
                         );
                       },

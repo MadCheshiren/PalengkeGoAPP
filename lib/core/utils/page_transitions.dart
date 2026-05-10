@@ -2,27 +2,33 @@ import 'package:flutter/material.dart';
 
 /// Custom page transition helpers for smooth navigation
 class PageTransitions {
-  /// Slide from right (standard push transition)
+  /// Slide from right with fade (standard push transition)
+  /// Uses both slide + fade for better visibility on heavy screens
   static Route<T> slideFromRight<T>(Widget destination) {
     return PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => destination,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
+        const begin = Offset(0.25, 0.0); // Start closer (25% instead of 100%)
         const end = Offset.zero;
         const curve = Curves.easeOutCubic;
 
-        final tween = Tween(begin: begin, end: end).chain(
+        final slideTween = Tween(begin: begin, end: end).chain(
           CurveTween(curve: curve),
         );
-        final offsetAnimation = animation.drive(tween);
+        final fadeTween = Tween(begin: 0.0, end: 1.0).chain(
+          CurveTween(curve: curve),
+        );
 
         return SlideTransition(
-          position: offsetAnimation,
-          child: child,
+          position: animation.drive(slideTween),
+          child: FadeTransition(
+            opacity: animation.drive(fadeTween),
+            child: child,
+          ),
         );
       },
-      transitionDuration: const Duration(milliseconds: 300),
-      reverseTransitionDuration: const Duration(milliseconds: 250),
+      transitionDuration: const Duration(milliseconds: 350),
+      reverseTransitionDuration: const Duration(milliseconds: 280),
     );
   }
 

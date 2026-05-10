@@ -370,27 +370,42 @@ class NotificationsScreen extends StatelessWidget {
   }
 }
 
-// Sticky Status Banner Delegate with shrink effect
+// Sticky Status Banner Delegate - EXPANDS when scrolling down
 class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // Calculate shrink progress (0 = fully expanded, 1 = fully shrunk)
-    final shrinkProgress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
-    final fadeProgress = 1.0 - shrinkProgress;
+    // Expand progress: 0 = compact (at top), 1 = fully expanded (scrolled down)
+    final expandProgress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+
+    // Interpolate horizontal margins: compact has 48px margin, expanded fills width
+    final horizontalMargin = 48.0 * (1.0 - expandProgress);
+
+    // Interpolate border radius: compact = 24px (pill-like), expanded = 0 (full width)
+    final borderRadius = 24.0 * (1.0 - expandProgress);
+
+    // Height grows as it expands
+    final height = 80.0 + (40.0 * expandProgress);
 
     return Container(
       color: const Color(0xFFF8FAFC),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: EdgeInsets.fromLTRB(
+        16 + horizontalMargin,
+        8,
+        16 + horizontalMargin,
+        12,
+      ),
       alignment: Alignment.topCenter,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        height: height,
         padding: EdgeInsets.lerp(
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shrinkProgress,
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          expandProgress,
         )!,
         decoration: BoxDecoration(
           color: const Color(0xFF0B372B),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(borderRadius),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,8 +435,9 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
               maxLines: 1,
             ),
             const SizedBox(height: 2),
+            // Subtitle fades in when expanded
             Opacity(
-              opacity: fadeProgress,
+              opacity: expandProgress,
               child: Text(
                 '3 new updates today.',
                 style: TextStyle(
@@ -439,11 +455,11 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 145;
+  double get maxExtent => 160; // Expanded height (when scrolled down)
 
   @override
-  double get minExtent => 118;
+  double get minExtent => 110; // Compact height (at top)
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
 }

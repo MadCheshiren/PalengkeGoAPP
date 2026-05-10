@@ -46,6 +46,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       ),
     );
     if (result != null && result is Map<String, dynamic>) {
+      if (!mounted) return;
       setState(() {
         _selectedMethod = 'card';
       });

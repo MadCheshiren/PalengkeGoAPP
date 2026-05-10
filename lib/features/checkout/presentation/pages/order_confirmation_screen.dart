@@ -418,6 +418,7 @@ class OrderConfirmationScreen extends StatelessWidget {
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () async {
+              final messenger = ScaffoldMessenger.of(context);
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -434,7 +435,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                   'card' => 'Card selected',
                   _ => 'Payment method updated',
                 };
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(content: Text(message)),
                 );
               }

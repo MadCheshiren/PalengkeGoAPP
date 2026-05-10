@@ -1,6 +1,5 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
 import 'package:palengkego/features/profile/presentation/pages/set_delivery_address_screen.dart';
@@ -150,29 +149,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             _bottomActionBar(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _backButton() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(9999),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 1),
-            blurRadius: 2,
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.arrow_back_ios_new_rounded,
-        size: 16,
-        color: Color(0xFF0B372B),
       ),
     );
   }
@@ -498,7 +474,4 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Widget _iconPlaceholder(double size) {
-    return Container(width: size, height: size, color: const Color(0xFF94A3B8));
-  }
 }

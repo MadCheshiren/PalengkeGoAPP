@@ -23,10 +23,8 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# Context files (local AI instructions, not for repo)
-AI_HANDOFF.md
-issues.md
-DESIGN_SYSTEM.md
+# Project docs (kept locally, not for repo)
+docs/
 .qwen/
 stitch_req.json
 
@@ -67,3 +65,4 @@ app.*.map.json
 
 # Screenshots/Figma exports
 screensfromfigma/
+
