@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:palengkego/core/services/customer_preferences_service.dart';
 
 class SetDeliveryAddressScreen extends StatefulWidget {
   const SetDeliveryAddressScreen({super.key});
@@ -12,6 +13,14 @@ class SetDeliveryAddressScreen extends StatefulWidget {
 class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
   final _streetAddressController = TextEditingController();
   final _notesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final currentAddress = globalCustomerPreferences.deliveryAddress;
+    _streetAddressController.text = currentAddress.streetAddress;
+    _notesController.text = currentAddress.notes;
+  }
 
   @override
   void dispose() {
@@ -64,7 +73,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
+                            color: Colors.black.withOpacity(0.25),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -92,7 +101,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                       width: 20,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0B372B).withValues(alpha: 0.3),
+                        color: const Color(0xFF0B372B).withOpacity(0.3),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -116,7 +125,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withOpacity(0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -162,11 +171,11 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: kIsWeb
-                            ? const Color(0xFFE8F4F8).withValues(alpha: 0.85)
-                            : Colors.white.withValues(alpha: 0.18),
+                            ? const Color(0xFFE8F4F8).withOpacity(0.85)
+                            : Colors.white.withOpacity(0.18),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: kIsWeb ? 0.6 : 0.35),
+                          color: Colors.white.withOpacity(kIsWeb ? 0.6 : 0.35),
                           width: 1.5,
                         ),
                       ),
@@ -182,7 +191,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: Colors.black.withOpacity(0.05),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -194,7 +203,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0B372B).withValues(alpha: 0.1),
+                                  color: const Color(0xFF0B372B).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(

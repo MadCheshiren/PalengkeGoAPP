@@ -23,8 +23,9 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# Project docs (kept locally, not for repo)
-docs/
+# Project docs are local by default; keep refactor plans tracked for the team.
+
+# Project-local agent/tooling files
 .qwen/
 stitch_req.json
 

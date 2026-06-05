@@ -9,6 +9,8 @@ class MockDataService {
       'distance': '1.2km',
       'imageUrl':
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Stall 4',
+      'marketSection': 'Fruit Section',
     },
     {
       'id': 'v2',
@@ -19,6 +21,8 @@ class MockDataService {
       'distance': '0.8km',
       'imageUrl':
           'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Block 15 | Stall 2',
+      'marketSection': 'Meat Section',
     },
     {
       'id': 'v3',
@@ -29,6 +33,8 @@ class MockDataService {
       'distance': '2.1km',
       'imageUrl':
           'https://images.unsplash.com/photo-1587593810167-a84920ea0781?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Stall #33',
+      'marketSection': 'Meat Section',
     },
     {
       'id': 'v4',
@@ -39,6 +45,8 @@ class MockDataService {
       'distance': '1.5km',
       'imageUrl':
           'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Block 3 | Stall 4',
+      'marketSection': 'Fish Section',
     },
     {
       'id': 'v5',
@@ -49,6 +57,8 @@ class MockDataService {
       'distance': '0.9km',
       'imageUrl':
           'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Block 7 | Stall 2',
+      'marketSection': 'Vegetable Section',
     },
     {
       'id': 'v6',
@@ -59,6 +69,8 @@ class MockDataService {
       'distance': '1.8km',
       'imageUrl':
           'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Block 14 | Stall 2',
+      'marketSection': 'Fish Section',
     },
   ];
 

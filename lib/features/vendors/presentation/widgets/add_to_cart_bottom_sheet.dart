@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:palengkego/core/services/cart_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/cart/application/cart_provider.dart';
 
-class AddToCartBottomSheet extends StatefulWidget {
+class AddToCartBottomSheet extends ConsumerStatefulWidget {
   final String vendorName;
   final Map<String, dynamic> product;
 
@@ -29,10 +30,11 @@ class AddToCartBottomSheet extends StatefulWidget {
   }
 
   @override
-  State<AddToCartBottomSheet> createState() => _AddToCartBottomSheetState();
+  ConsumerState<AddToCartBottomSheet> createState() =>
+      _AddToCartBottomSheetState();
 }
 
-class _AddToCartBottomSheetState extends State<AddToCartBottomSheet> {
+class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
   late final List<String> _weights;
   late String _selectedWeight;
   int _quantity = 1;
@@ -277,10 +279,12 @@ class _AddToCartBottomSheetState extends State<AddToCartBottomSheet> {
             const SizedBox(height: 26),
             SizedBox(
               width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  globalCart.addToCart(
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!mounted) return;
+                    final cart = ref.read(cartServiceProvider);
+                    cart.addToCart(
                     vendorName: widget.vendorName,
                     productName: widget.product['name'] as String? ?? 'Item',
                     price: selectedUnitPrice,
@@ -291,7 +295,7 @@ class _AddToCartBottomSheetState extends State<AddToCartBottomSheet> {
                         'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=300&fit=crop',
                   );
 
-                  final latestIndex = globalCart.items.lastIndexWhere(
+                    final latestIndex = cart.items.lastIndexWhere(
                     (item) =>
                         item.vendorName == widget.vendorName &&
                         item.productName ==
@@ -299,9 +303,9 @@ class _AddToCartBottomSheetState extends State<AddToCartBottomSheet> {
                         item.weight == _selectedWeight,
                   );
 
-                  if (latestIndex >= 0) {
-                    globalCart.updateQuantity(latestIndex, _quantity);
-                  }
+                    if (latestIndex >= 0) {
+                      cart.updateQuantity(latestIndex, _quantity);
+                    }
 
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -1,55 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:palengkego/core/services/cart_service.dart';
-
-class OrderLineItem {
-  final String productName;
-  final int quantity;
-  final double unitPrice;
-  final String weight;
-  final String pricePerKg;
-  final String image;
-
-  const OrderLineItem({
-    required this.productName,
-    required this.quantity,
-    required this.unitPrice,
-    required this.weight,
-    required this.pricePerKg,
-    required this.image,
-  });
-
-  double get total => unitPrice * quantity;
-
-  String get quantityLabel {
-    if (weight == '1kg') {
-      return '${quantity}kg';
-    }
-
-    return '$quantity x $weight';
-  }
-}
-
-class MarketOrder {
-  final String id;
-  final String vendorName;
-  final String vendorImage;
-  final String status;
-  final DateTime placedAt;
-  final List<OrderLineItem> items;
-  final bool isPickup;
-
-  const MarketOrder({
-    required this.id,
-    required this.vendorName,
-    required this.vendorImage,
-    required this.status,
-    required this.placedAt,
-    required this.items,
-    required this.isPickup,
-  });
-
-  double get total => items.fold<double>(0, (sum, item) => sum + item.total);
-}
+import 'package:palengkego/features/cart/domain/cart_item.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_line_item.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 
 final globalOrders = OrderService();
 
@@ -60,7 +13,7 @@ class OrderService extends ChangeNotifier {
       vendorName: 'Aling Nena\'s Vegetable Stall',
       vendorImage:
           'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=200&auto=format&fit=crop',
-      status: 'Pending',
+      status: OrderStatus.pending,
       placedAt: DateTime(2023, 10, 24, 10, 30),
       isPickup: false,
       items: const [
@@ -98,7 +51,7 @@ class OrderService extends ChangeNotifier {
       vendorName: 'Mang Juan\'s Fresh Fish',
       vendorImage:
           'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=200&auto=format&fit=crop',
-      status: 'Completed',
+      status: OrderStatus.completed,
       placedAt: DateTime(2023, 10, 22, 8, 15),
       isPickup: true,
       items: const [
@@ -136,7 +89,7 @@ class OrderService extends ChangeNotifier {
       vendorName: 'Daily Meat Shop',
       vendorImage:
           'https://images.unsplash.com/photo-1602470520998-f4a52199a3d6?q=80&w=200&auto=format&fit=crop',
-      status: 'Cancelled',
+      status: OrderStatus.cancelled,
       placedAt: DateTime(2023, 10, 20, 14, 45),
       isPickup: false,
       items: const [
@@ -165,7 +118,7 @@ class OrderService extends ChangeNotifier {
       vendorName: 'Bicol Fruits Center',
       vendorImage:
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=200&auto=format&fit=crop',
-      status: 'Confirmed',
+      status: OrderStatus.confirmed,
       placedAt: DateTime(2023, 10, 25, 9, 15),
       isPickup: false,
       items: const [
@@ -239,7 +192,7 @@ class OrderService extends ChangeNotifier {
         id: '#${_nextOrderNumber++}',
         vendorName: entry.key,
         vendorImage: entry.value.first.image,
-        status: isPickup ? 'Pending' : 'Confirmed',
+        status: isPickup ? OrderStatus.pending : OrderStatus.confirmed,
         placedAt: DateTime.now(),
         items: orderItems,
         isPickup: isPickup,

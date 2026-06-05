@@ -1,18 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
-import 'package:palengkego/features/auth/presentation/pages/registration_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      final email = _emailController.text.isEmpty ? 'test@example.com' : _emailController.text;
+      final password = _passwordController.text.isEmpty ? 'password' : _passwordController.text;
+      await authRepo.login(email, password);
+      
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.main,
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
+                        controller: _emailController,
                       ),
                       const SizedBox(height: 16),
                       // Password field
@@ -152,11 +196,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Register link
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const RegistrationScreen(),
-                            ),
-                          );
+                          Navigator.of(context)
+                              .pushNamed(AppRoutes.registration);
                         },
                         child: Center(
                           child: RichText(
@@ -200,6 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required IconData prefixIcon,
     TextInputType? keyboardType,
     TextInputAction? textInputAction,
+    TextEditingController? controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,6 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextFormField(
+            controller: controller,
             keyboardType: keyboardType,
             textInputAction: textInputAction,
             decoration: InputDecoration(
@@ -314,6 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextFormField(
+            controller: _passwordController,
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.done,
             decoration: InputDecoration(
@@ -371,13 +415,13 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+            color: const Color(0xFF0B372B).withOpacity(0.2),
             offset: const Offset(0, 4),
             blurRadius: 6,
             spreadRadius: -4,
           ),
           BoxShadow(
-            color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+            color: const Color(0xFF0B372B).withOpacity(0.2),
             offset: const Offset(0, 10),
             blurRadius: 15,
             spreadRadius: -3,
@@ -385,14 +429,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
       child: ElevatedButton(
-        onPressed: () {
-          if (_formKey.currentState?.validate() ?? false) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const MainScreen()),
-              (route) => false,
-            );
-          }
-        },
+        onPressed: _isLoading ? null : _handleLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0B372B),
           foregroundColor: Colors.white,
@@ -400,29 +437,38 @@ class _LoginScreenState extends State<LoginScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(50),
           ),
+          disabledBackgroundColor: const Color(0xFF0B372B).withOpacity(0.5),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Log In',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+        child: _isLoading 
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.0,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Log In',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.arrow_forward_rounded,
-              size: 16,
-              color: Colors.white,
-            ),
-          ],
-        ),
       ),
     );
   }
-
 }

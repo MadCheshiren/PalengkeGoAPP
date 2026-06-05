@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_items_list.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_timeline.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_summary_row.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> order;
+  final MarketOrder order;
 
-  OrderDetailsScreen({
+  const OrderDetailsScreen({
     super.key,
     required this.order,
   });
 
+  String get _statusDescription {
+    if (order.status == OrderStatus.completed) {
+      return 'Delivered and completed successfully';
+    } else if (order.status == OrderStatus.cancelled) {
+      return 'This order has been cancelled';
+    } else if (order.status == OrderStatus.confirmed) {
+      return 'Confirmed by vendor';
+    } else {
+      return 'Preparing your fresh harvest';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final subtotalAmount = order.total;
+    final deliveryFeeAmount = order.isPickup ? 0.0 : 49.0;
+    final serviceFeeAmount = 10.0;
+    final totalAmount = subtotalAmount + deliveryFeeAmount + serviceFeeAmount;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -26,8 +48,8 @@ class OrderDetailsScreen extends StatelessWidget {
                       child: Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -39,7 +61,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Order #${order['id'] ?? 'EH-82931'}',
+                      'Order #${order.id}',
                       style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 18,
@@ -90,7 +112,7 @@ class OrderDetailsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                order['statusDescription'] ?? 'Preparing your fresh harvest',
+                                _statusDescription,
                                 style: const TextStyle(
                                   fontFamily: 'PlusJakartaSans',
                                   fontSize: 12,
@@ -131,14 +153,16 @@ class OrderDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       // Timeline
-                      _buildTimeline(order['currentStatus'] ?? 'Preparing'),
+                      OrderDetailsTimeline(
+                        currentStatus: order.statusLabel,
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // Estimated Arrival
+            // Estimated Arrival / Pickup Ready
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -151,10 +175,10 @@ class OrderDetailsScreen extends StatelessWidget {
                         color: const Color(0xFFECFDF5),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
-                        Icons.local_shipping_outlined,
+                      child: Icon(
+                        order.isPickup ? Icons.storefront_outlined : Icons.local_shipping_outlined,
                         size: 20,
-                        color: Color(0xFF059669),
+                        color: const Color(0xFF059669),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -162,9 +186,9 @@ class OrderDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'ESTIMATED ARRIVAL',
-                            style: TextStyle(
+                          Text(
+                            order.isPickup ? 'ESTIMATED READY TIME' : 'ESTIMATED ARRIVAL',
+                            style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -174,7 +198,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            order['estimatedArrival'] ?? '11:45 AM - 12:15 PM',
+                            order.isPickup ? 'Ready in 15-20 Mins' : '11:45 AM - 12:15 PM',
                             style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 16,
@@ -197,9 +221,9 @@ class OrderDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'DELIVERY ADDRESS',
-                      style: TextStyle(
+                    Text(
+                      order.isPickup ? 'PICKUP LOCATION' : 'DELIVERY ADDRESS',
+                      style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -209,7 +233,9 @@ class OrderDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      order['deliveryAddress'] ?? 'Unit 402, Greenview Residences, BGC, Taguig City',
+                      order.isPickup
+                          ? 'Vendor Stall at Wet Market Section, Pasig Mega Market'
+                          : 'Unit 402, Greenview Residences, BGC, Taguig City',
                       style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
@@ -253,7 +279,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              order['vendorImage'] ?? 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=100&h=100&fit=crop',
+                              order.vendorImage,
                               width: 48,
                               height: 48,
                               fit: BoxFit.cover,
@@ -271,7 +297,7 @@ class OrderDetailsScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  order['vendorName'] ?? "Lola's Fresh Catch",
+                                  order.vendorName,
                                   style: const TextStyle(
                                     fontFamily: 'PlusJakartaSans',
                                     fontSize: 16,
@@ -280,9 +306,9 @@ class OrderDetailsScreen extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                Text(
-                                  order['vendorLocation'] ?? 'Stall #8-14, Wet Market Section',
-                                  style: const TextStyle(
+                                const Text(
+                                  'Stall #8-14, Wet Market Section',
+                                  style: TextStyle(
                                     fontFamily: 'PlusJakartaSans',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
@@ -299,7 +325,14 @@ class OrderDetailsScreen extends StatelessWidget {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            // TODO: Call vendor
+                            // Dead tap handler visual update / implementation
+                            ScaffoldMessenger.of(context).clearSnackBars();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Calling vendor dialer coming soon!', style: TextStyle(fontFamily: 'PlusJakartaSans')),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
                           },
                           icon: const Icon(Icons.phone, size: 16),
                           label: const Text('Call Vendor'),
@@ -339,7 +372,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${(order['items'] as List?)?.length ?? 3} Items',
+                          '${order.items.length} Items',
                           style: const TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 12,
@@ -350,7 +383,9 @@ class OrderDetailsScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    ..._buildItemsList(order['items'] ?? _defaultItems),
+                    OrderDetailsItemsList(
+                      items: order.items,
+                    ),
                   ],
                 ),
               ),
@@ -434,21 +469,21 @@ class OrderDetailsScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _buildSummaryRow('Subtotal', order['subtotal'] ?? '₱500.00'),
+                      OrderSummaryRow(label: 'Subtotal', value: '₱${subtotalAmount.toStringAsFixed(2)}'),
                       const SizedBox(height: 12),
-                      _buildSummaryRow('Delivery Fee', order['deliveryFee'] ?? '₱49.00'),
+                      OrderSummaryRow(label: 'Delivery Fee', value: '₱${deliveryFeeAmount.toStringAsFixed(2)}'),
                       const SizedBox(height: 12),
-                      _buildSummaryRow('Service Fee', order['serviceFee'] ?? '₱10.00'),
+                      OrderSummaryRow(label: 'Service Fee', value: '₱${serviceFeeAmount.toStringAsFixed(2)}'),
                       const Divider(height: 24, color: Color(0xFFE5E7EB)),
-                      _buildSummaryRow('Total', order['total'] ?? '₱559.00', isTotal: true),
+                      OrderSummaryRow(label: 'Total', value: '₱${totalAmount.toStringAsFixed(2)}', isTotal: true),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // Cancel Order Button (hidden for completed orders)
-            if (order['status'] != 'Completed')
+            // Cancel Order Button (hidden for completed/cancelled orders)
+            if (order.status != OrderStatus.completed && order.status != OrderStatus.cancelled)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -488,195 +523,6 @@ class OrderDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeline(String currentStatus) {
-    final steps = [
-      {'label': 'Order Placed', 'time': '10:30 AM, Oct 24', 'status': 'completed'},
-      {'label': 'Confirmed', 'time': '10:35 AM, Oct 24', 'status': 'completed'},
-      {'label': 'Preparing', 'time': 'Vendor is weighing items', 'status': 'active'},
-      {'label': 'Out for Delivery', 'time': '', 'status': 'pending'},
-      {'label': 'Completed', 'time': '', 'status': 'pending'},
-    ];
-
-    return Column(
-      children: steps.asMap().entries.map((entry) {
-        final index = entry.key;
-        final step = entry.value;
-        final isCompleted = step['status'] == 'completed';
-        final isActive = step['status'] == 'active';
-        final isLast = index == steps.length - 1;
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: isCompleted || isActive
-                        ? const Color(0xFF0B372B)
-                        : const Color(0xFFE5E7EB),
-                    shape: BoxShape.circle,
-                  ),
-                  child: isCompleted
-                      ? const Icon(Icons.check, size: 14, color: Colors.white)
-                      : isActive
-                          ? const Icon(Icons.more_horiz, size: 14, color: Colors.white)
-                          : null,
-                ),
-                if (!isLast)
-                  Container(
-                    width: 2,
-                    height: 40,
-                    color: isCompleted ? const Color(0xFF0B372B) : const Color(0xFFE5E7EB),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    step['label']!,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isCompleted || isActive
-                          ? const Color(0xFF1F2937)
-                          : const Color(0xFF9CA3AF),
-                    ),
-                  ),
-                  if (step['time']!.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      step['time']!,
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: isCompleted
-                            ? const Color(0xFF6B7280)
-                            : isActive
-                                ? const Color(0xFF0B372B)
-                                : const Color(0xFF9CA3AF),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
-  List<Widget> _buildItemsList(List<dynamic> items) {
-    return items.map((item) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                item['image'] ?? 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=100&h=100&fit=crop',
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(
-                  width: 56,
-                  height: 56,
-                  color: const Color(0xFFF3F4F6),
-                  child: const Icon(Icons.image, size: 24, color: Color(0xFF9CA3AF)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item['name'] ?? 'Fresh Bangus',
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item['description'] ?? '2 Kilos • Cleaned & Gutted',
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  item['price'] ?? '₱420.00',
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                Text(
-                  item['unitPrice'] ?? '₱210/kg',
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: isTotal ? 16 : 14,
-            fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
-            color: isTotal ? const Color(0xFF1F2937) : const Color(0xFF6B7280),
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: isTotal ? 18 : 14,
-            fontWeight: isTotal ? FontWeight.w800 : FontWeight.w600,
-            color: const Color(0xFF1F2937),
-          ),
-        ),
-      ],
-    );
-  }
-
   void _showCancelDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -710,7 +556,13 @@ class OrderDetailsScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Cancel order logic
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Order cancellation request submitted!', style: TextStyle(fontFamily: 'PlusJakartaSans')),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
@@ -725,26 +577,4 @@ class OrderDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
-  // Default items for demo
-  final List<Map<String, dynamic>> _defaultItems = [
-    {
-      'name': 'Fresh Bangus (Milkfish)',
-      'description': '2 Kilos • Cleaned & Gutted',
-      'price': '₱420.00',
-      'unitPrice': '₱210/kg',
-    },
-    {
-      'name': 'Organic Tomatoes',
-      'description': '500 Grams • Medium Size',
-      'price': '₱45.00',
-      'unitPrice': '₱90/kg',
-    },
-    {
-      'name': 'Red Onions',
-      'description': '250 Grams',
-      'price': '₱35.00',
-      'unitPrice': '₱140/kg',
-    },
-  ];
 }

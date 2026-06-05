@@ -23,14 +23,35 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              const Text(
-                'Earnings',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827),
-                ),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF6F8F7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                        color: Color(0xFF0B372B),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Earnings',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 

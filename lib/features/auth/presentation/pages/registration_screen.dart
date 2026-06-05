@@ -1,20 +1,72 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
-import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
-import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
-import 'package:palengkego/features/profile/presentation/pages/set_delivery_address_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
 
-class RegistrationScreen extends StatefulWidget {
+class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
 
   @override
-  State<RegistrationScreen> createState() => _RegistrationScreenState();
+  ConsumerState<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      
+      final email = _emailController.text.isEmpty ? 'test@example.com' : _emailController.text;
+      final password = _passwordController.text.isEmpty ? 'password' : _passwordController.text;
+      final name = _nameController.text.isEmpty ? 'Test User' : _nameController.text;
+
+      await authRepo.register(email, password, name);
+
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.main,
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +117,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         label: 'Full Name',
                         hintText: 'Enter your full name',
                         prefixIcon: Icons.person_outline_rounded,
+                        controller: _nameController,
                       ),
                       const SizedBox(height: 16),
                       // Email
@@ -74,6 +127,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
+                        controller: _emailController,
                       ),
                       const SizedBox(height: 16),
                       // Phone
@@ -83,12 +137,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
+                        controller: _phoneController,
                       ),
                       const SizedBox(height: 16),
                       // Password
                       _buildPasswordField(
                         label: 'Password',
                         hintText: 'Create a password',
+                        controller: _passwordController,
                         obscureText: _obscurePassword,
                         onToggleVisibility: () {
                           setState(() {
@@ -101,6 +157,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       _buildPasswordField(
                         label: 'Confirm Password',
                         hintText: 'Confirm your password',
+                        controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
                         onToggleVisibility: () {
                           setState(() {
@@ -159,6 +216,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     required IconData prefixIcon,
     TextInputType? keyboardType,
     TextInputAction? textInputAction,
+    TextEditingController? controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,6 +238,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           child: TextFormField(
+            controller: controller,
             keyboardType: keyboardType,
             textInputAction: textInputAction,
             decoration: InputDecoration(
@@ -212,6 +271,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Widget _buildPasswordField({
     required String label,
     required String hintText,
+    required TextEditingController controller,
     required bool obscureText,
     required VoidCallback onToggleVisibility,
   }) {
@@ -235,6 +295,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextFormField(
+            controller: controller,
             obscureText: obscureText,
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(
@@ -284,11 +345,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Widget _addressPlaceholder() {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const SetDeliveryAddressScreen(),
-          ),
-        );
+          final result =
+              await Navigator.of(context).pushNamed(AppRoutes.setDeliveryAddress);
         // Handle the returned address data if needed
         if (result != null && result is Map<String, dynamic>) {
           // Update the address display or store the data
@@ -300,7 +358,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B).withValues(alpha: 0.05),
+          color: const Color(0xFF0B372B).withOpacity(0.05),
           border: Border.all(
             color: const Color(0xFF0B372B),
             width: 1,
@@ -314,7 +372,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF0B372B).withValues(alpha: 0.1),
+                color: const Color(0xFF0B372B).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -364,12 +422,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        color: Colors.white.withOpacity(0.8),
         border: const Border(
           top: BorderSide(color: Color(0xFFF1F5F9), width: 1),
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12),
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 12),
         ],
       ),
       child: ClipRRect(
@@ -384,13 +442,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+                      color: const Color(0xFF0B372B).withOpacity(0.2),
                       offset: const Offset(0, 4),
                       blurRadius: 6,
                       spreadRadius: -4,
                     ),
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+                      color: const Color(0xFF0B372B).withOpacity(0.2),
                       offset: const Offset(0, 10),
                       blurRadius: 15,
                       spreadRadius: -3,
@@ -398,14 +456,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const MainScreen()),
-                        (route) => false,
-                      );
-                    }
-                  },
+                  onPressed: _isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0B372B),
                     foregroundColor: Colors.white,
@@ -413,35 +464,43 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
+                    disabledBackgroundColor: const Color(0xFF0B372B).withOpacity(0.5),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Register Account',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.0,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Register Account',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
                 ),
               ),
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
+                  Navigator.of(context).pushNamed(AppRoutes.login);
                 },
                 child: Center(
                   child: RichText(
@@ -473,5 +532,4 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ),
     );
   }
-
 }

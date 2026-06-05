@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
-import 'add_credit_card_screen.dart';
 
 /// Payment Methods Screen
 /// Allows user to select or add payment methods.
@@ -39,11 +39,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 
   Future<void> _addCard() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddCreditCardScreen(),
-      ),
+    final result = await Navigator.of(context).pushNamed(
+      AppRoutes.addCreditCard,
     );
     if (result != null && result is Map<String, dynamic>) {
       if (!mounted) return;

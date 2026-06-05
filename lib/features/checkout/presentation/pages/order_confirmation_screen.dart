@@ -1,33 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/navigation/app_router.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/services/customer_preferences_service.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
-import 'package:palengkego/core/services/order_service.dart';
-import 'package:palengkego/features/checkout/presentation/pages/payment_methods_screen.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
-import 'package:palengkego/features/orders/presentation/pages/track_order_screen.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
 
 class OrderConfirmationScreen extends StatelessWidget {
   final bool isPickup;
-  final String orderNumber;
-  final String? vendorName;
-  final String? vendorStall;
-  final String? vendorSection;
+  final List<MarketOrder> orders;
   final String? address;
-  final MarketOrder? order;
 
   const OrderConfirmationScreen({
     super.key,
     required this.isPickup,
-    required this.orderNumber,
-    this.vendorName,
-    this.vendorStall,
-    this.vendorSection,
+    required this.orders,
     this.address,
-    this.order,
   });
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('[OrderConfirmationScreen] build called. isPickup: $isPickup, orders count: ${orders.length}');
+    for (int i = 0; i < orders.length; i++) {
+      debugPrint('  Order $i: ID=${orders[i].id}, vendorName="${orders[i].vendorName}", itemsCount=${orders[i].items.length}');
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -62,10 +58,12 @@ class OrderConfirmationScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Success message
-                    const Text(
-                      'Order Placed\nSuccessfully!',
+                    Text(
+                      orders.length > 1
+                          ? 'Orders Placed\nSuccessfully!'
+                          : 'Order Placed\nSuccessfully!',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -77,18 +75,24 @@ class OrderConfirmationScreen extends StatelessWidget {
 
                     // Order number
                     Text(
-                      'Order Number: $orderNumber',
+                      orders.length > 1
+                          ? 'Order Numbers: ${orders.map((o) => o.id).join(', ')}'
+                          : 'Order Number: ${orders.isNotEmpty ? orders.first.id : ''}',
                       style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
 
                     // Information card
-                    _buildInfoCard(),
+                    if (orders.length > 1)
+                      _buildMultiOrdersList(context)
+                    else if (orders.isNotEmpty)
+                      _buildInfoCard(orders.first),
                     const SizedBox(height: 16),
 
                     // Payment method card
@@ -108,25 +112,23 @@ class OrderConfirmationScreen extends StatelessWidget {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate to track order screen
-                        if (order != null) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => TrackOrderScreen(
-                                order: order!,
-                                isPickup: isPickup,
-                              ),
-                            ),
+                        if (orders.length == 1) {
+                          // Navigate to track order screen
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRoutes.trackOrder,
                             (route) => false,
+                            arguments: TrackOrderRouteArgs(
+                              order: orders.first,
+                              isPickup: isPickup,
+                            ),
                           );
                         } else {
-                          // Fallback to orders list
+                          // Fallback to active orders tab in MainScreen
                           mainTabNotifier.value = 2;
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => const MainScreen(initialIndex: 2),
-                            ),
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRoutes.main,
                             (route) => false,
+                            arguments: const MainRouteArgs(initialIndex: 2),
                           );
                         }
                       },
@@ -138,7 +140,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        isPickup ? 'Track Stall' : 'Track My Order',
+                        orders.length > 1
+                            ? 'View Active Orders'
+                            : (isPickup ? 'Track Stall' : 'Track My Order'),
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
@@ -155,11 +159,10 @@ class OrderConfirmationScreen extends StatelessWidget {
                       onPressed: () {
                         // Navigate to home
                         mainTabNotifier.value = 0;
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (_) => const MainScreen(initialIndex: 0),
-                          ),
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          AppRoutes.main,
                           (route) => false,
+                          arguments: const MainRouteArgs(initialIndex: 0),
                         );
                       },
                       style: OutlinedButton.styleFrom(
@@ -188,7 +191,9 @@ class OrderConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(MarketOrder order) {
+    final stall = _vendorStall(order.vendorName);
+    final section = _vendorSection(order.vendorName);
     if (isPickup) {
       // Pick-up variant
       return Container(
@@ -226,7 +231,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    vendorStall ?? 'Stall',
+                    stall,
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
@@ -250,7 +255,7 @@ class OrderConfirmationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              vendorName ?? 'Vendor',
+              order.vendorName,
               style: const TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
@@ -260,7 +265,7 @@ class OrderConfirmationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              '${vendorStall ?? ''}${vendorSection != null ? ', $vendorSection' : ''}',
+              '$stall, $section',
               style: const TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 12,
@@ -385,6 +390,269 @@ class OrderConfirmationScreen extends StatelessWidget {
     }
   }
 
+  Widget _buildMultiOrdersList(BuildContext context) {
+    try {
+      return Column(
+        children: orders.map((order) {
+          final stall = _vendorStall(order.vendorName);
+          final section = _vendorSection(order.vendorName);
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Vendor Header
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0B372B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.storefront_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.vendorName,
+                            style: const TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$stall | $section',
+                            style: const TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 8),
+                
+                Text(
+                  'ORDER ID: ${order.id}',
+                  style: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF9CA3AF),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                
+                ...order.items.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${item.quantity}x',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0B372B),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          item.productName,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 13,
+                            color: Color(0xFF4B5563),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        'PHP ${item.total.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                    ],
+                  ),
+                )).toList(),
+                
+                const SizedBox(height: 8),
+                const Divider(color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 8),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'TOTAL AMOUNT',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9CA3AF),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          'PHP ${order.total.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0B372B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.trackOrder,
+                          arguments: TrackOrderRouteArgs(
+                            order: order,
+                            isPickup: isPickup,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.gps_fixed_rounded, size: 14),
+                      label: const Text('Track'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0B372B),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        textStyle: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    } catch (e, stack) {
+      debugPrint('[OrderConfirmationScreen] Error rendering multi-order list: $e');
+      debugPrint(stack.toString());
+      return Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.red.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red.shade800),
+                const SizedBox(width: 8),
+                Text(
+                  'Rendering Error',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              e.toString(),
+              style: TextStyle(
+                fontFamily: 'Courier',
+                fontSize: 12,
+                color: Colors.red.shade900,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  String _vendorStall(String vendorName) {
+    switch (vendorName) {
+      case 'Aicel D. Castillo Fish Retailer':
+        return 'Block 14 | Stall 2';
+      case 'Diosa Fruit Stand':
+        return 'Stall 4';
+      case 'William Del Rosario Meat Shop':
+        return 'Block 15 | Stall 2';
+      case 'Paul\'s Meat Shop':
+        return 'Stall #33';
+      case 'Merly Diego Dried Fish Store':
+        return 'Block 3 | Stall 4';
+      case 'Sophie Sb’s Store':
+      case 'Sofie Sb’s Store':
+        return 'Block 7 | Stall 2';
+      default:
+        return 'Market Stall';
+    }
+  }
+
+  String _vendorSection(String vendorName) {
+    switch (vendorName) {
+      case 'Diosa Fruit Stand':
+        return 'Fruit Section';
+      case 'William Del Rosario Meat Shop':
+      case 'Paul\'s Meat Shop':
+        return 'Meat Section';
+      case 'Sophie Sb’s Store':
+      case 'Sofie Sb’s Store':
+        return 'Vegetable Section';
+      default:
+        return 'Fish Section';
+    }
+  }
+
   Widget _buildPaymentCard(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -419,14 +687,12 @@ class OrderConfirmationScreen extends StatelessWidget {
           GestureDetector(
             onTap: () async {
               final messenger = ScaffoldMessenger.of(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PaymentMethodsScreen(
+                final result = await Navigator.of(context).pushNamed(
+                  AppRoutes.paymentMethods,
+                  arguments: const PaymentMethodsRouteArgs(
                     currentMethod: 'cod',
                   ),
-                ),
-              );
+                );
               if (result != null && result is Map<String, dynamic>) {
                 final method = result['method'] as String;
                 final message = switch (method) {

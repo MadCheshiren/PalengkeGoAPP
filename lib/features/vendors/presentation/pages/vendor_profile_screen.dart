@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/core/mock/mock_data.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/cart_service.dart';
 import 'package:palengkego/core/widgets/app_bottom_nav_bar.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
+import 'package:palengkego/features/vendors/application/vendor_provider.dart';
+import 'package:palengkego/features/vendors/domain/vendor_product.dart';
+import 'package:palengkego/features/vendors/domain/vendor_profile.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/add_to_cart_bottom_sheet.dart';
 
-class VendorProfileScreen extends StatefulWidget {
-  final Map<String, dynamic> vendor;
+class VendorProfileScreen extends ConsumerStatefulWidget {
+  final String vendorId;
 
-  const VendorProfileScreen({super.key, required this.vendor});
+  const VendorProfileScreen({super.key, required this.vendorId});
 
   @override
-  State<VendorProfileScreen> createState() => _VendorProfileScreenState();
+  ConsumerState<VendorProfileScreen> createState() =>
+      _VendorProfileScreenState();
 }
 
-class _VendorProfileScreenState extends State<VendorProfileScreen> {
-  late final List<Map<String, dynamic>> _products;
+class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
   int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _products = _productsForVendor();
     globalCart.addListener(_onCartChanged);
     _cartItemCount = globalCart.itemCount;
   }
@@ -33,6 +35,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
   }
 
   void _onCartChanged() {
+    if (!mounted) return;
     setState(() {
       _cartItemCount = globalCart.itemCount;
     });
@@ -40,67 +43,77 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final heroImage = _heroImageForVendor();
+    final profileAsync = ref.watch(vendorProfileProvider(widget.vendorId));
+    final productsAsync = ref.watch(vendorProductsProvider(widget.vendorId));
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            _topBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _heroSection(heroImage),
-                    _detailsSection(),
-                    const Divider(height: 1, color: Color(0xFFF3F4F6)),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                      child: Text(
-                        'Fresh Catch Today',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0B372B),
-                          height: 1.2,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _products.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 14,
-                              mainAxisSpacing: 15,
-                              childAspectRatio: 0.79,
+        child: profileAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0B372B))),
+          error: (error, stack) => Center(child: Text('Error loading vendor: $error')),
+          data: (profile) {
+            return Column(
+              children: [
+                _topBar(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _heroSection(profile),
+                        _detailsSection(profile),
+                        const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16, 20, 16, 0),
+                          child: Text(
+                            'Fresh Catch Today',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0B372B),
+                              height: 1.2,
                             ),
-                        itemBuilder: (context, index) {
-                          return _ProductCard(
-                            product: _products[index],
-                            vendorName:
-                                widget.vendor['name'] as String? ?? 'Vendor',
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                          child: productsAsync.when(
+                            loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0B372B))),
+                            error: (error, stack) => Text('Error loading products: $error'),
+                            data: (products) => GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: products.length,
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 14,
+                                mainAxisSpacing: 15,
+                                childAspectRatio: 0.79,
+                              ),
+                              itemBuilder: (context, index) {
+                                return _ProductCard(
+                                  product: products[index],
+                                  vendorName: profile.name,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
       bottomNavigationBar: AppBottomNavBar(
-        selectedIndex: 0, // Market tab
+        selectedIndex: 1, // Market tab
         onTap: (index) => navigateToMainTab(context, index),
         cartBadgeCount: _cartItemCount > 0 ? _cartItemCount : null,
         isCartAction: true,
@@ -123,18 +136,58 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                 onTap: () => Navigator.pop(context),
               ),
             ),
-            Text(
+            const Text(
               'Vendor Profile',
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0B372B),
+                color: Color(0xFF0B372B),
               ),
             ),
             Align(
               alignment: Alignment.centerRight,
-              child: _circleButton(icon: Icons.more_vert_rounded),
+              child: PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: Colors.white,
+                onSelected: (value) {
+                  if (value == 'flag') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Vendor flagged successfully')),
+                    );
+                  } else if (value == 'block') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Vendor blocked successfully')),
+                    );
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'flag',
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag_outlined, color: Colors.redAccent, size: 20),
+                        SizedBox(width: 8),
+                        Text('Flag Vendor'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'block',
+                    child: Row(
+                      children: [
+                        Icon(Icons.block, color: Colors.black54, size: 20),
+                        SizedBox(width: 8),
+                        Text('Block Vendor'),
+                      ],
+                    ),
+                  ),
+                ],
+                child: _circleButton(icon: Icons.more_vert_rounded),
+              ),
             ),
           ],
         ),
@@ -142,7 +195,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
     );
   }
 
-  Widget _heroSection(String heroImage) {
+  Widget _heroSection(VendorProfile profile) {
     return SizedBox(
       height: 208,
       child: Stack(
@@ -164,7 +217,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
               ],
             ),
             child: Image.network(
-              heroImage,
+              profile.imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) {
                 return Container(color: const Color(0xFFE5E7EB));
@@ -198,7 +251,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
               ),
               child: ClipOval(
                 child: Image.network(
-                  _avatarImageForVendor(),
+                  profile.avatarUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) {
                     return Container(
@@ -222,20 +275,20 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
               height: 20,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFDCFCE7),
+                color: profile.isOpen ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
-                  color: const Color.fromRGBO(22, 163, 74, 0.2),
+                  color: profile.isOpen ? const Color.fromRGBO(22, 163, 74, 0.2) : const Color.fromRGBO(100, 116, 139, 0.2),
                 ),
               ),
               alignment: Alignment.center,
-              child: const Text(
-                'Open Now',
+              child: Text(
+                profile.isOpen ? 'Open Now' : 'Closed',
                 style: TextStyle(
                   fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF166534),
+                  color: profile.isOpen ? const Color(0xFF166534) : const Color(0xFF64748B),
                   height: 1,
                 ),
               ),
@@ -246,7 +299,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
     );
   }
 
-  Widget _detailsSection() {
+  Widget _detailsSection(VendorProfile profile) {
     return SizedBox(
       height: 169,
       width: double.infinity,
@@ -256,12 +309,12 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.vendor['name'] as String? ?? 'Vendor',
-              style: TextStyle(
+              profile.name,
+              style: const TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0B372B),
+                color: Color(0xFF0B372B),
                 height: 1.1,
               ),
             ),
@@ -272,12 +325,12 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                 children: [
                   _inlineMeta(
                     icon: Icons.storefront_outlined,
-                    text: _stallLabelFor(widget.vendor['id'] as String?),
+                    text: profile.stallLocation,
                   ),
                   const SizedBox(width: 16),
                   _inlineMeta(
                     icon: Icons.photo_library_outlined,
-                    text: '${widget.vendor['category'] ?? 'Fish'} Section',
+                    text: '${profile.category} Section',
                   ),
                   const SizedBox(width: 16),
                   const Icon(
@@ -287,7 +340,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${widget.vendor['rating'] ?? '4.5'}',
+                    '${profile.rating}',
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
@@ -296,9 +349,9 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
-                    '(112)',
-                    style: TextStyle(
+                  Text(
+                    '(${profile.reviewCount})',
+                    style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -390,126 +443,17 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
       ),
     );
   }
-
-  List<Map<String, dynamic>> _productsForVendor() {
-    final vendorName = (widget.vendor['name'] as String? ?? '').toLowerCase();
-    final products = MockDataService.getProductsForVendor(widget.vendor['id']);
-
-    if (products.isNotEmpty) {
-      return products;
-    }
-
-    if (vendorName.contains('aicel')) {
-      return [
-        {
-          'name': 'Tilapia',
-          'price': 120.0,
-          'description': 'Locally sourced',
-          'weight': '1kg',
-          'pricePerKg': 'PHP 120/kg',
-          'imageUrl':
-              'https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=400&h=300&fit=crop',
-        },
-        {
-          'name': 'Bangus (Milkfish)',
-          'price': 180.0,
-          'description': 'Boneless available',
-          'weight': '1kg',
-          'pricePerKg': 'PHP 180/kg',
-          'imageUrl':
-              'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400&h=300&fit=crop',
-        },
-        {
-          'name': 'Tiger Prawns',
-          'price': 350.0,
-          'description': 'Medium size',
-          'weight': '1kg',
-          'pricePerKg': 'PHP 350/kg',
-          'imageUrl':
-              'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400&h=300&fit=crop',
-        },
-        {
-          'name': 'Squid',
-          'price': 280.0,
-          'description': 'Ideal for adobo',
-          'weight': '1kg',
-          'pricePerKg': 'PHP 280/kg',
-          'imageUrl':
-              'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=400&h=300&fit=crop',
-        },
-        {
-          'name': 'Maya-Maya',
-          'price': 420.0,
-          'description': 'Whole fish',
-          'weight': '1kg',
-          'pricePerKg': 'PHP 420/kg',
-          'imageUrl':
-              'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?w=400&h=300&fit=crop',
-        },
-        {
-          'name': 'Tahong (Mussels)',
-          'price': 80.0,
-          'description': 'Fresh harvest',
-          'weight': '1kg',
-          'pricePerKg': 'PHP 80/kg',
-          'imageUrl':
-              'https://images.unsplash.com/photo-1625943555419-56a2cb596640?w=400&h=300&fit=crop',
-        },
-      ];
-    }
-
-    return products;
-  }
-
-  String _heroImageForVendor() {
-    final vendorName = (widget.vendor['name'] as String? ?? '').toLowerCase();
-
-    if (vendorName.contains('aicel')) {
-      return 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=900&h=400&fit=crop';
-    }
-
-    if (_products.isNotEmpty) {
-      return _products.first['imageUrl'] as String? ??
-          'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=900&h=400&fit=crop';
-    }
-
-    return widget.vendor['imageUrl'] as String? ??
-        'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=900&h=400&fit=crop';
-  }
-
-  String _avatarImageForVendor() {
-    return 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face';
-  }
-
-  String _stallLabelFor(String? vendorId) {
-    switch (vendorId) {
-      case 'v1':
-        return 'Stall 4';
-      case 'v2':
-        return 'Block 15 | Stall 2';
-      case 'v3':
-        return 'Stall #33';
-      case 'v4':
-        return 'Block 3 | Stall 4';
-      case 'v5':
-        return 'Block 7 | Stall 2';
-      case 'v6':
-        return 'Block 7 | Stall 1';
-      default:
-        return 'Block 14 | Stall 2';
-    }
-  }
 }
 
 class _ProductCard extends StatelessWidget {
-  final Map<String, dynamic> product;
+  final VendorProduct product;
   final String vendorName;
 
   const _ProductCard({required this.product, required this.vendorName});
 
   @override
   Widget build(BuildContext context) {
-    final price = (product['price'] as num?)?.toInt() ?? 0;
+    final price = product.price.toInt();
 
     return Container(
       decoration: BoxDecoration(
@@ -533,7 +477,7 @@ class _ProductCard extends StatelessWidget {
               height: 126.75,
               width: double.infinity,
               child: Image.network(
-                product['imageUrl'] as String? ?? '',
+                product.imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) {
                   return Container(
@@ -554,7 +498,7 @@ class _ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product['name'] as String? ?? 'Product',
+                    product.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -566,7 +510,7 @@ class _ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product['description'] as String? ?? '',
+                    product.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -609,7 +553,7 @@ class _ProductCard extends StatelessWidget {
                           AddToCartBottomSheet.show(
                             context,
                             vendorName: vendorName,
-                            product: product,
+                            product: product.toMap(), // AddToCart expects a Map for now
                           );
                         },
                         child: Container(

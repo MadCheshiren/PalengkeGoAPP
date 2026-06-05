@@ -44,11 +44,30 @@ class AppBottomNavBar extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  // Market (index 0)
+                  // Home (index 0)
+                  Expanded(
+                    child: _NavItem(
+                      label: 'Home',
+                      index: 0,
+                      selectedIndex: selectedIndex,
+                      onTap: onTap,
+                      iconSpacing: itemSpacing,
+                      activeFontSize: activeFontSize,
+                      inactiveFontSize: inactiveFontSize,
+                      builder: (isActive) => Icon(
+                        Icons.home_rounded,
+                        color: isActive
+                            ? const Color(0xFF0B372B)
+                            : const Color(0xFF94A3B8),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  // Market (index 1)
                   Expanded(
                     child: _NavItem(
                       label: 'Market',
-                      index: 0,
+                      index: 1,
                       selectedIndex: selectedIndex,
                       onTap: onTap,
                       iconSpacing: itemSpacing,
@@ -66,11 +85,11 @@ class AppBottomNavBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Orders (index 1)
+                  // Orders (index 2)
                   Expanded(
                     child: _NavItem(
                       label: 'Orders',
-                      index: 1,
+                      index: 2,
                       selectedIndex: selectedIndex,
                       onTap: onTap,
                       iconSpacing: itemSpacing,
@@ -86,11 +105,11 @@ class AppBottomNavBar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Recipes (index 2)
+                  // Recipes (index 3)
                   Expanded(
                     child: _NavItem(
                       label: 'Recipes',
-                      index: 2,
+                      index: 3,
                       selectedIndex: selectedIndex,
                       onTap: onTap,
                       iconSpacing: itemSpacing,

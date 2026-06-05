@@ -1,69 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/recipes/application/recipe_provider.dart';
+import 'package:palengkego/features/recipes/domain/recipe.dart';
 import 'recipe_details_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
 
-class RecipesScreen extends StatelessWidget {
+class RecipesScreen extends ConsumerWidget {
   const RecipesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final recipes = [
-      {
-        'title': 'Sinigang na Hipon',
-        'category': 'Seafood',
-        'time': '30 min',
-        'difficulty': 'Easy',
-        'image':
-            'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=250&fit=crop',
-        'bgColor': const Color(0xFFE0F2FE),
-      },
-      {
-        'title': 'Chicken Adobo',
-        'category': 'Chicken',
-        'time': '45 min',
-        'difficulty': 'Medium',
-        'image':
-            'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&h=250&fit=crop',
-        'bgColor': const Color(0xFFFEE2E2),
-      },
-      {
-        'title': 'Ginisang Ampalaya',
-        'category': 'Vegetables',
-        'time': '20 min',
-        'difficulty': 'Easy',
-        'image':
-            'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=250&fit=crop',
-        'bgColor': const Color(0xFFDCFCE7),
-      },
-      {
-        'title': 'Pork Sinigang',
-        'category': 'Pork',
-        'time': '60 min',
-        'difficulty': 'Medium',
-        'image':
-            'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=250&fit=crop',
-        'bgColor': const Color(0xFFFEF3C7),
-      },
-      {
-        'title': 'Fresh Lumpia',
-        'category': 'Appetizer',
-        'time': '40 min',
-        'difficulty': 'Hard',
-        'image':
-            'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=250&fit=crop',
-        'bgColor': const Color(0xFFF3E8FF),
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repository = ref.watch(recipeRepositoryProvider);
+    final featuredRecipe = repository.getFeaturedRecipe();
+    final moreRecipes = repository.getMoreRecipes();
+    final savedRecipes = ref.watch(savedRecipesProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Recipes',
@@ -74,10 +37,35 @@ class RecipesScreen extends StatelessWidget {
                       color: const Color(0xFF1B4332),
                     ),
                   ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.cookbook),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/icons/cookbook.svg',
+                        width: 20,
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF0B372B),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            // Content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -95,7 +83,6 @@ class RecipesScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Featured recipe
                     Text(
                       'Featured Recipe',
                       style: TextStyle(
@@ -106,9 +93,8 @@ class RecipesScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildFeaturedRecipe(context, recipes[0]),
+                    _buildFeaturedRecipe(context, ref, featuredRecipe, savedRecipes),
                     const SizedBox(height: 24),
-                    // All recipes
                     Text(
                       'More Recipes',
                       style: TextStyle(
@@ -122,11 +108,11 @@ class RecipesScreen extends StatelessWidget {
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: recipes.length - 1,
-                      itemBuilder: (context, index) {
+                      itemCount: moreRecipes.length,
+                      itemBuilder: (cellContext, index) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildRecipeCard(context, recipes[index + 1]),
+                          child: _buildRecipeCard(context, ref, moreRecipes[index], savedRecipes),
                         );
                       },
                     ),
@@ -141,29 +127,18 @@ class RecipesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeaturedRecipe(BuildContext context, Map<String, dynamic> recipe) {
+  Widget _buildFeaturedRecipe(BuildContext context, WidgetRef ref, Recipe recipe, List<Recipe> savedRecipes) {
+    final isSaved = savedRecipes.any((r) => r.title == recipe.title);
+
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          PageTransitions.slideFromRight(
-            RecipeDetailsScreen(
-              recipe: {
-                'name': recipe['title'],
-                'imageUrl': recipe['image'],
-                'description': '${recipe['category']} • ${recipe['difficulty']} • ${recipe['time']}',
-                'time': recipe['time'],
-              },
-            ),
-          ),
-        );
-      },
+      onTap: () => _openRecipe(context, recipe),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: Colors.black.withOpacity(0.08),
               offset: const Offset(0, 4),
               blurRadius: 12,
             ),
@@ -174,7 +149,7 @@ class RecipesScreen extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Image.network(
-                recipe['image'],
+                recipe.imageUrl,
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
@@ -182,7 +157,7 @@ class RecipesScreen extends StatelessWidget {
                   if (progress == null) return child;
                   return Container(
                     height: 200,
-                    color: recipe['bgColor'] as Color,
+                    color: recipe.backgroundColor,
                     child: const Center(
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
@@ -194,7 +169,7 @@ class RecipesScreen extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
-                    color: recipe['bgColor'] as Color,
+                    color: recipe.backgroundColor,
                     child: const Center(
                       child: Icon(
                         Icons.restaurant,
@@ -206,7 +181,6 @@ class RecipesScreen extends StatelessWidget {
                 },
               ),
             ),
-            // Gradient overlay
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -214,12 +188,55 @@ class RecipesScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.7),
+                    ],
                   ),
                 ),
               ),
             ),
-            // Content overlay
+            // Floating Heart Button on Featured Card
+            Positioned(
+              top: 12,
+              right: 12,
+              child: GestureDetector(
+                onTap: () {
+                  ref.read(savedRecipesProvider.notifier).toggleSave(recipe);
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isSaved 
+                            ? 'Removed "${recipe.title}" from Cookbook.' 
+                            : 'Added "${recipe.title}" to Cookbook.',
+                        style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    size: 18,
+                    color: isSaved ? const Color(0xFFEF4444) : Colors.white,
+                  ),
+                ),
+              ),
+            ),
             Positioned(
               bottom: 16,
               left: 16,
@@ -237,7 +254,7 @@ class RecipesScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      recipe['category'],
+                      recipe.category,
                       style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
@@ -248,7 +265,7 @@ class RecipesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    recipe['title'],
+                    recipe.title,
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 20,
@@ -266,7 +283,7 @@ class RecipesScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        recipe['time'],
+                        recipe.time,
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
@@ -282,7 +299,7 @@ class RecipesScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        recipe['difficulty'],
+                        recipe.difficulty,
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
@@ -301,22 +318,11 @@ class RecipesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecipeCard(BuildContext context, Map<String, dynamic> recipe) {
+  Widget _buildRecipeCard(BuildContext context, WidgetRef ref, Recipe recipe, List<Recipe> savedRecipes) {
+    final isSaved = savedRecipes.any((r) => r.title == recipe.title);
+
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          PageTransitions.slideFromRight(
-            RecipeDetailsScreen(
-              recipe: {
-                'name': recipe['title'],
-                'imageUrl': recipe['image'],
-                'description': '${recipe['category']} • ${recipe['difficulty']} • ${recipe['time']}',
-                'time': recipe['time'],
-              },
-            ),
-          ),
-        );
-      },
+      onTap: () => _openRecipe(context, recipe),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -324,7 +330,7 @@ class RecipesScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withOpacity(0.04),
               offset: const Offset(0, 1),
               blurRadius: 3,
             ),
@@ -332,11 +338,10 @@ class RecipesScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Image
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
-                recipe['image'],
+                recipe.imageUrl,
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
@@ -345,7 +350,7 @@ class RecipesScreen extends StatelessWidget {
                   return Container(
                     width: 80,
                     height: 80,
-                    color: recipe['bgColor'] as Color,
+                    color: recipe.backgroundColor,
                     child: const Center(
                       child: Icon(
                         Icons.restaurant,
@@ -359,7 +364,7 @@ class RecipesScreen extends StatelessWidget {
                   return Container(
                     width: 80,
                     height: 80,
-                    color: recipe['bgColor'] as Color,
+                    color: recipe.backgroundColor,
                     child: const Center(
                       child: Icon(
                         Icons.restaurant,
@@ -372,13 +377,12 @@ class RecipesScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    recipe['title'],
+                    recipe.title,
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
@@ -388,7 +392,7 @@ class RecipesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    recipe['category'],
+                    recipe.category,
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
@@ -406,7 +410,7 @@ class RecipesScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        recipe['time'],
+                        recipe.time,
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 11,
@@ -422,7 +426,7 @@ class RecipesScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        recipe['difficulty'],
+                        recipe.difficulty,
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 11,
@@ -435,6 +439,31 @@ class RecipesScreen extends StatelessWidget {
                 ],
               ),
             ),
+            IconButton(
+              icon: Icon(
+                isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isSaved ? const Color(0xFFEF4444) : const Color(0xFF9CA3AF),
+                size: 20,
+              ),
+              onPressed: () {
+                ref.read(savedRecipesProvider.notifier).toggleSave(recipe);
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isSaved 
+                          ? 'Removed "${recipe.title}" from Cookbook.' 
+                          : 'Added "${recipe.title}" to Cookbook.',
+                      style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 4),
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
@@ -442,6 +471,14 @@ class RecipesScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openRecipe(BuildContext context, Recipe recipe) {
+    Navigator.of(context).push(
+      PageTransitions.slideFromRight(
+        RecipeDetailsScreen(recipe: recipe),
       ),
     );
   }

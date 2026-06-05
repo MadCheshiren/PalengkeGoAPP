@@ -1,29 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
-
-class CartItem {
-  final String vendorName;
-  final String productName;
-  final double price;
-  final String weight;
-  final String pricePerKg;
-  final String image;
-  int quantity;
-  bool selected;
-
-  CartItem({
-    required this.vendorName,
-    required this.productName,
-    required this.price,
-    required this.weight,
-    required this.pricePerKg,
-    required this.image,
-    this.quantity = 1,
-    this.selected = true,
-  });
-
-  double get total => price * quantity;
-}
 
 // Global cart instance
 final globalCart = CartService();
@@ -62,7 +39,9 @@ class CartService extends ChangeNotifier {
     );
 
     if (existingIndex >= 0) {
-      _items[existingIndex].quantity++;
+      _items[existingIndex] = _items[existingIndex].copyWith(
+        quantity: _items[existingIndex].quantity + 1,
+      );
     } else {
       _items.add(
         CartItem(
@@ -83,7 +62,7 @@ class CartService extends ChangeNotifier {
       if (quantity <= 0) {
         _items.removeAt(index);
       } else {
-        _items[index].quantity = quantity;
+        _items[index] = _items[index].copyWith(quantity: quantity);
       }
       _notifyAll();
     }
@@ -91,14 +70,16 @@ class CartService extends ChangeNotifier {
 
   void toggleSelect(int index) {
     if (index >= 0 && index < _items.length) {
-      _items[index].selected = !_items[index].selected;
+      _items[index] = _items[index].copyWith(
+        selected: !_items[index].selected,
+      );
       _notifyAll();
     }
   }
 
   void selectAll(bool value) {
-    for (final item in _items) {
-      item.selected = value;
+    for (var index = 0; index < _items.length; index++) {
+      _items[index] = _items[index].copyWith(selected: value);
     }
     _notifyAll();
   }

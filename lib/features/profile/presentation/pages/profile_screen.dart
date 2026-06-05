@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/profile/application/profile_provider.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_onboarding_screen.dart';
 import 'edit_profile_screen.dart';
 import 'security_settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsyncValue = ref.watch(currentProfileProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -60,106 +65,128 @@ class ProfileScreen extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    // Avatar with border
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF0B372B),
-                          width: 2,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child: Image.network(
-                          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
-                            color: const Color(0xFFE8F5E9),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              size: 48,
-                              color: Color(0xFF0B372B),
+                child: profileAsyncValue.when(
+                  data: (profile) {
+                    if (profile == null) {
+                      return const Center(child: Text("Not Logged In"));
+                    }
+                    return Column(
+                      children: [
+                        const SizedBox(height: 24),
+                        // Avatar with border
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF0B372B),
+                              width: 2,
                             ),
                           ),
+                          child: ClipOval(
+                            child: profile.avatarUrl != null
+                              ? Image.network(
+                                  profile.avatarUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => _fallbackAvatar(),
+                                )
+                              : _fallbackAvatar(),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // User Name
-                    const Text(
-                      'Roonies',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Email
-                    const Text(
-                      'roonies@gmail.com',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF6B7280),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    
-                    // Menu Items
-                    _buildMenuItem(
-                      iconPath: 'assets/icons/profile icon.svg',
-                      title: 'Edit Profile',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          PageTransitions.slideFromRight(
-                            const EditProfileScreen(),
+                        const SizedBox(height: 16),
+                        // User Name
+                        Text(
+                          profile.displayName,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0B372B),
                           ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      iconPath: 'assets/icons/Security Icon.svg',
-                      title: 'Security',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          PageTransitions.slideFromRight(
-                            const SecuritySettingsScreen(),
+                        ),
+                        const SizedBox(height: 4),
+                        // Email
+                        Text(
+                          profile.email,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF6B7280),
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(height: 40),
+                        
+                        // Menu Items
+                        _buildMenuItem(
+                          iconPath: 'assets/icons/profile icon.svg',
+                          title: 'Edit Profile',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              PageTransitions.slideFromRight(
+                                const EditProfileScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuItem(
+                          iconPath: 'assets/icons/Security Icon.svg',
+                          title: 'Security',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              PageTransitions.slideFromRight(
+                                const SecuritySettingsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuItem(
+                          iconPath: 'assets/icons/start selling icon.svg',
+                          title: 'Start Selling',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              PageTransitions.slideFromRight(
+                                const VendorOnboardingScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuItem(
+                          iconPath: 'assets/icons/logout icon.svg',
+                          title: 'Logout',
+                          onTap: () => _showLogoutDialog(context, ref),
+                          isLogout: true,
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    );
+                  },
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: CircularProgressIndicator(color: Color(0xFF0B372B)),
                     ),
-                    _buildMenuItem(
-                      iconPath: 'assets/icons/start selling icon.svg',
-                      title: 'Start Selling',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          PageTransitions.slideFromRight(
-                            const VendorOnboardingScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      iconPath: 'assets/icons/logout icon.svg',
-                      title: 'Logout',
-                      onTap: () => _showLogoutDialog(context),
-                      isLogout: true,
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
+                  error: (error, stack) => Center(
+                    child: Text('Error: $error'),
+                  ),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _fallbackAvatar() {
+    return Container(
+      color: const Color(0xFFE8F5E9),
+      child: const Icon(
+        Icons.person_rounded,
+        size: 48,
+        color: Color(0xFF0B372B),
       ),
     );
   }
@@ -181,7 +208,7 @@ class ProfileScreen extends StatelessWidget {
           border: isLogout ? Border.all(color: const Color(0xFFEF4444)) : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withOpacity(0.04),
               offset: const Offset(0, 2),
               blurRadius: 8,
             ),
@@ -221,7 +248,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -254,13 +281,17 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (_) => const LoginScreen(),
-                ),
-                (route) => false,
-              );
+            onPressed: () async {
+              // Log out logic
+              final authRepo = ref.read(authRepositoryProvider);
+              await authRepo.logout();
+              
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRoutes.login,
+                  (route) => false,
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),

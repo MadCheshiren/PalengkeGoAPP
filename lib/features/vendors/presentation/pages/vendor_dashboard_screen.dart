@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_controller.dart';
+import 'package:palengkego/features/vendors/presentation/widgets/dashboard_sales_card.dart';
+import 'package:palengkego/features/vendors/presentation/widgets/dashboard_stall_card.dart';
+import 'package:palengkego/features/vendors/presentation/widgets/dashboard_recent_order_card.dart';
 
 import 'vendor_orders_screen.dart';
 import 'vendor_products_screen.dart';
+import 'vendor_notifications_screen.dart';
+import 'vendor_account_screen.dart';
 
 /// Vendor Dashboard Screen
 /// Main screen for vendors after completing onboarding.
@@ -18,18 +25,37 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   bool _isStallOpen = true;
 
   @override
+  void initState() {
+    super.initState();
+    _isStallOpen = VendorStallController.instance.isOpen;
+    VendorStallController.instance.addListener(_onStallControllerChanged);
+  }
+
+  @override
+  void dispose() {
+    VendorStallController.instance.removeListener(_onStallControllerChanged);
+    super.dispose();
+  }
+
+  void _onStallControllerChanged() {
+    if (mounted) {
+      setState(() {
+        _isStallOpen = VendorStallController.instance.isOpen;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screens = [
       _DashboardHome(
         isStallOpen: _isStallOpen,
         onToggleStallOpen: (value) {
-          setState(() {
-            _isStallOpen = value;
-          });
+          VendorStallController.instance.updateStall(isOpen: value);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                _isStallOpen
+                value
                     ? 'Your stall is now open for orders.'
                     : 'Your stall is now marked closed.',
               ),
@@ -41,7 +67,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
       ),
       const VendorOrdersScreen(),
       const VendorProductsScreen(),
-      const _ProfilePlaceholder(),
+      const VendorAccountScreen(),
     ];
 
     return Scaffold(
@@ -136,12 +162,20 @@ class _DashboardHome extends StatelessWidget {
                   color: const Color(0xFF0B372B),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
+                  image: VendorStallController.instance.avatarImage != null
+                      ? DecorationImage(
+                          image: NetworkImage(VendorStallController.instance.avatarImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: const Icon(
-                  Icons.storefront_outlined,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: VendorStallController.instance.avatarImage == null
+                    ? const Icon(
+                        Icons.storefront_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -171,7 +205,13 @@ class _DashboardHome extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    PageTransitions.slideFromRight(
+                      const VendorNotificationsScreen(),
+                    ),
+                  );
+                },
                 child: Container(
                   width: 40,
                   height: 40,
@@ -207,60 +247,7 @@ class _DashboardHome extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0B372B),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Today\'s Sales',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white70,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'PHP 4,250.00',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatBox(
-                        label: 'Pending',
-                        value: '12 Orders',
-                        color: const Color(0xFFFFF7ED),
-                        textColor: const Color(0xFFB45309),
-                        badge: 'ACTION REQUIRED',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatBox(
-                        label: 'Completed',
-                        value: '45 Orders',
-                        color: const Color(0xFFF0FDF4),
-                        textColor: const Color(0xFF166534),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          const DashboardSalesCard(),
           const SizedBox(height: 24),
           const Text(
             'Your Stall',
@@ -272,86 +259,9 @@ class _DashboardHome extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 120,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFD5E7DE),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.storefront_outlined,
-                      size: 48,
-                      color: Color(0xFF0B372B),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Juan\'s Fresh Catch',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Stall 14, Wet Market Section',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            isStallOpen ? 'OPEN' : 'CLOSED',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isStallOpen
-                                  ? const Color(0xFF22C55E)
-                                  : const Color(0xFF94A3B8),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Switch(
-                            value: isStallOpen,
-                            onChanged: onToggleStallOpen,
-                            activeThumbColor: const Color(0xFF0B372B),
-                            activeTrackColor: const Color(0xFF0B372B).withValues(alpha: 0.3),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          DashboardStallCard(
+            isStallOpen: isStallOpen,
+            onToggleStallOpen: onToggleStallOpen,
           ),
           const SizedBox(height: 24),
           Row(
@@ -381,7 +291,7 @@ class _DashboardHome extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildRecentOrderCard(
+          DashboardRecentOrderCard(
             orderId: 'Order #RG-1029',
             customer: 'Maria Santos',
             items: '2kg Bangus | 1kg Tomatoes | 500g Ginger',
@@ -390,7 +300,7 @@ class _DashboardHome extends StatelessWidget {
             onPrimaryAction: onStartPreparing,
           ),
           const SizedBox(height: 12),
-          _buildRecentOrderCard(
+          DashboardRecentOrderCard(
             orderId: 'Order #RG-1028',
             customer: 'Ricardo Dalisay',
             items: '1kg Tilapia | 1kg Eggplant | 500g Garlic',
@@ -399,190 +309,6 @@ class _DashboardHome extends StatelessWidget {
             onPrimaryAction: onViewOrders,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStatBox({
-    required String label,
-    required String value,
-    required Color color,
-    required Color textColor,
-    String? badge,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 12,
-                  color: textColor.withValues(alpha: 0.8),
-                ),
-              ),
-              if (badge != null) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFB45309),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentOrderCard({
-    required String orderId,
-    required String customer,
-    required String items,
-    required String total,
-    required String time,
-    required VoidCallback onPrimaryAction,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      orderId,
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      customer,
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                total,
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            items,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 12,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            time,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 11,
-              color: Color(0xFF94A3B8),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: onPrimaryAction,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0B372B),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: Text(
-                  'Start Preparing',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Vendor Profile',
-        style: TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Color(0xFF0B372B),
-        ),
       ),
     );
   }

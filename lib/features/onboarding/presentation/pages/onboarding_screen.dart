@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/features/auth/presentation/pages/registration_screen.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -34,7 +34,7 @@ class OnboardingScreen extends StatelessWidget {
                         child: Icon(
                           Icons.storefront_outlined,
                           size: 120,
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Colors.white.withOpacity(0.9),
                         ),
                       ),
                     ),
@@ -77,11 +77,7 @@ class OnboardingScreen extends StatelessWidget {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const RegistrationScreen(),
-                          ),
-                        );
+                        Navigator.of(context).pushNamed(AppRoutes.registration);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0B372B),

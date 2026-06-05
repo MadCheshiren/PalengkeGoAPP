@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/features/onboarding/presentation/pages/onboarding_screen.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
@@ -16,9 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Navigate after 3 seconds - no animation controller needed
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-        );
+        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       }
     });
   }
@@ -41,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 width: 180,
                 height: 180,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: Colors.white.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -71,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withOpacity(0.9),
                 letterSpacing: 1.5,
               ),
             ),

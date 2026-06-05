@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/vendors/domain/vendor_stall_product.dart';
 import '../widgets/vendor_screen_header.dart';
 import 'vendor_add_product_screen.dart';
 
@@ -16,32 +17,32 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
   String _selectedFilter = 'All Products';
   String _searchQuery = '';
 
-  final List<_VendorProduct> _products = [
-    _VendorProduct(
+  final List<VendorStallProduct> _products = [
+    VendorStallProduct(
       name: 'Fresh Bangus',
       price: 'PHP 180/kg',
       imageColor: const Color(0xFFD5E7DE),
       isActive: true,
     ),
-    _VendorProduct(
+    VendorStallProduct(
       name: 'Whole Chicken',
       price: 'PHP 210/kg',
       imageColor: const Color(0xFFFFF7ED),
       isActive: true,
     ),
-    _VendorProduct(
+    VendorStallProduct(
       name: 'Carrots',
       price: 'PHP 60/kg',
       imageColor: const Color(0xFFF0FDF4),
       isActive: true,
     ),
-    _VendorProduct(
+    VendorStallProduct(
       name: 'Potatoes',
       price: 'PHP 90/kg',
       imageColor: const Color(0xFFF8FAFC),
       isActive: false,
     ),
-    _VendorProduct(
+    VendorStallProduct(
       name: 'Red Onion',
       price: 'PHP 120/kg',
       imageColor: const Color(0xFFFFF7ED),
@@ -140,11 +141,11 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
                           padding: const EdgeInsets.all(20),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.72,
-                              ),
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                  childAspectRatio: 0.72,
+                                ),
                           itemCount: filteredProducts.length,
                           itemBuilder: (context, index) {
                             final product = filteredProducts[index];
@@ -211,7 +212,7 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
     );
   }
 
-  Widget _buildProductGridCard(_VendorProduct product) {
+  Widget _buildProductGridCard(VendorStallProduct product) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -312,18 +313,4 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
       ),
     );
   }
-}
-
-class _VendorProduct {
-  _VendorProduct({
-    required this.name,
-    required this.price,
-    required this.imageColor,
-    required this.isActive,
-  });
-
-  final String name;
-  final String price;
-  final Color imageColor;
-  bool isActive;
 }

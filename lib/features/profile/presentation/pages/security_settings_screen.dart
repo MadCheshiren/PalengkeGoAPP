@@ -80,7 +80,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+                              color: const Color(0xFF0B372B).withOpacity(0.2),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -126,7 +126,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
+                              color: Colors.black.withOpacity(0.04),
                               blurRadius: 12,
                               offset: const Offset(0, 2),
                             ),
@@ -232,7 +232,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
+                              color: Colors.black.withOpacity(0.04),
                               blurRadius: 12,
                               offset: const Offset(0, 2),
                             ),
@@ -303,7 +303,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
+                              color: Colors.black.withOpacity(0.04),
                               blurRadius: 12,
                               offset: const Offset(0, 2),
                             ),

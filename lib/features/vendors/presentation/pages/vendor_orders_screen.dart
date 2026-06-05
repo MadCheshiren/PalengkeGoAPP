@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/features/vendors/domain/vendor_order_item.dart';
 
 import '../widgets/vendor_screen_header.dart';
 
@@ -15,8 +16,8 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  final List<_VendorOrder> _allOrders = [
-    _VendorOrder(
+  final List<VendorOrderItem> _allOrders = [
+    VendorOrderItem(
       id: '1029',
       customer: 'Maria S.',
       items: ['2kg Bangus', '1kg Tomato', '0.5kg Garlic'],
@@ -25,7 +26,7 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
       status: 'Pending',
       deliveryType: 'Pick-Up',
     ),
-    _VendorOrder(
+    VendorOrderItem(
       id: '1032',
       customer: 'Jose R.',
       items: [
@@ -39,7 +40,7 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
       status: 'Pending',
       deliveryType: 'Delivery',
     ),
-    _VendorOrder(
+    VendorOrderItem(
       id: '1030',
       customer: 'Juan D.',
       items: ['1kg Chicken Breast', '1 dozen Eggs'],
@@ -113,12 +114,12 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
     );
   }
 
-  List<_VendorOrder> _filteredOrders(String filterStatus) {
+  List<VendorOrderItem> _filteredOrders(String filterStatus) {
     if (filterStatus == 'All') return _allOrders;
     return _allOrders.where((order) => order.status == filterStatus).toList();
   }
 
-  void _rejectOrder(_VendorOrder order) {
+  void _rejectOrder(VendorOrderItem order) {
     setState(() {
       _allOrders.removeWhere((candidate) => candidate.id == order.id);
     });
@@ -127,14 +128,14 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
     ).showSnackBar(SnackBar(content: Text('Order #${order.id} was rejected.')));
   }
 
-  void _updateOrderStatus(_VendorOrder order, String status, String message) {
+  void _updateOrderStatus(VendorOrderItem order, String status, String message) {
     setState(() {
       order.status = status;
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _completeOrder(_VendorOrder order) {
+  void _completeOrder(VendorOrderItem order) {
     setState(() {
       _allOrders.removeWhere((candidate) => candidate.id == order.id);
     });
@@ -312,7 +313,7 @@ class _VendorOrdersTab extends StatelessWidget {
 class _VendorOrderActions extends StatelessWidget {
   const _VendorOrderActions({required this.order, required this.owner});
 
-  final _VendorOrder order;
+  final VendorOrderItem order;
   final _VendorOrdersScreenState owner;
 
   @override
@@ -420,24 +421,4 @@ class _VendorOrderActions extends StatelessWidget {
       ),
     );
   }
-}
-
-class _VendorOrder {
-  _VendorOrder({
-    required this.id,
-    required this.customer,
-    required this.items,
-    required this.total,
-    required this.time,
-    required this.status,
-    required this.deliveryType,
-  });
-
-  final String id;
-  final String customer;
-  final List<String> items;
-  final String total;
-  final String time;
-  String status;
-  final String deliveryType;
 }

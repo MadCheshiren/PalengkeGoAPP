@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/navigation/app_router.dart';
+import 'core/navigation/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/responsive_wrapper.dart';
-import 'features/onboarding/presentation/pages/splash_screen.dart';
 
 void main() {
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -63,10 +64,11 @@ class PalengkeGoApp extends ConsumerWidget {
       title: 'PalengkeGo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: AppRouter.onGenerateRoute,
       builder: (context, child) {
         return ResponsiveWrapper(child: child!);
       },
-      home: const SplashScreen(),
     );
   }
 }

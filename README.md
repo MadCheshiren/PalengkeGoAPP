@@ -133,6 +133,7 @@ flutter build appbundle --release
 - **Service layer:** Plain Dart classes in `core/services/` hold business logic and in-memory state
 - **No external state management:** The app uses StatefulWidget + service singletons. If the project grows, consider migrating to Riverpod or Bloc.
 - **Navigation:** Imperative (`Navigator.push`) for now. Deep linking and declarative routing are future considerations.
+- **Frontend refactor plan:** See `docs/ARCHITECTURE_REFACTOR.md` for the phased frontend-only refactor direction before backend integration.
 
 ## Platform Support
 

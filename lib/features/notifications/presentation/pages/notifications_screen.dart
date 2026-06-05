@@ -51,7 +51,7 @@ class NotificationsScreen extends StatelessWidget {
             SliverPersistentHeader(
               pinned: true,
               floating: false,
-              delegate: _StatusBannerDelegate(),
+              delegate: _StatusBannerDelegate(unreadCount: 3),
             ),
 
             // Notifications List with padding
@@ -199,10 +199,10 @@ class NotificationsScreen extends StatelessWidget {
               )
             : null,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+          const BoxShadow(
+            color: Color(0x08000000),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -292,10 +292,10 @@ class NotificationsScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+          const BoxShadow(
+            color: Color(0x08000000),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -370,96 +370,113 @@ class NotificationsScreen extends StatelessWidget {
   }
 }
 
-// Sticky Status Banner Delegate - EXPANDS when scrolling down
+// Sticky Status Banner Delegate - Floating Pill morphs into Sticky Navbar
 class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
+  final int unreadCount;
+
+  _StatusBannerDelegate({required this.unreadCount});
+
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    // Expand progress: 0 = compact (at top), 1 = fully expanded (scrolled down)
-    final expandProgress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    // progress: 0.0 = resting state (pill), 1.0 = fully scrolled and stuck (navbar)
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
 
-    // Interpolate horizontal margins: compact has 48px margin, expanded fills width
-    final horizontalMargin = 48.0 * (1.0 - expandProgress);
+    // Horizontal padding: starts at 16, shrinks to 0 to touch screen edges
+    final horizontalPadding = 16.0 * (1.0 - progress);
 
-    // Interpolate border radius: compact = 24px (pill-like), expanded = 0 (full width)
-    final borderRadius = 24.0 * (1.0 - expandProgress);
+    // The layout automatically centers the 84px height pill within the available 120px height,
+    // gracefully creating 18px of vertical padding at rest, morphing safely down to 0px when stuck.
+    final isAllCaughtUp = unreadCount == 0;
+    final bannerColor = isAllCaughtUp ? const Color(0xFF6D9773) : const Color(0xFF0B372B);
 
-    // Height grows as it expands
-    final height = 80.0 + (40.0 * expandProgress);
-
-    return Container(
-      color: const Color(0xFFF8FAFC),
-      padding: EdgeInsets.fromLTRB(
-        16 + horizontalMargin,
-        8,
-        16 + horizontalMargin,
-        12,
-      ),
-      alignment: Alignment.topCenter,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        height: height,
-        padding: EdgeInsets.lerp(
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          expandProgress,
-        )!,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0B372B),
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'STATUS UPDATE',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white70,
-                letterSpacing: 1,
+    return SizedBox.expand(
+      child: Container(
+        color: const Color(0xFFF8FAFC),
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        child: Container(
+          height: 84.0,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          decoration: BoxDecoration(
+            color: bannerColor,
+            borderRadius: BorderRadius.circular(24.0),
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromRGBO(
+                  isAllCaughtUp ? 109 : 11,
+                  isAllCaughtUp ? 151 : 55,
+                  isAllCaughtUp ? 115 : 43,
+                  0.3 * progress,
+                ),
+                blurRadius: 16 * progress,
+                offset: Offset(0, 4 * progress),
               ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              "You're all caught up!",
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                height: 1.2,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-            const SizedBox(height: 2),
-            // Subtitle fades in when expanded
-            Opacity(
-              opacity: expandProgress,
-              child: Text(
-                '3 new updates today.',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white.withValues(alpha: 0.8),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isAllCaughtUp ? 'STATUS UPDATE' : 'NEW NOTIFICATIONS',
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xB2FFFFFF),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isAllCaughtUp ? "You're all caught up!" : "$unreadCount new updates today",
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Color(0x26FFFFFF),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isAllCaughtUp ? Icons.check_rounded : Icons.notifications_active_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   @override
-  double get maxExtent => 160; // Expanded height (when scrolled down)
+  double get maxExtent => 120; // Resting height
 
   @override
-  double get minExtent => 110; // Compact height (at top)
+  double get minExtent => 84; // Stuck height
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant _StatusBannerDelegate oldDelegate) {
+    return oldDelegate.unreadCount != unreadCount;
+  }
 }
