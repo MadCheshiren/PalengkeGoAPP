@@ -1,5 +1,5 @@
 class MockDataService {
-  static const List<Map<String, dynamic>> featuredVendors = [
+  static List<Map<String, dynamic>> featuredVendors = [
     {
       'id': 'v1',
       'name': 'Diosa Fruit Stand',
@@ -72,9 +72,33 @@ class MockDataService {
       'stallNumber': 'Block 14 | Stall 2',
       'marketSection': 'Fish Section',
     },
+    {
+      'id': 'v7',
+      'name': 'Aling Susan\'s Maritatas Corner',
+      'category': 'Maritatas',
+      'rating': 4.8,
+      'isVerified': true,
+      'distance': '0.5km',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1566843972142-a7fcb70de55a?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Stall 12',
+      'marketSection': 'Dry Section',
+    },
+    {
+      'id': 'v8',
+      'name': 'Nena\'s Sari-Sari Store',
+      'category': 'Sari-Sari',
+      'rating': 4.6,
+      'isVerified': true,
+      'distance': '0.3km',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=400&auto=format&fit=crop',
+      'stallNumber': 'Stall 25',
+      'marketSection': 'Dry Section',
+    },
   ];
 
-  static const List<Map<String, dynamic>> products = [
+  static List<Map<String, dynamic>> products = [
     // v1 - Diosa Fruit Stand (fruits)
     {
       'id': 'p1',
@@ -297,9 +321,83 @@ class MockDataService {
       'imageUrl':
           'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=300&h=300&fit=crop',
     },
+    // v7 - Aling Susan's Maritatas Corner
+    {
+      'id': 'p19',
+      'vendorId': 'v7',
+      'name': 'Kwek-Kwek',
+      'price': 25.00,
+      'unit': 'pc',
+      'weight': '1 pc',
+      'pricePerKg': '₱25/pc',
+      'description': 'Deep fried quail eggs in orange batter. 5 pcs per portion.',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1562608262-f4728f3957a0?w=300&h=300&fit=crop',
+    },
+    {
+      'id': 'p20',
+      'vendorId': 'v7',
+      'name': 'Fishballs',
+      'price': 20.00,
+      'unit': 'pc',
+      'weight': '1 pc',
+      'pricePerKg': '₱20/pc',
+      'description': 'Fried fishballs with sweet and sour sauce. 10 pcs per portion.',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1562608262-f4728f3957a0?w=300&h=300&fit=crop',
+    },
+    // v8 - Nena's Sari-Sari Store
+    {
+      'id': 'p21',
+      'vendorId': 'v8',
+      'name': 'Lucky Me Instant Noodles',
+      'price': 15.00,
+      'unit': 'pc',
+      'weight': '1 pc',
+      'pricePerKg': '₱15/pc',
+      'description': 'Pancit Canton Extra Hot Chili flavor.',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300&h=300&fit=crop',
+    },
+    {
+      'id': 'p22',
+      'vendorId': 'v8',
+      'name': 'Canned Sardines',
+      'price': 25.00,
+      'unit': 'pc',
+      'weight': '1 pc',
+      'pricePerKg': '₱25/pc',
+      'description': 'Sardines in tomato sauce with chili.',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&h=300&fit=crop',
+    },
   ];
 
   static List<Map<String, dynamic>> getProductsForVendor(String vendorId) {
-    return products.where((p) => p['vendorId'] == vendorId).toList();
+    final vendor = featuredVendors.firstWhere((v) => v['id'] == vendorId, orElse: () => {});
+    final vendorCategory = vendor['category'] ?? '';
+    
+    return products.where((p) => p['vendorId'] == vendorId).map((p) {
+      if (p.containsKey('category')) return p;
+      return {
+        ...p,
+        'category': vendorCategory,
+      };
+    }).toList();
+  }
+
+  static void addProduct(Map<String, dynamic> product) {
+    products.add(product);
+  }
+
+  static void updateProduct(Map<String, dynamic> product) {
+    final index = products.indexWhere((p) => p['id'] == product['id']);
+    if (index != -1) {
+      products[index] = product;
+    }
+  }
+
+  static void deleteProduct(String productId) {
+    products.removeWhere((p) => p['id'] == productId);
   }
 }

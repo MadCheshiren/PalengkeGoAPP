@@ -7,7 +7,8 @@ class MockProfileRepository implements ProfileRepository {
     displayName: 'Juan Dela Cruz',
     email: 'juan@example.com',
     phoneNumber: '+63 912 345 6789',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+    avatarUrl:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
     addresses: [
       '123 Magsaysay Ave, Naga City, Camarines Sur',
       '456 Panganiban Drive, Naga City, Camarines Sur',

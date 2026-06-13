@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 
 class CheckoutOrderItem extends StatelessWidget {
-  const CheckoutOrderItem({
-    super.key,
-    required this.item,
-  });
+  const CheckoutOrderItem({super.key, required this.item});
 
   final CartItem item;
 
   @override
   Widget build(BuildContext context) {
+    final isPiece = item.weight.contains('pc') || item.pricePerKg.contains('PC/s') || item.pricePerKg.contains('pc');
+    final unit = isPiece ? 'PC/s' : 'KG/s';
+    final priceLabel = item.pricePerKg.replaceFirst('PHP ', '');
+    final quantityLabel = (item.weight != '1kg' && item.weight != '1pc' && item.weight != '1 pc' && item.weight.isNotEmpty)
+        ? '${item.quantity} x ${item.weight}'
+        : '${item.quantity} $unit';
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -49,7 +53,7 @@ class CheckoutOrderItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${item.quantity}kg • ${item.pricePerKg.replaceFirst('PHP ', '')}',
+                  '$quantityLabel • $priceLabel',
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 12,

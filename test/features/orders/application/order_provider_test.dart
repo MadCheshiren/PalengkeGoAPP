@@ -10,6 +10,6 @@ void main() {
 
     final orders = container.read(orderServiceProvider);
 
-    expect(identical(orders, globalOrders), isTrue);
+    expect(orders, isA<OrderService>());
   });
 }

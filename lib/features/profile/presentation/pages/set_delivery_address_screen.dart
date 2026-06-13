@@ -1,23 +1,26 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:palengkego/core/services/customer_preferences_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/profile/application/preferences_provider.dart';
+import 'package:palengkego/features/profile/domain/delivery_address.dart';
 
-class SetDeliveryAddressScreen extends StatefulWidget {
+class SetDeliveryAddressScreen extends ConsumerStatefulWidget {
   const SetDeliveryAddressScreen({super.key});
 
   @override
-  State<SetDeliveryAddressScreen> createState() => _SetDeliveryAddressScreenState();
+  ConsumerState<SetDeliveryAddressScreen> createState() =>
+      _SetDeliveryAddressScreenState();
 }
 
-class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
+class _SetDeliveryAddressScreenState extends ConsumerState<SetDeliveryAddressScreen> {
   final _streetAddressController = TextEditingController();
   final _notesController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    final currentAddress = globalCustomerPreferences.deliveryAddress;
+    final currentAddress = ref.read(preferencesProvider).deliveryAddress;
     _streetAddressController.text = currentAddress.streetAddress;
     _notesController.text = currentAddress.notes;
   }
@@ -40,7 +43,8 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
           final visibleMapTop = headerHeight;
           final visibleMapBottom = constraints.maxHeight - bottomSheetHeight;
           final visibleMapCenter = (visibleMapTop + visibleMapBottom) / 2;
-          final pinTopPosition = visibleMapCenter - 40; // Offset up by half the pin height
+          final pinTopPosition =
+              visibleMapCenter - 40; // Offset up by half the pin height
 
           return Stack(
             children: [
@@ -48,9 +52,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
               Container(
                 width: constraints.maxWidth,
                 height: constraints.maxHeight,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F4F8),
-                ),
+                decoration: const BoxDecoration(color: Color(0xFFE8F4F8)),
                 child: CustomPaint(
                   painter: MapGridPainter(),
                   size: Size(constraints.maxWidth, constraints.maxHeight),
@@ -67,13 +69,16 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                   children: [
                     // Tooltip above the pin
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
+                            color: Colors.black.withValues(alpha: 0.25),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -101,7 +106,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                       width: 20,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0B372B).withOpacity(0.3),
+                        color: const Color(0xFF0B372B).withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -125,7 +130,7 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -171,11 +176,13 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: kIsWeb
-                            ? const Color(0xFFE8F4F8).withOpacity(0.85)
-                            : Colors.white.withOpacity(0.18),
+                            ? const Color(0xFFE8F4F8).withValues(alpha: 0.85)
+                            : Colors.white.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: Colors.white.withOpacity(kIsWeb ? 0.6 : 0.35),
+                          color: Colors.white.withValues(
+                            alpha: kIsWeb ? 0.6 : 0.35,
+                          ),
                           width: 1.5,
                         ),
                       ),
@@ -183,132 +190,139 @@ class _SetDeliveryAddressScreenState extends State<SetDeliveryAddressScreen> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                        // Pin dropped near info
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0B372B).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
+                          // Pin dropped near info
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
-                                child: const Icon(
-                                  Icons.near_me,
-                                  size: 24,
-                                  color: Color(0xFF0B372B),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'PIN DROPPED NEAR',
-                                      style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF94A3B8),
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    const Text(
-                                      'Magsaysay Ave, Naga City',
-                                      style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1F2937),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Street Address Input
-                        _buildInputLabel('STREET ADDRESS / LANDMARKS'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _streetAddressController,
-                          hintText: 'Unit No., Building, Street Name',
-                          prefixIcon: Icons.location_on_outlined,
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Notes Input
-                        _buildInputLabel('ADD NOTES FOR COURIER (OPTIONAL)'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _notesController,
-                          hintText: 'e.g. Red gate, ring the doorbell',
-                          prefixIcon: Icons.notes_outlined,
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Confirm Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context, {
-                                'address': 'Magsaysay Ave, Naga City',
-                                'streetAddress': _streetAddressController.text,
-                                'notes': _notesController.text,
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0B372B),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(50),
-                              ),
+                              ],
                             ),
-                            child: const Text(
-                              'Confirm Address',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF0B372B,
+                                    ).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.near_me,
+                                    size: 24,
+                                    color: Color(0xFF0B372B),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'PIN DROPPED NEAR',
+                                        style: TextStyle(
+                                          fontFamily: 'PlusJakartaSans',
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF94A3B8),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        'Magsaysay Ave, Naga City',
+                                        style: TextStyle(
+                                          fontFamily: 'PlusJakartaSans',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF1F2937),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+
+                          const SizedBox(height: 20),
+
+                          // Street Address Input
+                          _buildInputLabel('STREET ADDRESS / LANDMARKS'),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _streetAddressController,
+                            hintText: 'Unit No., Building, Street Name',
+                            prefixIcon: Icons.location_on_outlined,
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Notes Input
+                          _buildInputLabel('ADD NOTES FOR COURIER (OPTIONAL)'),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _notesController,
+                            hintText: 'e.g. Red gate, ring the doorbell',
+                            prefixIcon: Icons.notes_outlined,
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Confirm Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(
+                                  context,
+                                  DeliveryAddress(
+                                    primaryAddress: 'Magsaysay Ave, Naga City',
+                                    streetAddress:
+                                        _streetAddressController.text,
+                                    notes: _notesController.text,
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0B372B),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                              ),
+                              child: const Text(
+                                'Confirm Address',
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
-    ),
-  );
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildInputLabel(String label) {

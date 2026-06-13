@@ -10,7 +10,7 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 final currentProfileProvider = FutureProvider<CustomerProfile?>((ref) async {
   final repository = ref.watch(profileRepositoryProvider);
-  
+
   final authState = await ref.watch(authStateProvider.future);
   if (authState == null) {
     return null; // Not logged in

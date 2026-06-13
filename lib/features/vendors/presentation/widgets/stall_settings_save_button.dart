@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class StallSettingsSaveButton extends StatelessWidget {
   final VoidCallback onSave;
 
-  const StallSettingsSaveButton({
-    super.key,
-    required this.onSave,
-  });
+  const StallSettingsSaveButton({super.key, required this.onSave});
 
   @override
   Widget build(BuildContext context) {

@@ -66,10 +66,7 @@ class StallInfoForm extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF0B372B),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -120,7 +117,10 @@ class StallInfoForm extends StatelessWidget {
                     ),
                   ),
                   trailing: selectedCategory == category
-                      ? const Icon(Icons.check_rounded, color: Color(0xFF0B372B))
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Color(0xFF0B372B),
+                        )
                       : null,
                   onTap: () {
                     onCategoryChanged(category);
@@ -155,10 +155,7 @@ class StallInfoForm extends StatelessWidget {
         // Stall Name
         _buildLabel('Stall Name'),
         const SizedBox(height: 8),
-        _buildTextField(
-          controller: nameController,
-          hint: 'Enter stall name',
-        ),
+        _buildTextField(controller: nameController, hint: 'Enter stall name'),
         const SizedBox(height: 20),
 
         // Stall Description
@@ -212,7 +209,11 @@ class StallInfoForm extends StatelessWidget {
           controller: locationController,
           hint: 'Location',
           readOnly: true,
-          suffixIcon: const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF94A3B8)),
+          suffixIcon: const Icon(
+            Icons.lock_outline_rounded,
+            size: 16,
+            color: Color(0xFF94A3B8),
+          ),
         ),
       ],
     );

@@ -39,11 +39,12 @@ class OnboardingIdCardStep extends StatelessWidget {
               onTap: () => onIdTypeChanged(type),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFFF0FDF4)
-                      : Colors.white,
+                  color: isSelected ? const Color(0xFFF0FDF4) : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
@@ -59,7 +60,9 @@ class OnboardingIdCardStep extends StatelessWidget {
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           color: const Color(0xFF111827),
                         ),
                       ),

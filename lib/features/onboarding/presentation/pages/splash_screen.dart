@@ -1,24 +1,39 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'dart:async';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate after 3 seconds - no animation controller needed
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
-      }
+    Future.delayed(const Duration(seconds: kDebugMode ? 1 : 3), () {
+      if (!mounted) return;
+      _navigate();
     });
+  }
+
+  void _navigate() {
+    final user = ref.read(authProvider);
+    if (user != null) {
+      // Already logged in — route to correct dashboard
+      if (user.isVendor) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.vendorDashboard);
+      } else {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+      }
+    } else {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+    }
   }
 
   @override
@@ -29,7 +44,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo Image (no background version)
             Image.asset(
               'assets/images/logonobg.png',
               width: 220,
@@ -39,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 width: 180,
                 height: 180,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -50,7 +64,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // App Name
             const Text(
               'PalengkeGo',
               style: TextStyle(
@@ -62,27 +75,23 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // Tagline
             Text(
               'SKIP THE ROAM, ORDER FROM HOME',
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 letterSpacing: 1.5,
               ),
             ),
             const SizedBox(height: 80),
-            // Loading Spinner (static color, no per-frame animation cost)
             const SizedBox(
               width: 40,
               height: 40,
               child: CircularProgressIndicator(
                 strokeWidth: 4,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Color(0xFFF59E0B), // Static warm yellow
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
               ),
             ),
             const SizedBox(height: 48),

@@ -4,10 +4,7 @@ import 'package:palengkego/features/recipes/domain/recipe.dart';
 class RecipeStatsRow extends StatelessWidget {
   final Recipe recipe;
 
-  const RecipeStatsRow({
-    super.key,
-    required this.recipe,
-  });
+  const RecipeStatsRow({super.key, required this.recipe});
 
   @override
   Widget build(BuildContext context) {

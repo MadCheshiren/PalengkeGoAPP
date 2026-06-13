@@ -11,7 +11,9 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController(text: 'Juan Dela Cruz');
-  final _emailController = TextEditingController(text: 'juan.delacruz@palengkego.ph');
+  final _emailController = TextEditingController(
+    text: 'juan.delacruz@palengkego.ph',
+  );
   final _phoneController = TextEditingController(text: '+63 917 123 4567');
 
   @override
@@ -68,7 +70,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
-            
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -77,7 +79,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 24),
-                      
+
                       // Profile Photo Section
                       Stack(
                         alignment: Alignment.center,
@@ -141,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Full Name Field
                       _buildTextField(
                         label: 'FULL NAME',
@@ -150,7 +152,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         prefixIcon: Icons.person_outline_rounded,
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Email Field
                       _buildTextField(
                         label: 'EMAIL ADDRESS',
@@ -160,7 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Phone Field
                       _buildTextField(
                         label: 'PHONE NUMBER',
@@ -170,7 +172,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Status Cards Row
                       Row(
                         children: [
@@ -194,7 +196,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Save Changes Button
                       SizedBox(
                         width: double.infinity,
@@ -205,7 +207,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               // Save changes
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Profile updated successfully!'),
+                                  content: Text(
+                                    'Profile updated successfully!',
+                                  ),
                                   backgroundColor: Color(0xFF0B372B),
                                 ),
                               );

@@ -6,17 +6,19 @@ class AppTheme {
   static const Color primaryGreen = Color(0xFF0B372B); // Deep Emerald
   static const Color accentGreen = Color(0xFF6D9773); // Herbal accent
   static const Color accentYellow = Color(0xFFFFB902); // Status/promos
-  
+
   // Background and Surface
   static const Color scaffoldBackground = Color(0xFFF6F8F7); // surfaceLight
   static const Color surfaceColor = Colors.white;
   static const Color surfaceContainerLow = Color(0xFFF1F5F9);
   static const Color surfaceContainer = Color(0xFFE2E8F0);
-  
+
   // Typography Colors
-  static const Color textPrimary = Color(0xFF0B372B); // onSurface - Deep Emerald
+  static const Color textPrimary = Color(
+    0xFF0B372B,
+  ); // onSurface - Deep Emerald
   static const Color textSecondary = Color(0xFF64748B); // onSurfaceVariant
-  
+
   // Semantic Colors
   static const Color statusOpen = Color(0xFF22C55E);
   static const Color statusClosed = Color(0xFF94A3B8);
@@ -63,16 +65,16 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade300),

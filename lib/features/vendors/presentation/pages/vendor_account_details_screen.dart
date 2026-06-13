@@ -5,16 +5,18 @@ class VendorAccountDetailsScreen extends StatefulWidget {
   const VendorAccountDetailsScreen({super.key});
 
   @override
-  State<VendorAccountDetailsScreen> createState() => _VendorAccountDetailsScreenState();
+  State<VendorAccountDetailsScreen> createState() =>
+      _VendorAccountDetailsScreenState();
 }
 
-class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen> {
+class _VendorAccountDetailsScreenState
+    extends State<VendorAccountDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
-  
+
   late TextEditingController _currentPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _confirmPasswordController;
@@ -29,8 +31,10 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
     super.initState();
     _nameController = TextEditingController(text: 'Juan Dela Cruz');
     _phoneController = TextEditingController(text: '09171234567');
-    _emailController = TextEditingController(text: 'juan.delacruz@palengkego.ph');
-    
+    _emailController = TextEditingController(
+      text: 'juan.delacruz@palengkego.ph',
+    );
+
     _currentPasswordController = TextEditingController();
     _newPasswordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
@@ -57,7 +61,10 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
             const AppScreenHeader(title: 'Account Details'),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -125,7 +132,9 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         child: Theme(
-                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
                             title: const Text(
                               'Change Password',
@@ -136,7 +145,10 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
                                 color: Color(0xFF1F2937),
                               ),
                             ),
-                            leading: const Icon(Icons.lock_outline_rounded, color: Color(0xFF0B372B)),
+                            leading: const Icon(
+                              Icons.lock_outline_rounded,
+                              color: Color(0xFF0B372B),
+                            ),
                             onExpansionChanged: (expanded) {
                               setState(() {
                                 _isPasswordSectionExpanded = expanded;
@@ -144,11 +156,19 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
                             },
                             children: [
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  16,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Divider(color: Color(0xFFE2E8F0), height: 1),
+                                    const Divider(
+                                      color: Color(0xFFE2E8F0),
+                                      height: 1,
+                                    ),
                                     const SizedBox(height: 16),
 
                                     // Current Password
@@ -197,11 +217,14 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
                                       },
                                       isRequired: _isPasswordSectionExpanded,
                                       validator: (val) {
-                                        if (!_isPasswordSectionExpanded) return null;
+                                        if (!_isPasswordSectionExpanded) {
+                                          return null;
+                                        }
                                         if (val == null || val.isEmpty) {
                                           return 'Please confirm your new password';
                                         }
-                                        if (val != _newPasswordController.text) {
+                                        if (val !=
+                                            _newPasswordController.text) {
                                           return 'Passwords do not match';
                                         }
                                         return null;
@@ -225,7 +248,9 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
                               SnackBar(
                                 behavior: SnackBarBehavior.floating,
                                 backgroundColor: const Color(0xFF0B372B),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 content: const Text(
                                   'Account details successfully updated!',
                                   style: TextStyle(
@@ -315,10 +340,7 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF0B372B),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -367,7 +389,9 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
         fillColor: Colors.white,
         suffixIcon: IconButton(
           icon: Icon(
-            obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+            obscureText
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
             color: const Color(0xFF64748B),
             size: 20,
           ),
@@ -383,26 +407,25 @@ class _VendorAccountDetailsScreenState extends State<VendorAccountDetailsScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF0B372B),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
       ),
-      validator: validator ?? (val) {
-        if (!isRequired) return null;
-        if (val == null || val.isEmpty) {
-          return 'This field is required';
-        }
-        if (val.length < 6) {
-          return 'Password must be at least 6 characters';
-        }
-        return null;
-      },
+      validator:
+          validator ??
+          (val) {
+            if (!isRequired) return null;
+            if (val == null || val.isEmpty) {
+              return 'This field is required';
+            }
+            if (val.length < 6) {
+              return 'Password must be at least 6 characters';
+            }
+            return null;
+          },
     );
   }
 }

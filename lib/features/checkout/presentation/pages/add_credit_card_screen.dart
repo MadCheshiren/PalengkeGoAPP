@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 
 /// Add Credit Card Screen
 /// Allows users to add a new payment method.
-/// 
+///
 /// Features:
 /// - Card number input with formatting
 /// - Expiry date (MM/YY) and security code (CVV/CVC)
@@ -57,7 +58,8 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
       return 'Invalid month';
     }
     final currentYear = DateTime.now().year % 100;
-    if (year < currentYear || (year == currentYear && month < DateTime.now().month)) {
+    if (year < currentYear ||
+        (year == currentYear && month < DateTime.now().month)) {
       return 'Card expired';
     }
     return null;
@@ -85,14 +87,27 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
 
   void _onSave() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Return card data to previous screen
-      Navigator.pop(context, {
-        'cardNumber': _cardNumberController.text,
-        'expiry': _expiryController.text,
-        'cvv': _cvvController.text,
-        'cardholderName': _nameController.text,
-      });
+      final digits = _cardNumberController.text.replaceAll(' ', '');
+      final last4 = digits.length >= 4
+          ? digits.substring(digits.length - 4)
+          : digits;
+
+      Navigator.pop(
+        context,
+        CardSelectionData(
+          brand: _resolveCardBrand(digits),
+          last4: last4,
+          expiry: _expiryController.text,
+          cardholderName: _nameController.text,
+        ),
+      );
     }
+  }
+
+  String _resolveCardBrand(String digits) {
+    if (digits.startsWith('4')) return 'Visa';
+    if (digits.startsWith('5')) return 'Mastercard';
+    return 'Card';
   }
 
   @override
@@ -104,7 +119,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
           children: [
             // Header
             _buildHeader(context),
-            
+
             // Form
             Expanded(
               child: SingleChildScrollView(
@@ -128,7 +143,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
                         validator: _validateCardNumber,
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Expiry and CVV row
                       Row(
                         children: [
@@ -175,7 +190,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Cardholder Name
                       _buildLabel('Cardholder name'),
                       const SizedBox(height: 8),
@@ -191,7 +206,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
                 ),
               ),
             ),
-            
+
             // Bottom Save Button
             _buildBottomButton(),
           ],
@@ -292,26 +307,20 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF0B372B),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFEF4444),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFEF4444),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }
@@ -322,10 +331,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(
-            color: Colors.grey.withOpacity(0.2),
-            width: 1,
-          ),
+          top: BorderSide(color: Colors.grey.withValues(alpha: 0.2), width: 1),
         ),
       ),
       child: GestureDetector(
@@ -363,14 +369,14 @@ class _CardNumberFormatter extends TextInputFormatter {
   ) {
     final text = newValue.text.replaceAll(' ', '');
     final buffer = StringBuffer();
-    
+
     for (int i = 0; i < text.length; i++) {
       if (i > 0 && i % 4 == 0) {
         buffer.write(' ');
       }
       buffer.write(text[i]);
     }
-    
+
     return TextEditingValue(
       text: buffer.toString(),
       selection: TextSelection.collapsed(offset: buffer.length),
@@ -386,11 +392,11 @@ class _ExpiryDateFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     var text = newValue.text.replaceAll('/', '');
-    
+
     if (text.length > 2) {
       text = '${text.substring(0, 2)}/${text.substring(2)}';
     }
-    
+
     return TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/notifications/application/notification_provider.dart';
 import 'package:palengkego/features/notifications/presentation/pages/notifications_screen.dart';
 import 'package:palengkego/features/profile/presentation/pages/profile_screen.dart';
 
-class HomeHeader extends StatelessWidget {
+class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifService = ref.read(notificationServiceProvider);
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
@@ -60,37 +64,59 @@ class HomeHeader extends StatelessWidget {
                     width: 32,
                     height: 36,
                     alignment: Alignment.center,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        const Icon(
-                          Icons.notifications_none_rounded,
-                          size: 24,
-                          color: Color(0xFF0B372B),
-                        ),
-                        Positioned(
-                          top: 1,
-                          right: 1,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 1),
+                    child: ListenableBuilder(
+                      listenable: notifService,
+                      builder: (context, _) {
+                        final unread = notifService.customerUnreadCount;
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Icon(
+                              unread > 0
+                                  ? Icons.notifications_rounded
+                                  : Icons.notifications_none_rounded,
+                              size: 24,
+                              color: const Color(0xFF0B372B),
                             ),
-                          ),
-                        ),
-                      ],
+                            if (unread > 0)
+                              Positioned(
+                                top: -2,
+                                right: -4,
+                                child: Container(
+                                  constraints:
+                                      const BoxConstraints(minWidth: 14),
+                                  height: 14,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                        color: Colors.white, width: 1.5),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '$unread',
+                                    style: const TextStyle(
+                                      fontFamily: 'PlusJakartaSans',
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      height: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
-                      PageTransitions.slideFromRight(
-                        const ProfileScreen(),
-                      ),
+                      PageTransitions.slideFromRight(const ProfileScreen()),
                     );
                   },
                   child: Container(

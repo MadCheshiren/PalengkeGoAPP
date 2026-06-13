@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
 import 'package:palengkego/features/auth/presentation/pages/registration_screen.dart';
 import 'package:palengkego/features/cart/presentation/pages/shopping_cart_screen.dart';
@@ -14,6 +15,9 @@ import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/presentation/pages/track_order_screen.dart';
 import 'package:palengkego/features/profile/presentation/pages/set_delivery_address_screen.dart';
 import 'package:palengkego/features/recipes/presentation/pages/cookbook_screen.dart';
+import 'package:palengkego/features/orders/presentation/pages/order_details_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_add_product_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
 
 class MainRouteArgs {
   const MainRouteArgs({this.initialIndex = 0});
@@ -40,13 +44,16 @@ class OrderConfirmationRouteArgs {
 }
 
 class TrackOrderRouteArgs {
-  const TrackOrderRouteArgs({
-    required this.order,
-    required this.isPickup,
-  });
+  const TrackOrderRouteArgs({required this.order, required this.isPickup});
 
   final MarketOrder order;
   final bool isPickup;
+}
+
+class OrderDetailsRouteArgs {
+  const OrderDetailsRouteArgs({required this.order});
+
+  final MarketOrder order;
 }
 
 class AppRouter {
@@ -67,33 +74,36 @@ class AppRouter {
         final initialIndex = args is MainRouteArgs ? args.initialIndex : 0;
         return _materialRoute(
           settings,
-          MainScreen(initialIndex: initialIndex),
+          AuthGuard(child: MainScreen(initialIndex: initialIndex)),
         );
       case AppRoutes.cart:
-        return _slideRoute(settings, const ShoppingCartScreen());
+        return _slideRoute(settings, const AuthGuard(child: ShoppingCartScreen()));
       case AppRoutes.checkout:
-        return _slideRoute(settings, const CheckoutScreen());
+        return _slideRoute(settings, const AuthGuard(child: CheckoutScreen()));
       case AppRoutes.paymentMethods:
         final args = settings.arguments;
-        final currentMethod =
-            args is PaymentMethodsRouteArgs ? args.currentMethod : 'cod';
+        final currentMethod = args is PaymentMethodsRouteArgs
+            ? args.currentMethod
+            : 'cod';
         return _materialRoute(
           settings,
-          PaymentMethodsScreen(currentMethod: currentMethod),
+          AuthGuard(child: PaymentMethodsScreen(currentMethod: currentMethod)),
         );
       case AppRoutes.addCreditCard:
-        return _materialRoute(settings, const AddCreditCardScreen());
+        return _materialRoute(settings, const AuthGuard(child: AddCreditCardScreen()));
       case AppRoutes.orderConfirmation:
         final args = settings.arguments;
         if (args is! OrderConfirmationRouteArgs) {
           return _errorRoute(settings);
         }
-        return _scaleFadeRoute(
+        return _materialRoute(
           settings,
-          OrderConfirmationScreen(
-            isPickup: args.isPickup,
-            orders: args.orders,
-            address: args.address,
+          AuthGuard(
+            child: OrderConfirmationScreen(
+              isPickup: args.isPickup,
+              orders: args.orders,
+              address: args.address,
+            ),
           ),
         );
       case AppRoutes.trackOrder:
@@ -103,12 +113,27 @@ class AppRouter {
         }
         return _materialRoute(
           settings,
-          TrackOrderScreen(order: args.order, isPickup: args.isPickup),
+          AuthGuard(
+            child: TrackOrderScreen(order: args.order, isPickup: args.isPickup),
+          ),
         );
       case AppRoutes.setDeliveryAddress:
-        return _materialRoute(settings, const SetDeliveryAddressScreen());
+        return _materialRoute(settings, const AuthGuard(child: SetDeliveryAddressScreen()));
       case AppRoutes.cookbook:
-        return _slideRoute(settings, const CookbookScreen());
+        return _slideRoute(settings, const AuthGuard(child: CookbookScreen()));
+      case AppRoutes.orderDetails:
+        final args = settings.arguments;
+        if (args is! OrderDetailsRouteArgs) {
+          return _errorRoute(settings);
+        }
+        return _slideRoute(
+          settings,
+          AuthGuard(child: OrderDetailsScreen(order: args.order)),
+        );
+      case AppRoutes.vendorAddProduct:
+        return _slideRoute(settings, const AuthGuard(child: VendorAddProductScreen()));
+      case AppRoutes.vendorDashboard:
+        return _materialRoute(settings, const AuthGuard(child: VendorDashboardScreen()));
       default:
         return _errorRoute(settings);
     }
@@ -118,10 +143,7 @@ class AppRouter {
     RouteSettings settings,
     Widget child,
   ) {
-    return MaterialPageRoute(
-      settings: settings,
-      builder: (_) => child,
-    );
+    return MaterialPageRoute(settings: settings, builder: (_) => child);
   }
 
   static PageRouteBuilder<dynamic> _slideRoute(
@@ -144,40 +166,10 @@ class AppRouter {
     );
   }
 
-  static PageRouteBuilder<dynamic> _scaleFadeRoute(
-    RouteSettings settings,
-    Widget child,
-  ) {
-    return PageRouteBuilder(
-      settings: settings,
-      pageBuilder: (_, _, _) => child,
-      transitionsBuilder: (_, animation, _, child) {
-        final scaleTween = Tween(begin: 0.95, end: 1.0).chain(
-          CurveTween(curve: Curves.easeOutCubic),
-        );
-        final fadeTween = Tween(begin: 0.0, end: 1.0).chain(
-          CurveTween(curve: Curves.easeOut),
-        );
-
-        return ScaleTransition(
-          scale: animation.drive(scaleTween),
-          child: FadeTransition(
-            opacity: animation.drive(fadeTween),
-            child: child,
-          ),
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 280),
-      reverseTransitionDuration: const Duration(milliseconds: 220),
-    );
-  }
-
   static MaterialPageRoute<dynamic> _errorRoute(RouteSettings settings) {
     return _materialRoute(
       settings,
-      const Scaffold(
-        body: Center(child: Text('Route not found')),
-      ),
+      const Scaffold(body: Center(child: Text('Route not found'))),
     );
   }
 }

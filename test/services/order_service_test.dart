@@ -120,7 +120,7 @@ void main() {
       expect(orders.single.isPickup, isTrue);
     });
 
-    test('delivery orders start as confirmed', () {
+    test('delivery orders start as pending until a vendor accepts them', () {
       final service = OrderService();
 
       final orders = service.placeOrders(
@@ -134,8 +134,8 @@ void main() {
         ],
       );
 
-      expect(orders.single.status, OrderStatus.confirmed);
-      expect(orders.single.statusLabel, 'Confirmed');
+      expect(orders.single.status, OrderStatus.pending);
+      expect(orders.single.statusLabel, 'Pending');
       expect(orders.single.isPickup, isFalse);
     });
   });

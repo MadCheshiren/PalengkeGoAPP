@@ -38,7 +38,8 @@ class RecipesScreen extends ConsumerWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.cookbook),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.cookbook),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -46,7 +47,7 @@ class RecipesScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -93,7 +94,12 @@ class RecipesScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildFeaturedRecipe(context, ref, featuredRecipe, savedRecipes),
+                    _buildFeaturedRecipe(
+                      context,
+                      ref,
+                      featuredRecipe,
+                      savedRecipes,
+                    ),
                     const SizedBox(height: 24),
                     Text(
                       'More Recipes',
@@ -112,7 +118,12 @@ class RecipesScreen extends ConsumerWidget {
                       itemBuilder: (cellContext, index) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildRecipeCard(context, ref, moreRecipes[index], savedRecipes),
+                          child: _buildRecipeCard(
+                            context,
+                            ref,
+                            moreRecipes[index],
+                            savedRecipes,
+                          ),
                         );
                       },
                     ),
@@ -127,7 +138,12 @@ class RecipesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFeaturedRecipe(BuildContext context, WidgetRef ref, Recipe recipe, List<Recipe> savedRecipes) {
+  Widget _buildFeaturedRecipe(
+    BuildContext context,
+    WidgetRef ref,
+    Recipe recipe,
+    List<Recipe> savedRecipes,
+  ) {
     final isSaved = savedRecipes.any((r) => r.title == recipe.title);
 
     return GestureDetector(
@@ -138,7 +154,7 @@ class RecipesScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               offset: const Offset(0, 4),
               blurRadius: 12,
             ),
@@ -190,7 +206,7 @@ class RecipesScreen extends ConsumerWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withValues(alpha: 0.7),
                     ],
                   ),
                 ),
@@ -207,13 +223,15 @@ class RecipesScreen extends ConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        isSaved 
-                            ? 'Removed "${recipe.title}" from Cookbook.' 
+                        isSaved
+                            ? 'Removed "${recipe.title}" from Cookbook.'
                             : 'Added "${recipe.title}" to Cookbook.',
                         style: const TextStyle(fontFamily: 'PlusJakartaSans'),
                       ),
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -222,15 +240,17 @@ class RecipesScreen extends ConsumerWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
                   child: Icon(
-                    isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    isSaved
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
                     size: 18,
                     color: isSaved ? const Color(0xFFEF4444) : Colors.white,
                   ),
@@ -318,7 +338,12 @@ class RecipesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecipeCard(BuildContext context, WidgetRef ref, Recipe recipe, List<Recipe> savedRecipes) {
+  Widget _buildRecipeCard(
+    BuildContext context,
+    WidgetRef ref,
+    Recipe recipe,
+    List<Recipe> savedRecipes,
+  ) {
     final isSaved = savedRecipes.any((r) => r.title == recipe.title);
 
     return GestureDetector(
@@ -330,7 +355,7 @@ class RecipesScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               offset: const Offset(0, 1),
               blurRadius: 3,
             ),
@@ -441,8 +466,12 @@ class RecipesScreen extends ConsumerWidget {
             ),
             IconButton(
               icon: Icon(
-                isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                color: isSaved ? const Color(0xFFEF4444) : const Color(0xFF9CA3AF),
+                isSaved
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                color: isSaved
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFF9CA3AF),
                 size: 20,
               ),
               onPressed: () {
@@ -451,13 +480,15 @@ class RecipesScreen extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      isSaved 
-                          ? 'Removed "${recipe.title}" from Cookbook.' 
+                      isSaved
+                          ? 'Removed "${recipe.title}" from Cookbook.'
                           : 'Added "${recipe.title}" to Cookbook.',
                       style: const TextStyle(fontFamily: 'PlusJakartaSans'),
                     ),
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -476,10 +507,8 @@ class RecipesScreen extends ConsumerWidget {
   }
 
   void _openRecipe(BuildContext context, Recipe recipe) {
-    Navigator.of(context).push(
-      PageTransitions.slideFromRight(
-        RecipeDetailsScreen(recipe: recipe),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(PageTransitions.slideFromRight(RecipeDetailsScreen(recipe: recipe)));
   }
 }

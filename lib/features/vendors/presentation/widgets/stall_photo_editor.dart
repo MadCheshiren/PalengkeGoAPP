@@ -67,7 +67,9 @@ class StallPhotoEditor extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFE2E8F0),
+                                color: isSelected
+                                    ? const Color(0xFF0B372B)
+                                    : const Color(0xFFE2E8F0),
                                 width: isSelected ? 3 : 1,
                               ),
                               image: DecorationImage(
@@ -88,7 +90,10 @@ class StallPhotoEditor extends StatelessWidget {
                       onBannerChanged(null);
                       Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red,
+                    ),
                     label: const Text(
                       'Remove Cover Photo',
                       style: TextStyle(
@@ -147,7 +152,9 @@ class StallPhotoEditor extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFE2E8F0),
+                            color: isSelected
+                                ? const Color(0xFF0B372B)
+                                : const Color(0xFFE2E8F0),
                             width: isSelected ? 3 : 1,
                           ),
                           image: DecorationImage(
@@ -166,7 +173,10 @@ class StallPhotoEditor extends StatelessWidget {
                       onAvatarChanged(null);
                       Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red,
+                    ),
                     label: const Text(
                       'Remove Profile Picture',
                       style: TextStyle(

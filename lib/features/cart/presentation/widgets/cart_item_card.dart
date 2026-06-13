@@ -25,7 +25,7 @@ class CartItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -138,10 +138,7 @@ class CartItemCard extends StatelessWidget {
 }
 
 class _QuantityStepper extends StatelessWidget {
-  const _QuantityStepper({
-    required this.quantity,
-    required this.onChanged,
-  });
+  const _QuantityStepper({required this.quantity, required this.onChanged});
 
   final int quantity;
   final ValueChanged<int> onChanged;

@@ -4,14 +4,16 @@ import 'package:palengkego/core/config/app_environment.dart';
 class AppConfig {
   const AppConfig._({
     required this.environment,
-    required this.apiBaseUrl,
-    required this.useFirebase,
+    required this.firebaseEnabled,
+    required this.supabaseUrl,
+    required this.supabaseAnonKey,
     required this.paymongoPublicKey,
   });
 
   final AppEnvironment environment;
-  final String apiBaseUrl;
-  final bool useFirebase;
+  final bool firebaseEnabled;
+  final String supabaseUrl;
+  final String supabaseAnonKey;
   final String paymongoPublicKey;
 
   /// Loads configuration from compile-time arguments using `--dart-define`.
@@ -19,15 +21,22 @@ class AppConfig {
   factory AppConfig.load() {
     return AppConfig._(
       environment: AppEnvironment.fromString(
-        const String.fromEnvironment('ENVIRONMENT', defaultValue: 'development'),
+        const String.fromEnvironment(
+          'APP_ENV',
+          defaultValue: 'development',
+        ),
       ),
-      apiBaseUrl: const String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'https://dev.api.palengkego.com', // Placeholder
-      ),
-      useFirebase: const bool.fromEnvironment(
-        'USE_FIREBASE',
+      firebaseEnabled: const bool.fromEnvironment(
+        'FIREBASE_ENABLED',
         defaultValue: false, // Default to mock repositories
+      ),
+      supabaseUrl: const String.fromEnvironment(
+        'SUPABASE_URL',
+        defaultValue: '',
+      ),
+      supabaseAnonKey: const String.fromEnvironment(
+        'SUPABASE_ANON_KEY',
+        defaultValue: '',
       ),
       paymongoPublicKey: const String.fromEnvironment(
         'PAYMONGO_PUBLIC_KEY',

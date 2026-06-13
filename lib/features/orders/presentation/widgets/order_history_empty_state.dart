@@ -4,10 +4,7 @@ import 'order_history_tab_row.dart';
 class OrderHistoryEmptyState extends StatelessWidget {
   final OrderTab currentTab;
 
-  const OrderHistoryEmptyState({
-    super.key,
-    required this.currentTab,
-  });
+  const OrderHistoryEmptyState({super.key, required this.currentTab});
 
   @override
   Widget build(BuildContext context) {

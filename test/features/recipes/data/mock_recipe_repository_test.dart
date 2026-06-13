@@ -31,7 +31,10 @@ void main() {
       final recipes = repository.getMoreRecipes();
 
       expect(recipes, hasLength(4));
-      expect(recipes.any((recipe) => recipe.title == 'Sinigang na Hipon'), isFalse);
+      expect(
+        recipes.any((recipe) => recipe.title == 'Sinigang na Hipon'),
+        isFalse,
+      );
       expect(recipes.first.title, 'Chicken Adobo');
     });
 

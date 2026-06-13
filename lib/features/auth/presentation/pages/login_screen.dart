@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +21,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      _emailController.text = 'test@customer.com';
+      _passwordController.text = 'password123';
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -26,22 +37,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      final authRepo = ref.read(authRepositoryProvider);
-      final email = _emailController.text.isEmpty ? 'test@example.com' : _emailController.text;
-      final password = _passwordController.text.isEmpty ? 'password' : _passwordController.text;
-      await authRepo.login(email, password);
-      
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.main,
-          (route) => false,
-        );
-      }
+      await ref.read(authProvider.notifier).login(
+        _emailController.text,
+        _passwordController.text,
+      );
+      if (mounted) _navigateByRole();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -49,11 +51,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _devLoginAs(UserRole role) async {
+    setState(() => _isLoading = true);
+    await ref.read(authProvider.notifier).loginAs(role);
+    if (mounted) _navigateByRole();
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _navigateByRole() {
+    final user = ref.read(authProvider);
+    if (user?.isVendor == true) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.vendorDashboard, (route) => false,
+      );
+    } else {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.main, (route) => false,
+      );
     }
   }
 
@@ -64,6 +82,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Dev bypass banner — only visible in debug mode
+            if (kDebugMode)
+              Container(
+                width: double.infinity,
+                color: const Color(0xFF1E293B),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.code_rounded, color: Color(0xFFF59E0B), size: 14),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'DEV MODE —',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFF59E0B),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _devChip('Customer', () => _devLoginAs(UserRole.customer)),
+                    const SizedBox(width: 6),
+                    _devChip('Vendor', () => _devLoginAs(UserRole.vendor)),
+                  ],
+                ),
+              ),
+
             // Scrollable form
             Expanded(
               child: SingleChildScrollView(
@@ -117,7 +162,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Forgot Password coming soon!')),
+                            );
+                          },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -176,7 +225,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               icon: 'assets/icons/google_icon.svg',
                               label: 'Google',
                               onTap: () {
-                                // TODO: Implement Google Sign In
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Google Sign-In coming soon!')),
+                                );
                               },
                             ),
                           ),
@@ -186,7 +237,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               icon: 'assets/icons/facebook_icon.svg',
                               label: 'Facebook',
                               onTap: () {
-                                // TODO: Implement Facebook Sign In
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Facebook Sign-In coming soon!')),
+                                );
                               },
                             ),
                           ),
@@ -196,8 +249,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       // Register link
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context)
-                              .pushNamed(AppRoutes.registration);
+                          Navigator.of(
+                            context,
+                          ).pushNamed(AppRoutes.registration);
                         },
                         child: Center(
                           child: RichText(
@@ -230,6 +284,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _devChip(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF334155),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFF475569)),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -314,11 +391,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               icon,
               width: 20,
               height: 20,
-              errorBuilder: (_, _, _) => const Icon(
-                Icons.login,
-                size: 20,
-                color: Color(0xFF64748B),
-              ),
+              errorBuilder: (_, _, _) =>
+                  const Icon(Icons.login, size: 20, color: Color(0xFF64748B)),
             ),
             const SizedBox(width: 8),
             Text(
@@ -415,13 +489,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0B372B).withOpacity(0.2),
+            color: const Color(0xFF0B372B).withValues(alpha: 0.2),
             offset: const Offset(0, 4),
             blurRadius: 6,
             spreadRadius: -4,
           ),
           BoxShadow(
-            color: const Color(0xFF0B372B).withOpacity(0.2),
+            color: const Color(0xFF0B372B).withValues(alpha: 0.2),
             offset: const Offset(0, 10),
             blurRadius: 15,
             spreadRadius: -3,
@@ -437,9 +511,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(50),
           ),
-          disabledBackgroundColor: const Color(0xFF0B372B).withOpacity(0.5),
+          disabledBackgroundColor: const Color(
+            0xFF0B372B,
+          ).withValues(alpha: 0.5),
         ),
-        child: _isLoading 
+        child: _isLoading
             ? const SizedBox(
                 width: 24,
                 height: 24,

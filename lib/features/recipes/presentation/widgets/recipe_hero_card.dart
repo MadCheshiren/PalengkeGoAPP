@@ -4,10 +4,7 @@ import 'package:palengkego/features/recipes/domain/recipe.dart';
 class RecipeHeroCard extends StatelessWidget {
   final Recipe recipe;
 
-  const RecipeHeroCard({
-    super.key,
-    required this.recipe,
-  });
+  const RecipeHeroCard({super.key, required this.recipe});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +22,11 @@ class RecipeHeroCard extends StatelessWidget {
               errorBuilder: (_, _, _) => Container(
                 height: 280,
                 color: const Color(0xFFE2E8F0),
-                child: const Icon(Icons.image, size: 60, color: Color(0xFF94A3B8)),
+                child: const Icon(
+                  Icons.image,
+                  size: 60,
+                  color: Color(0xFF94A3B8),
+                ),
               ),
             ),
           ),
@@ -37,13 +38,15 @@ class RecipeHeroCard extends StatelessWidget {
             child: Container(
               height: 140,
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(16),
+                ),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withValues(alpha: 0.7),
                   ],
                 ),
               ),
@@ -53,7 +56,10 @@ class RecipeHeroCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFB902),
                       borderRadius: BorderRadius.circular(4),
@@ -87,7 +93,7 @@ class RecipeHeroCard extends StatelessWidget {
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],

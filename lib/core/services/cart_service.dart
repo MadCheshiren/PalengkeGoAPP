@@ -1,9 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
-import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
-
-// Global cart instance
-final globalCart = CartService();
 
 class CartService extends ChangeNotifier {
   final List<CartItem> _items = [];
@@ -19,7 +15,6 @@ class CartService extends ChangeNotifier {
       .fold<double>(0, (sum, item) => sum + item.total);
 
   void _notifyAll() {
-    updateCartBadgeCount(itemCount);
     notifyListeners();
   }
 
@@ -70,9 +65,7 @@ class CartService extends ChangeNotifier {
 
   void toggleSelect(int index) {
     if (index >= 0 && index < _items.length) {
-      _items[index] = _items[index].copyWith(
-        selected: !_items[index].selected,
-      );
+      _items[index] = _items[index].copyWith(selected: !_items[index].selected);
       _notifyAll();
     }
   }

@@ -56,7 +56,9 @@ class VendorScreenHeader extends StatelessWidget {
           SizedBox(
             width: 40,
             height: 40,
-            child: trailing == null ? const SizedBox.shrink() : Center(child: trailing),
+            child: trailing == null
+                ? const SizedBox.shrink()
+                : Center(child: trailing),
           ),
         ],
       ),

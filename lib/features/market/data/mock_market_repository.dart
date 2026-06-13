@@ -19,15 +19,19 @@ class MockMarketRepository implements MarketRepository {
       return vendors;
     }
 
-    return vendors
-        .where((vendor) => vendor.category == category)
-        .toList(growable: false);
+    return vendors.where((vendor) {
+      if (vendor.category == category) return true;
+      final products = getProductsForVendor(vendor.id);
+      return products.any((p) => 
+        p.category.toLowerCase().contains(category.toLowerCase())
+      );
+    }).toList(growable: false);
   }
 
   @override
   List<MarketProduct> getProductsForVendor(String vendorId) {
-    return MockDataService.getProductsForVendor(vendorId)
-        .map(MarketProduct.fromMap)
-        .toList(growable: false);
+    return MockDataService.getProductsForVendor(
+      vendorId,
+    ).map(MarketProduct.fromMap).toList(growable: false);
   }
 }

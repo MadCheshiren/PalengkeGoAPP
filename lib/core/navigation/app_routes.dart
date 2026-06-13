@@ -14,4 +14,7 @@ class AppRoutes {
   static const trackOrder = '/track-order';
   static const setDeliveryAddress = '/set-delivery-address';
   static const cookbook = '/cookbook';
+  static const orderDetails = '/order-details';
+  static const vendorAddProduct = '/vendor-add-product';
+  static const vendorDashboard = '/vendor-dashboard';
 }

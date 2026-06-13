@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TrackingMapPreview extends StatelessWidget {
-  const TrackingMapPreview({
-    super.key,
-    required this.isPickup,
-  });
+  const TrackingMapPreview({super.key, required this.isPickup});
 
   final bool isPickup;
 
@@ -87,10 +84,7 @@ class TrackingMapPreview extends StatelessWidget {
 }
 
 class _MapBadge extends StatelessWidget {
-  const _MapBadge({
-    required this.label,
-    required this.value,
-  });
+  const _MapBadge({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -104,7 +98,7 @@ class _MapBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

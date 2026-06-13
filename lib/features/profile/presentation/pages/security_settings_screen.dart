@@ -61,7 +61,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                 ],
               ),
             ),
-            
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -70,7 +70,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 24),
-                      
+
                       // Shield Icon
                       Container(
                         width: 64,
@@ -80,7 +80,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0B372B).withOpacity(0.2),
+                              color: const Color(
+                                0xFF0B372B,
+                              ).withValues(alpha: 0.2),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -93,7 +95,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Title
                       const Text(
                         'Login & Security',
@@ -117,7 +119,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Change Password Section
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -126,7 +128,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 12,
                               offset: const Offset(0, 2),
                             ),
@@ -161,7 +163,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                               obscureText: _obscureCurrentPassword,
                               onToggleVisibility: () {
                                 setState(() {
-                                  _obscureCurrentPassword = !_obscureCurrentPassword;
+                                  _obscureCurrentPassword =
+                                      !_obscureCurrentPassword;
                                 });
                               },
                             ),
@@ -183,7 +186,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                               obscureText: _obscureConfirmPassword,
                               onToggleVisibility: () {
                                 setState(() {
-                                  _obscureConfirmPassword = !_obscureConfirmPassword;
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
                                 });
                               },
                             ),
@@ -193,10 +197,13 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                               height: 50,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  if (_formKey.currentState?.validate() ?? false) {
+                                  if (_formKey.currentState?.validate() ??
+                                      false) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Password updated successfully!'),
+                                        content: Text(
+                                          'Password updated successfully!',
+                                        ),
                                         backgroundColor: Color(0xFF0B372B),
                                       ),
                                     );
@@ -223,7 +230,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Two-Factor Authentication
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -232,7 +239,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 12,
                               offset: const Offset(0, 2),
                             ),
@@ -294,7 +301,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Recent Security Activity
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -303,7 +310,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 12,
                               offset: const Offset(0, 2),
                             ),
@@ -333,7 +340,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                             _buildActivityItem(
                               icon: Icons.verified_user_outlined,
                               title: 'Security checkup completed',
-                              subtitle: 'Your account is well protected 2 days ago',
+                              subtitle:
+                                  'Your account is well protected 2 days ago',
                               color: const Color(0xFF0B372B),
                             ),
                           ],
@@ -428,11 +436,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: color,
-        ),
+        Icon(icon, size: 24, color: color),
         const SizedBox(width: 16),
         Expanded(
           child: Column(

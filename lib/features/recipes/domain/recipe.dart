@@ -24,16 +24,10 @@ class RecipeStep {
   final String title;
   final String description;
 
-  const RecipeStep({
-    required this.title,
-    required this.description,
-  });
+  const RecipeStep({required this.title, required this.description});
 
   Map<String, dynamic> toMap() {
-    return {
-      'title': title,
-      'description': description,
-    };
+    return {'title': title, 'description': description};
   }
 }
 

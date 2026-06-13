@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
-import 'package:palengkego/features/vendors/application/vendor_stall_controller.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'package:palengkego/features/vendors/domain/day_schedule.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_photo_editor.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_info_form.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/operating_hours_editor.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_settings_save_button.dart';
 
-class VendorStallSettingsScreen extends StatefulWidget {
+class VendorStallSettingsScreen extends ConsumerStatefulWidget {
   const VendorStallSettingsScreen({super.key});
 
   @override
-  State<VendorStallSettingsScreen> createState() => _VendorStallSettingsScreenState();
+  ConsumerState<VendorStallSettingsScreen> createState() =>
+      _VendorStallSettingsScreenState();
 }
 
-class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
+class _VendorStallSettingsScreenState extends ConsumerState<VendorStallSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
-  
+
   String _selectedCategory = 'Fish & Seafood';
   final List<String> _categories = [
     'Fish & Seafood',
@@ -29,6 +31,8 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
     'Fruits',
     'Rice & Grains',
     'Dried Goods & Spices',
+    'Maritatas',
+    'Sari-Sari',
   ];
 
   final List<DaySchedule> _schedules = [
@@ -47,13 +51,23 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final controller = VendorStallController.instance;
-    _nameController = TextEditingController(text: controller.name);
-    _descriptionController = TextEditingController(text: controller.description);
-    _locationController = TextEditingController(text: controller.location);
-    _selectedCategory = controller.category;
-    _bannerImage = controller.bannerImage;
-    _avatarImage = controller.avatarImage;
+    // Initialize with empty strings first (late controllers must be assigned before use)
+    _nameController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _locationController = TextEditingController();
+    // Populate from provider state — ref is available in ConsumerState after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final stall = ref.read(vendorStallProvider);
+      _nameController.text = stall.name;
+      _descriptionController.text = stall.description;
+      _locationController.text = stall.location;
+      setState(() {
+        _selectedCategory = stall.category;
+        _bannerImage = stall.bannerImage;
+        _avatarImage = stall.avatarImage;
+      });
+    });
   }
 
   @override
@@ -80,7 +94,11 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: const Text(
           "Applied Monday's hours to all days",
-          style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 13, color: Colors.white),
+          style: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 13,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -88,13 +106,12 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
 
   void _saveChanges() {
     if (_formKey.currentState!.validate()) {
-      // Save to global controller
-      VendorStallController.instance.updateStall(
+      ref.read(vendorStallProvider.notifier).updateStall(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
-        bannerImage: _bannerImage ?? "",
-        avatarImage: _avatarImage ?? "",
+        bannerImage: _bannerImage ?? '',
+        avatarImage: _avatarImage ?? '',
       );
 
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -102,7 +119,9 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF0B372B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: const Text(
             'Stall settings and operating hours saved!',
             style: TextStyle(
@@ -127,7 +146,10 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
             const AppScreenHeader(title: 'Stall Settings'),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -136,8 +158,10 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
                       StallPhotoEditor(
                         bannerImage: _bannerImage,
                         avatarImage: _avatarImage,
-                        onBannerChanged: (url) => setState(() => _bannerImage = url),
-                        onAvatarChanged: (url) => setState(() => _avatarImage = url),
+                        onBannerChanged: (url) =>
+                            setState(() => _bannerImage = url),
+                        onAvatarChanged: (url) =>
+                            setState(() => _avatarImage = url),
                       ),
                       const SizedBox(height: 24),
                       StallInfoForm(
@@ -146,7 +170,8 @@ class _VendorStallSettingsScreenState extends State<VendorStallSettingsScreen> {
                         locationController: _locationController,
                         selectedCategory: _selectedCategory,
                         categories: _categories,
-                        onCategoryChanged: (category) => setState(() => _selectedCategory = category),
+                        onCategoryChanged: (category) =>
+                            setState(() => _selectedCategory = category),
                       ),
                       const SizedBox(height: 32),
                       OperatingHoursEditor(

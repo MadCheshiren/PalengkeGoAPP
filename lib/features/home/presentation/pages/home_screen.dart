@@ -12,7 +12,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vendors = ref.watch(marketRepositoryProvider).getVendorsByCategory('All');
+    final vendors = ref
+        .watch(marketRepositoryProvider)
+        .getVendorsByCategory('All');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
@@ -78,7 +80,9 @@ class HomeScreen extends ConsumerWidget {
                                       fontFamily: 'PlusJakartaSans',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -88,7 +92,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    
+
                     // Popular Stalls Header
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -125,7 +129,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Popular Stalls Grid
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -133,12 +137,13 @@ class HomeScreen extends ConsumerWidget {
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 159 / 255,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 159 / 255,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
                         itemCount: vendors.take(4).length,
                         itemBuilder: (context, index) {
                           final vendor = vendors[index];
