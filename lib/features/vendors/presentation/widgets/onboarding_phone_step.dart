@@ -61,10 +61,7 @@ class OnboardingPhoneStep extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF0B372B),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -110,7 +107,10 @@ class OnboardingPhoneStep extends StatelessWidget {
               GestureDetector(
                 onTap: onSendOtp,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF7ED),
                     borderRadius: BorderRadius.circular(12),

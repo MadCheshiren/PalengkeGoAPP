@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/profile/domain/delivery_address.dart';
 
 class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
@@ -18,7 +19,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -39,19 +40,19 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     });
 
     try {
-      final authRepo = ref.read(authRepositoryProvider);
-      
-      final email = _emailController.text.isEmpty ? 'test@example.com' : _emailController.text;
-      final password = _passwordController.text.isEmpty ? 'password' : _passwordController.text;
-      final name = _nameController.text.isEmpty ? 'Test User' : _nameController.text;
-
-      await authRepo.register(email, password, name);
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      final name = _nameController.text.trim();
+      await ref.read(authProvider.notifier).register(
+        email.isEmpty ? 'test@example.com' : email,
+        password.isEmpty ? 'password' : password,
+        name.isEmpty ? 'Test User' : name,
+      );
 
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.main,
-          (route) => false,
-        );
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
       }
     } catch (e) {
       if (mounted) {
@@ -345,10 +346,11 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   Widget _addressPlaceholder() {
     return GestureDetector(
       onTap: () async {
-          final result =
-              await Navigator.of(context).pushNamed(AppRoutes.setDeliveryAddress);
+        final result = await Navigator.of(
+          context,
+        ).pushNamed(AppRoutes.setDeliveryAddress);
         // Handle the returned address data if needed
-        if (result != null && result is Map<String, dynamic>) {
+        if (result is DeliveryAddress) {
           // Update the address display or store the data
           setState(() {
             // Update with selected address
@@ -358,7 +360,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B).withOpacity(0.05),
+          color: const Color(0xFF0B372B).withValues(alpha: 0.05),
           border: Border.all(
             color: const Color(0xFF0B372B),
             width: 1,
@@ -372,7 +374,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF0B372B).withOpacity(0.1),
+                color: const Color(0xFF0B372B).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -422,12 +424,12 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         border: const Border(
           top: BorderSide(color: Color(0xFFF1F5F9), width: 1),
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 12),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12),
         ],
       ),
       child: ClipRRect(
@@ -442,13 +444,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withOpacity(0.2),
+                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
                       offset: const Offset(0, 4),
                       blurRadius: 6,
                       spreadRadius: -4,
                     ),
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withOpacity(0.2),
+                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
                       offset: const Offset(0, 10),
                       blurRadius: 15,
                       spreadRadius: -3,
@@ -464,7 +466,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
-                    disabledBackgroundColor: const Color(0xFF0B372B).withOpacity(0.5),
+                    disabledBackgroundColor: const Color(
+                      0xFF0B372B,
+                    ).withValues(alpha: 0.5),
                   ),
                   child: _isLoading
                       ? const SizedBox(

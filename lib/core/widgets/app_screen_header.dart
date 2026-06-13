@@ -55,7 +55,9 @@ class AppScreenHeader extends StatelessWidget {
           SizedBox(
             width: size,
             height: size,
-            child: trailing == null ? const SizedBox.shrink() : Center(child: trailing),
+            child: trailing == null
+                ? const SizedBox.shrink()
+                : Center(child: trailing),
           ),
         ],
       ),

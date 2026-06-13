@@ -4,10 +4,7 @@ import 'package:palengkego/features/recipes/domain/recipe.dart';
 class RecipeStepsList extends StatelessWidget {
   final Recipe recipe;
 
-  const RecipeStepsList({
-    super.key,
-    required this.recipe,
-  });
+  const RecipeStepsList({super.key, required this.recipe});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +62,7 @@ class RecipeStepsList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 12,
                       offset: const Offset(0, 2),
                     ),
@@ -108,15 +105,18 @@ class RecipeStepsList extends StatelessWidget {
   static final List<RecipeStep> _defaultSteps = [
     const RecipeStep(
       title: 'Boil the Broth Base',
-      description: 'In a large pot, bring 1 liter of water to a boil. Add the tamarind/powder mix, tomato, onion to extract juices. Simmer for 10 minutes until softened.',
+      description:
+          'In a large pot, bring 1 liter of water to a boil. Add the tamarind/powder mix, tomato, onion to extract juices. Simmer for 10 minutes until softened.',
     ),
     const RecipeStep(
       title: 'Add Fish and Hard Veggies',
-      description: 'Gently drop in the Bangus slices and add the radish. Cover and simmer for 5-8 minutes. Be careful not to overcook the fish to maintain its flaky texture.',
+      description:
+          'Gently drop in the Bangus slices and add the radish. Cover and simmer for 5-8 minutes. Be careful not to overcook the fish to maintain its flaky texture.',
     ),
     const RecipeStep(
       title: 'Season and Finish',
-      description: 'Drop in the kangkong and green chilies. Season with fish sauce, patis or salt to taste. Turn off heat once cooked. Serve with steamed rice.',
+      description:
+          'Drop in the kangkong and green chilies. Season with fish sauce, patis or salt to taste. Turn off heat once cooked. Serve with steamed rice.',
     ),
   ];
 }

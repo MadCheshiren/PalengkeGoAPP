@@ -6,6 +6,7 @@ class DashboardRecentOrderCard extends StatelessWidget {
   final String items;
   final String total;
   final String time;
+  final String primaryActionText;
   final VoidCallback onPrimaryAction;
 
   const DashboardRecentOrderCard({
@@ -15,6 +16,7 @@ class DashboardRecentOrderCard extends StatelessWidget {
     required this.items,
     required this.total,
     required this.time,
+    this.primaryActionText = 'Start Preparing',
     required this.onPrimaryAction,
   });
 
@@ -97,10 +99,10 @@ class DashboardRecentOrderCard extends StatelessWidget {
                 color: const Color(0xFF0B372B),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  'Start Preparing',
-                  style: TextStyle(
+                  primaryActionText,
+                  style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

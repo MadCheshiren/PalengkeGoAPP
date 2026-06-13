@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/onboarding_business_info_step.dart';
@@ -9,22 +12,22 @@ import 'package:palengkego/features/vendors/presentation/widgets/onboarding_bott
 
 /// Vendor Onboarding Screen
 /// Multi-step flow for vendors to register and start selling.
-/// 
+///
 /// Steps:
 /// 1. Business Information
 /// 2. Registered Name
 /// 3. ID Card Type
 /// 4. Phone Number
-/// 
+///
 /// Note: Field validation is disabled for development testing.
-class VendorOnboardingScreen extends StatefulWidget {
+class VendorOnboardingScreen extends ConsumerStatefulWidget {
   const VendorOnboardingScreen({super.key});
 
   @override
-  State<VendorOnboardingScreen> createState() => _VendorOnboardingScreenState();
+  ConsumerState<VendorOnboardingScreen> createState() => _VendorOnboardingScreenState();
 }
 
-class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
+class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen> {
   int _currentStep = 0;
   final PageController _pageController = PageController();
 
@@ -36,17 +39,17 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
   final _marketClearanceController = TextEditingController();
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
-  
+
   // Registered name fields
   final _lastNameController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _suffixController = TextEditingController();
   final _middleNameController = TextEditingController();
-  
+
   // ID card fields
   final _idNumberController = TextEditingController();
   String _selectedIdType = 'Unified Multi-Purpose Identification (UMID) Card';
-  
+
   // File upload placeholders (for dev, just text)
   String? _mayorsPermitFile;
   String? _sanitaryPermitFile;
@@ -78,7 +81,7 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
     super.dispose();
   }
 
-  void _nextStep() {
+  void _nextStep() async {
     if (_currentStep < _steps.length - 1) {
       setState(() {
         _currentStep++;
@@ -89,10 +92,10 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
       );
     } else {
       // Last step - go to vendor dashboard with smooth transition
+      await ref.read(authProvider.notifier).loginAs(UserRole.vendor);
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        PageTransitions.slideFromRight(
-          const VendorDashboardScreen(),
-        ),
+        PageTransitions.slideFromRight(const VendorDashboardScreen()),
         (route) => false,
       );
     }
@@ -158,10 +161,10 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
           children: [
             // Header with progress
             _buildHeader(),
-            
+
             // Progress indicator
             _buildProgressIndicator(),
-            
+
             // Page content
             Expanded(
               child: PageView(
@@ -196,7 +199,8 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
                   ),
                   OnboardingIdCardStep(
                     selectedIdType: _selectedIdType,
-                    onIdTypeChanged: (type) => setState(() => _selectedIdType = type),
+                    onIdTypeChanged: (type) =>
+                        setState(() => _selectedIdType = type),
                   ),
                   OnboardingPhoneStep(
                     phoneController: _phoneController,
@@ -206,7 +210,7 @@ class _VendorOnboardingScreenState extends State<VendorOnboardingScreen> {
                 ],
               ),
             ),
-            
+
             // Bottom buttons
             OnboardingBottomButtons(
               currentStep: _currentStep,

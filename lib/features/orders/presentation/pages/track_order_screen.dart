@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/app_bottom_nav_bar.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
+import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/presentation/widgets/tracking_contact_cards.dart';
 import 'package:palengkego/features/orders/presentation/widgets/tracking_map_preview.dart';
 
@@ -18,7 +21,7 @@ import 'package:palengkego/features/orders/presentation/widgets/tracking_map_pre
 ///
 /// For Delivery: Show rider location in real-time (requires Firebase/WebSocket)
 /// For Pick-up: Show static route from user to vendor stall
-class TrackOrderScreen extends StatelessWidget {
+class TrackOrderScreen extends ConsumerWidget {
   final MarketOrder order;
   final bool isPickup;
 
@@ -29,56 +32,69 @@ class TrackOrderScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderService = ref.watch(orderServiceProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(context),
+        child: ListenableBuilder(
+          listenable: orderService,
+          builder: (context, _) {
+            // Find the latest order state, or fallback to the initial one
+            final currentOrder = orderService.orders.firstWhere(
+              (o) => o.id == order.id,
+              orElse: () => order,
+            );
             
-            // Map Area - Replace with Google Maps
-            TrackingMapPreview(isPickup: isPickup),
-            
-            // Order Info Card
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Vendor Info
-                      _buildVendorInfo(),
-                      const SizedBox(height: 20),
-                      
-                      // Order Progress Timeline
-                      _buildOrderProgress(),
-                      const SizedBox(height: 20),
-                      
-                      // Pick-up Verification OR Delivery Rider Info
-                      if (isPickup)
-                        const PickupVerificationCard()
-                      else
-                        const RiderInfoCard(),
-                      
-                      // Contact Stall Owner button (pickup only)
-                      if (isPickup) ...[
-                        const SizedBox(height: 20),
-                        _buildContactStallButton(context),
-                      ],
-                    ],
+            return Column(
+              children: [
+                // Header
+                _buildHeader(context),
+                
+                // Map Area - Replace with Google Maps
+                TrackingMapPreview(isPickup: isPickup),
+                
+                // Order Info Card
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Vendor Info
+                          _buildVendorInfo(currentOrder),
+                          const SizedBox(height: 20),
+                          
+                          // Order Progress Timeline
+                          _buildOrderProgress(currentOrder),
+                          const SizedBox(height: 20),
+                          
+                          // Pick-up Verification OR Delivery Rider Info
+                          if (isPickup)
+                            const PickupVerificationCard()
+                          else
+                            const RiderInfoCard(),
+                          
+                          // Contact Stall Owner button (pickup only)
+                          if (isPickup) ...[
+                            const SizedBox(height: 20),
+                            _buildContactStallButton(context),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
       bottomNavigationBar: AppBottomNavBar(
@@ -131,7 +147,7 @@ class TrackOrderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVendorInfo() {
+  Widget _buildVendorInfo(MarketOrder currentOrder) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -161,7 +177,7 @@ class TrackOrderScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order.vendorName,
+                  currentOrder.vendorName,
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
@@ -173,7 +189,7 @@ class TrackOrderScreen extends StatelessWidget {
                 Text(
                   isPickup 
                     ? 'Stall 12 • Pasig Public Market'
-                    : 'Order #${order.id}',
+                    : 'Order #${currentOrder.id}',
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
@@ -205,28 +221,28 @@ class TrackOrderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderProgress() {
+  Widget _buildOrderProgress(MarketOrder currentOrder) {
     final steps = isPickup
       ? [
           _ProgressStep(
             title: 'Order Confirmed',
             subtitle: 'Today, 10:45 AM • Payment Received',
             isCompleted: true,
-            isActive: false,
+            isActive: currentOrder.status == OrderStatus.confirmed,
             icon: Icons.check_circle,
           ),
           _ProgressStep(
             title: 'Preparing',
             subtitle: '10:52 AM • Merchant is packing your items',
-            isCompleted: true,
-            isActive: false,
+            isCompleted: currentOrder.status == OrderStatus.preparing || currentOrder.status == OrderStatus.ready || currentOrder.status == OrderStatus.completed,
+            isActive: currentOrder.status == OrderStatus.preparing,
             icon: Icons.storefront,
           ),
           _ProgressStep(
             title: 'Ready for Pick-Up',
             subtitle: 'Head to Stall 12 now',
-            isCompleted: false,
-            isActive: true,
+            isCompleted: currentOrder.status == OrderStatus.completed,
+            isActive: currentOrder.status == OrderStatus.ready,
             icon: Icons.shopping_bag,
           ),
         ]
@@ -235,28 +251,28 @@ class TrackOrderScreen extends StatelessWidget {
             title: 'Order Confirmed',
             subtitle: 'Today, 10:45 AM',
             isCompleted: true,
-            isActive: false,
+            isActive: currentOrder.status == OrderStatus.confirmed,
             icon: Icons.check_circle,
           ),
           _ProgressStep(
             title: 'Preparing your Basket',
             subtitle: 'Lola is picking the freshest items',
-            isCompleted: true,
-            isActive: false,
+            isCompleted: currentOrder.status == OrderStatus.preparing || currentOrder.status == OrderStatus.ready || currentOrder.status == OrderStatus.completed,
+            isActive: currentOrder.status == OrderStatus.preparing,
             icon: Icons.shopping_basket,
           ),
           _ProgressStep(
             title: 'Out for Delivery',
             subtitle: 'Rider is heading your way',
-            isCompleted: false,
-            isActive: true,
+            isCompleted: currentOrder.status == OrderStatus.completed,
+            isActive: currentOrder.status == OrderStatus.ready,
             icon: Icons.delivery_dining,
           ),
           _ProgressStep(
             title: 'Arrived',
             subtitle: 'Enjoy your market-fresh items!',
-            isCompleted: false,
-            isActive: false,
+            isCompleted: currentOrder.status == OrderStatus.completed,
+            isActive: currentOrder.status == OrderStatus.completed,
             icon: Icons.home,
           ),
         ];

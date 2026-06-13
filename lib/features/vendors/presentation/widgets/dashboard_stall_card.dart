@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/features/vendors/application/vendor_stall_controller.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 
-class DashboardStallCard extends StatelessWidget {
-  final bool isStallOpen;
+class DashboardStallCard extends ConsumerWidget {
   final ValueChanged<bool> onToggleStallOpen;
 
   const DashboardStallCard({
     super.key,
-    required this.isStallOpen,
     required this.onToggleStallOpen,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final controller = VendorStallController.instance;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stall = ref.watch(vendorStallProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -29,15 +28,17 @@ class DashboardStallCard extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: const Color(0xFFD5E7DE),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              image: controller.bannerImage != null
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              image: stall.bannerImage != null
                   ? DecorationImage(
-                      image: NetworkImage(controller.bannerImage!),
+                      image: NetworkImage(stall.bannerImage!),
                       fit: BoxFit.cover,
                     )
                   : null,
             ),
-            child: controller.bannerImage == null
+            child: stall.bannerImage == null
                 ? const Center(
                     child: Icon(
                       Icons.storefront_outlined,
@@ -51,7 +52,7 @@ class DashboardStallCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                if (controller.avatarImage != null) ...[
+                if (stall.avatarImage != null) ...[
                   Container(
                     width: 40,
                     height: 40,
@@ -59,7 +60,7 @@ class DashboardStallCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       image: DecorationImage(
-                        image: NetworkImage(controller.avatarImage!),
+                        image: NetworkImage(stall.avatarImage!),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -71,7 +72,7 @@ class DashboardStallCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        controller.name,
+                        stall.name,
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
@@ -81,7 +82,7 @@ class DashboardStallCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        controller.location,
+                        stall.location,
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
@@ -94,22 +95,24 @@ class DashboardStallCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      isStallOpen ? 'OPEN' : 'CLOSED',
+                      stall.isOpen ? 'OPEN' : 'CLOSED',
                       style: TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isStallOpen
+                        color: stall.isOpen
                             ? const Color(0xFF22C55E)
                             : const Color(0xFF94A3B8),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Switch(
-                      value: isStallOpen,
+                      value: stall.isOpen,
                       onChanged: onToggleStallOpen,
                       activeThumbColor: const Color(0xFF0B372B),
-                      activeTrackColor: const Color(0xFF0B372B).withValues(alpha: 0.3),
+                      activeTrackColor: const Color(
+                        0xFF0B372B,
+                      ).withValues(alpha: 0.3),
                     ),
                   ],
                 ),

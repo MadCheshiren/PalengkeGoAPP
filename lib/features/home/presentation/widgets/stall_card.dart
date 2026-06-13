@@ -5,8 +5,9 @@ import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_sc
 
 class StallCard extends StatelessWidget {
   final MarketVendor vendor;
+  final String? selectedCategory;
 
-  const StallCard({super.key, required this.vendor});
+  const StallCard({super.key, required this.vendor, this.selectedCategory});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +21,7 @@ class StallCard extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
           PageTransitions.slideFromRight(
-            VendorProfileScreen(
-              vendorId: vendor.id,
-            ),
+            VendorProfileScreen(vendorId: vendor.id, filterCategory: selectedCategory),
           ),
         );
       },

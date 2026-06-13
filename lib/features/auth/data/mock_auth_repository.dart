@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:palengkego/features/auth/data/auth_repository.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 
@@ -6,46 +7,41 @@ class MockAuthRepository implements AuthRepository {
   AppUser? _currentUser;
   final _authStateController = StreamController<AppUser?>.broadcast();
 
-  @override
-  Future<AppUser> login(String email, String password) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Accept any password for prototype convenience
-    /*
-    if (password != 'password') {
-      throw Exception('Invalid credentials. Use "password" to login.');
+  MockAuthRepository() {
+    // In debug mode, auto-login as customer so the app is explorable immediately.
+    if (kDebugMode) {
+      _currentUser = MockUsers.customer;
     }
-    */
+  }
 
+  @override
+  Future<AppUser> login(String email, String password, {UserRole role = UserRole.customer}) async {
+    await Future.delayed(const Duration(milliseconds: 300));
     _currentUser = AppUser(
-      uid: 'user-123',
-      email: email,
-      displayName: 'Test User',
+      uid: role == UserRole.vendor ? 'vendor-001' : 'customer-001',
+      email: email.isEmpty ? (role == UserRole.vendor ? MockUsers.vendor.email : MockUsers.customer.email) : email,
+      displayName: role == UserRole.vendor ? MockUsers.vendor.displayName : MockUsers.customer.displayName,
+      role: role,
     );
-    
     _authStateController.add(_currentUser);
     return _currentUser!;
   }
 
   @override
   Future<AppUser> register(String email, String password, String name) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
+    await Future.delayed(const Duration(milliseconds: 300));
     _currentUser = AppUser(
       uid: 'user-${DateTime.now().millisecondsSinceEpoch}',
       email: email,
       displayName: name,
+      role: UserRole.customer,
     );
-    
     _authStateController.add(_currentUser);
     return _currentUser!;
   }
 
   @override
   Future<void> logout() async {
-    await Future.delayed(const Duration(milliseconds: 500));
     _currentUser = null;
     _authStateController.add(null);
   }

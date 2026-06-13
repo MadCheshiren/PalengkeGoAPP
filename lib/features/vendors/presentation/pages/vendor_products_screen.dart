@@ -1,67 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/vendors/domain/vendor_stall_product.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/vendors/application/vendor_provider.dart';
+import 'package:palengkego/features/vendors/domain/vendor_product.dart';
+import 'package:intl/intl.dart';
+import 'package:palengkego/core/utils/unit_helper.dart';
 import '../widgets/vendor_screen_header.dart';
-import 'vendor_add_product_screen.dart';
 
 /// Vendor Products Screen
 /// Shows all vendor products with stock toggle.
-class VendorProductsScreen extends StatefulWidget {
+class VendorProductsScreen extends ConsumerStatefulWidget {
   const VendorProductsScreen({super.key});
 
   @override
-  State<VendorProductsScreen> createState() => _VendorProductsScreenState();
+  ConsumerState<VendorProductsScreen> createState() => _VendorProductsScreenState();
 }
 
-class _VendorProductsScreenState extends State<VendorProductsScreen> {
+class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
   String _selectedFilter = 'All Products';
   String _searchQuery = '';
-
-  final List<VendorStallProduct> _products = [
-    VendorStallProduct(
-      name: 'Fresh Bangus',
-      price: 'PHP 180/kg',
-      imageColor: const Color(0xFFD5E7DE),
-      isActive: true,
-    ),
-    VendorStallProduct(
-      name: 'Whole Chicken',
-      price: 'PHP 210/kg',
-      imageColor: const Color(0xFFFFF7ED),
-      isActive: true,
-    ),
-    VendorStallProduct(
-      name: 'Carrots',
-      price: 'PHP 60/kg',
-      imageColor: const Color(0xFFF0FDF4),
-      isActive: true,
-    ),
-    VendorStallProduct(
-      name: 'Potatoes',
-      price: 'PHP 90/kg',
-      imageColor: const Color(0xFFF8FAFC),
-      isActive: false,
-    ),
-    VendorStallProduct(
-      name: 'Red Onion',
-      price: 'PHP 120/kg',
-      imageColor: const Color(0xFFFFF7ED),
-      isActive: true,
-    ),
-  ];
+  late String _vendorId;
 
   @override
   Widget build(BuildContext context) {
-    final filteredProducts = _products.where((product) {
-      final matchesFilter = switch (_selectedFilter) {
-        'Out of Stock' => !product.isActive,
-        _ => true,
-      };
-      final matchesSearch = product.name.toLowerCase().contains(
-        _searchQuery.trim().toLowerCase(),
-      );
-      return matchesFilter && matchesSearch;
-    }).toList();
+    _vendorId = ref.watch(currentVendorIdProvider);
+    final productsAsync = ref.watch(vendorProductsProvider(_vendorId));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -125,8 +89,21 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  filteredProducts.isEmpty
-                      ? const Center(
+                  productsAsync.when(
+                    data: (products) {
+                      final filteredProducts = products.where((product) {
+                        final matchesFilter = switch (_selectedFilter) {
+                          'Out of Stock' => !product.isActive,
+                          _ => true,
+                        };
+                        final matchesSearch = product.name.toLowerCase().contains(
+                          _searchQuery.trim().toLowerCase(),
+                        );
+                        return matchesFilter && matchesSearch;
+                      }).toList();
+
+                      if (filteredProducts.isEmpty) {
+                        return const Center(
                           child: Text(
                             'No products match this filter yet.',
                             style: TextStyle(
@@ -136,33 +113,37 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
                               color: Color(0xFF64748B),
                             ),
                           ),
-                        )
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(20),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 12,
-                                  crossAxisSpacing: 12,
-                                  childAspectRatio: 0.72,
-                                ),
-                          itemCount: filteredProducts.length,
-                          itemBuilder: (context, index) {
-                            final product = filteredProducts[index];
-                            return _buildProductGridCard(product);
-                          },
+                        );
+                      }
+
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(20),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.85,
                         ),
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return _buildProductGridCard(product);
+                        },
+                      );
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+                    ),
+                    error: (error, _) => Center(
+                      child: Text('Error: $error'),
+                    ),
+                  ),
                   Positioned(
                     right: 20,
                     bottom: 20,
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          PageTransitions.slideFromRight(
-                            const VendorAddProductScreen(),
-                          ),
-                        );
+                        Navigator.pushNamed(context, AppRoutes.vendorAddProduct);
                       },
                       child: Container(
                         width: 56,
@@ -199,20 +180,21 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
               fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected
-                  ? const Color(0xFF0B372B)
-                  : const Color(0xFF94A3B8),
+              color: isSelected ? const Color(0xFF0B372B) : const Color(0xFF94A3B8),
             ),
           ),
           const SizedBox(height: 4),
-          if (isSelected)
-            Container(width: 40, height: 2, color: const Color(0xFF0B372B)),
+          if (isSelected) Container(width: 40, height: 2, color: const Color(0xFF0B372B)),
         ],
       ),
     );
   }
 
-  Widget _buildProductGridCard(VendorStallProduct product) {
+  Widget _buildProductGridCard(VendorProduct product) {
+    final formatCurrency = NumberFormat.currency(symbol: 'PHP ', decimalDigits: 2);
+    final isFruit = UnitHelper.isPieceUnit(product.name, product.description);
+    final imageColor = isFruit ? const Color(0xFFFFF7ED) : const Color(0xFFF0FDF4); // Simple placeholder color logic
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -232,18 +214,26 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: product.imageColor,
+                color: imageColor,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
+                image: product.imageUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(product.imageUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.image_outlined,
-                  size: 40,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
+              child: product.imageUrl.isEmpty
+                  ? const Center(
+                      child: Icon(
+                        Icons.image_outlined,
+                        size: 40,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    )
+                  : null,
             ),
           ),
           Padding(
@@ -267,7 +257,7 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        product.price,
+                        '${formatCurrency.format(product.price)}/${UnitHelper.getUnitString(isFruit)}',
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
@@ -281,9 +271,7 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
                         style: TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 11,
-                          color: product.isActive
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFFEF4444),
+                          color: product.isActive ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
                         ),
                       ),
                     ],
@@ -291,15 +279,24 @@ class _VendorProductsScreenState extends State<VendorProductsScreen> {
                 ),
                 Switch(
                   value: product.isActive,
-                  onChanged: (value) {
-                    setState(() {
-                      product.isActive = value;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
+                  onChanged: (value) async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final updatedProduct = VendorProduct(
+                      id: product.id,
+                      vendorId: product.vendorId,
+                      name: product.name,
+                      description: product.description,
+                      category: product.category,
+                      price: product.price,
+                      pricePerKg: product.pricePerKg,
+                      weight: product.weight,
+                      imageUrl: product.imageUrl,
+                      isActive: value,
+                    );
+                    await ref.read(vendorProductsManagerProvider(_vendorId)).updateProduct(updatedProduct);
+                    messenger.showSnackBar(
                       SnackBar(
-                        content: Text(
-                          '${product.name} is now ${value ? 'in stock' : 'out of stock'}.',
-                        ),
+                        content: Text('${product.name} is now ${value ? 'in stock' : 'out of stock'}.'),
                       ),
                     );
                   },

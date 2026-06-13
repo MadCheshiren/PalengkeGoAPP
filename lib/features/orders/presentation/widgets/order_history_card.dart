@@ -171,8 +171,12 @@ class OrderHistoryCard extends StatelessWidget {
                 child: _actionButton(
                   label: primaryAction,
                   filled: secondaryAction == null,
-                  trailingIcon: (order.status == OrderStatus.confirmed || order.status == OrderStatus.pending)
-                      ? (order.isPickup ? Icons.storefront_outlined : Icons.local_shipping_outlined)
+                  trailingIcon:
+                      (order.status == OrderStatus.confirmed ||
+                          order.status == OrderStatus.pending)
+                      ? (order.isPickup
+                            ? Icons.storefront_outlined
+                            : Icons.local_shipping_outlined)
                       : null,
                   onTap: onPrimaryAction,
                 ),
@@ -239,6 +243,8 @@ class OrderHistoryCard extends StatelessWidget {
           foreground: Color(0xFFC78800),
         );
       case OrderStatus.confirmed:
+      case OrderStatus.preparing:
+      case OrderStatus.ready:
         return const _StatusStyle(
           background: Color(0xFFE8F6E8),
           foreground: Color(0xFF6DA566),
@@ -265,6 +271,8 @@ class OrderHistoryCard extends StatelessWidget {
   String _primaryActionLabel(OrderStatus status) {
     switch (status) {
       case OrderStatus.confirmed:
+      case OrderStatus.preparing:
+      case OrderStatus.ready:
       case OrderStatus.pending:
         return 'Track Order';
       case OrderStatus.completed:
@@ -279,6 +287,8 @@ class OrderHistoryCard extends StatelessWidget {
         return 'Reorder';
       case OrderStatus.pending:
       case OrderStatus.confirmed:
+      case OrderStatus.preparing:
+      case OrderStatus.ready:
       case OrderStatus.cancelled:
         return null;
     }

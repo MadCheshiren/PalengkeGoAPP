@@ -12,9 +12,7 @@ class ResponsiveWrapper extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 450, maxWidth: 450),
-          child: ClipRect(
-            child: child,
-          ),
+          child: ClipRect(child: child),
         ),
       ),
     );

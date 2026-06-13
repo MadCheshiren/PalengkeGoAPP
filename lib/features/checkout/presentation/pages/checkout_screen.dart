@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/cart/application/cart_provider.dart';
+
+import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
-import 'package:palengkego/core/services/customer_preferences_service.dart';
+import 'package:palengkego/features/profile/application/preferences_provider.dart';
+import 'package:palengkego/features/profile/domain/delivery_address.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
-import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
+import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_delivery_cards.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_footer.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_method_toggle.dart';
@@ -13,7 +17,6 @@ import 'package:palengkego/features/checkout/presentation/widgets/checkout_order
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_pickup_cards.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_section_title.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_summary_row.dart';
-import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
 import 'package:palengkego/features/market/domain/market_vendor.dart';
 
@@ -26,30 +29,20 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   int _deliveryMethod = 0; // 0 = Delivery, 1 = Pick-Up
-
-  @override
-  void initState() {
-    super.initState();
-    globalCustomerPreferences.addListener(_onPreferencesChanged);
-  }
+  final TextEditingController _notesController = TextEditingController();
 
   @override
   void dispose() {
-    globalCustomerPreferences.removeListener(_onPreferencesChanged);
+    _notesController.dispose();
     super.dispose();
-  }
-
-  void _onPreferencesChanged() {
-    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.read(cartServiceProvider);
-    final orders = ref.read(orderServiceProvider);
-    final selectedItems = cart.items
-        .where((item) => item.selected)
-        .toList();
+    final cart = ref.watch(cartServiceProvider);
+    final orders = ref.watch(orderServiceProvider);
+    final preferences = ref.watch(preferencesProvider);
+    final selectedItems = cart.items.where((item) => item.selected).toList();
     final subtotal = selectedItems.fold<double>(
       0,
       (sum, item) => sum + item.total,
@@ -62,7 +55,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       itemsByVendor[item.vendorName]!.add(item);
     }
 
-    final deliveryAddress = globalCustomerPreferences.deliveryAddress;
+    final deliveryAddress = preferences.deliveryAddress;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -96,17 +89,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       const SizedBox(height: 12),
                       CheckoutDeliveryMapCard(
                         onTap: () async {
-                          final result = await Navigator.of(context).pushNamed(
-                            AppRoutes.setDeliveryAddress,
-                          );
-                          if (result != null && result is Map<String, dynamic>) {
-                            final address = result['address'] as String;
-                            final street = result['streetAddress'] as String;
-                            final notes = result['notes'] as String;
-                            globalCustomerPreferences.updateAddress(
-                              primaryAddress: address,
-                              streetAddress: street,
-                              notes: notes,
+                          final result = await Navigator.of(
+                            context,
+                          ).pushNamed(AppRoutes.setDeliveryAddress);
+                          if (result is DeliveryAddress) {
+                            ref.read(preferencesProvider.notifier).updateAddress(
+                              primaryAddress: result.primaryAddress.isEmpty
+                                  ? deliveryAddress.primaryAddress
+                                  : result.primaryAddress,
+                              streetAddress: result.streetAddress,
+                              notes: result.notes,
                             );
                           }
                         },
@@ -116,7 +108,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       const SizedBox(height: 12),
                       ...itemsByVendor.entries.map((entry) {
                         final vendorName = entry.key;
-                        final vendorModel = ref.watch(marketRepositoryProvider)
+                        final vendorModel = ref
+                            .watch(marketRepositoryProvider)
                             .getFeaturedVendors()
                             .firstWhere(
                               (v) => v.name == vendorName,
@@ -136,8 +129,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: CheckoutPickupCard(
                             vendorName: vendorName,
-                            vendorStall: vendorModel.stallNumber ?? 'Market Stall',
-                            vendorSection: vendorModel.marketSection ?? 'Fish Section',
+                            vendorStall:
+                                vendorModel.stallNumber ?? 'Market Stall',
+                            vendorSection:
+                                vendorModel.marketSection ?? 'Fish Section',
                             vendorRating: vendorModel.rating,
                             vendorCount: 1,
                             vendorImageUrl: vendorModel.imageUrl,
@@ -159,7 +154,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       title: 'Order Summary',
                     ),
                     const SizedBox(height: 12),
-                    ...selectedItems.map((item) => CheckoutOrderItem(item: item)),
+                    ...selectedItems.map(
+                      (item) => CheckoutOrderItem(item: item),
+                    ),
+                    const SizedBox(height: 24),
+                    const CheckoutSectionTitle(
+                      icon: Icons.note_alt_outlined,
+                      title: 'Order Notes / Instructions',
+                    ),
+                    const SizedBox(height: 12),
+                    _notesTextField(),
                     const SizedBox(height: 16),
                     const Divider(color: Color(0xFFE2E8F0)),
                     const SizedBox(height: 12),
@@ -186,8 +190,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 final createdOrders = orders.placeOrders(
                   items: selectedItems,
                   isPickup: _deliveryMethod == 1,
+                  notes: _notesController.text.trim().isNotEmpty
+                      ? _notesController.text.trim()
+                      : null,
                 );
-                
+
                 cart.removeSelectedItems();
 
                 // Navigate to order confirmation screen
@@ -215,13 +222,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           AppRoutes.paymentMethods,
           arguments: const PaymentMethodsRouteArgs(currentMethod: 'cod'),
         );
-        if (result != null && result is Map<String, dynamic>) {
-          final method = result['method'] as String;
-          final cardData = result['cardData'] as Map<String, dynamic>?;
-          final cardLabel = cardData == null
-              ? null
-              : '${cardData['brand'] ?? 'Card'} •••• ${cardData['last4'] ?? ''}';
-          globalCustomerPreferences.updatePaymentMethod(
+        if (result is PaymentSelectionResult) {
+          final method = result.method;
+          final cardLabel = result.cardData?.displayLabel;
+          ref.read(preferencesProvider.notifier).updatePaymentMethod(
             method,
             cardLabel: cardLabel,
           );
@@ -232,9 +236,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             _ => 'Payment method updated',
           };
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
         }
       },
       child: Container(
@@ -267,7 +271,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    globalCustomerPreferences.paymentTitle,
+                    ref.watch(preferencesProvider).paymentTitle,
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
@@ -277,7 +281,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ),
                   SizedBox(height: 2),
                   Text(
-                    globalCustomerPreferences.paymentSubtitle,
+                    ref.watch(preferencesProvider).paymentSubtitle,
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
@@ -287,15 +291,48 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: Color(0xFF9CA3AF),
-            ),
+            const Icon(Icons.chevron_right, size: 20, color: Color(0xFF9CA3AF)),
           ],
         ),
       ),
     );
   }
-}
 
+  Widget _notesTextField() {
+    return TextFormField(
+      controller: _notesController,
+      maxLines: 3,
+      style: const TextStyle(
+        fontFamily: 'PlusJakartaSans',
+        fontSize: 14,
+        color: Color(0xFF1E293B),
+      ),
+      decoration: InputDecoration(
+        hintText: 'e.g. chop the pork into small cubes, select green bananas, etc.',
+        hintStyle: const TextStyle(
+          fontFamily: 'PlusJakartaSans',
+          fontSize: 14,
+          color: Color(0xFF94A3B8),
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
+    );
+  }
+}

@@ -1,167 +1,217 @@
 # PalengkeGo
 
-A Flutter mobile app for local Filipino public markets (palengke). It bridges customers and vendors in a single ecosystem — customers browse stalls, compare fresh goods, build carts, and track orders; vendors manage product listings, inventory, and order fulfillment without leaving the app.
+A Flutter mobile app for local Filipino public markets (palengke). It connects customers and vendors in one ecosystem: customers browse stalls, compare fresh goods, build carts, check out, and track orders; vendors manage stall details, products, stock state, orders, and earnings.
 
 ## Features
 
 ### For Customers
+
 - Browse stalls and products by category
-- Compare prices and freshness ratings
-- Build shopping carts and checkout with multiple payment methods (Cash on Delivery, GCash, Card)
-- Track order status in real time
-- Save favorite recipes with ingredient checklists
-- Manage delivery addresses and payment methods
+- Search and filter market vendors
+- Build shopping carts and checkout with delivery or pickup
+- Select delivery addresses and payment methods
+- Track order status
 - View order history and reorder past items
-- Receive push notifications for order updates
+- Browse recipes and save favorites
+- Receive in-app notifications for order and promo updates
 
 ### For Vendors
-- Manage stall profile and visibility
+
+- Manage stall profile and open/closed state
 - Add, edit, and remove product listings
-- Track stock levels and mark items out of stock
+- Track stock state
 - View incoming orders and update preparation status
-- Monitor weekly earnings and sales trends
+- Monitor earnings and sales summaries
+- Receive vendor-facing notifications
 
 ## Tech Stack
 
-- **Framework:** Flutter 3.x (stable channel)
+- **Framework:** Flutter 3.x
 - **Language:** Dart
-- **Backend:** Firebase (Authentication, Firestore, Cloud Functions)
-- **Payments:** Paymongo API (GCash, Card, Cash on Delivery)
-- **Recipe Generation:** To be decided by the team (TBD)
 - **Primary Target:** Android
-- **Secondary Target:** Web (for preview and testing)
-- **State Management:** StatefulWidget + service layer
-- **Navigation:** MaterialPageRoute + named routes
+- **Secondary Target:** Web preview/testing
+- **State Management:** Riverpod providers/notifiers with mock repositories during frontend hardening
+- **Navigation:** Centralized named routes with typed route arguments for critical flows
+- **Backend Plan:** Hybrid Firebase + Supabase
+- **Firebase Scope:** Auth, Firestore operational data, Cloud Storage, Cloud Functions, FCM
+- **Supabase Scope:** Postgres recipe database, recipe ingredients, joins, recommendations, saved recipes
+- **Payments:** PayMongo through Cloud Functions
 
 ## Project Structure
 
-```
+```text
 lib/
-├── core/
-│   ├── services/       # Business logic: auth, cart, orders, payments, preferences
-│   ├── widgets/        # Reusable UI components (headers, buttons, cards)
-│   └── utils/          # Helpers, constants, extensions
-├── features/
-│   ├── auth/           # Login, registration, onboarding, splash
-│   ├── cart/           # Shopping cart, item management
-│   ├── checkout/       # Payment selection, order confirmation, address flow
-│   ├── home/           # Market browsing, stall discovery, product search
-│   ├── main/           # Bottom navigation shell
-│   ├── notifications/  # In-app notification list
-│   ├── onboarding/     # First-launch experience
-│   ├── orders/         # Order history, details, tracking
-│   ├── profile/        # User profile, settings, security
-│   ├── recipes/        # Recipe discovery, ingredient lists, cooking steps
-│   └── vendors/        # Vendor dashboard, earnings, product management
-└── main.dart           # App entry point and theme setup
+  core/
+    config/       Environment and public compile-time config
+    mock/         Temporary mock data backing repositories
+    navigation/   App routes, route args, router
+    services/     Transitional local services
+    theme/        App-wide theme
+    utils/        Focused helpers
+    widgets/      Cross-feature widgets
+  features/
+    auth/
+    cart/
+    checkout/
+    home/
+    main/
+    market/
+    notifications/
+    onboarding/
+    orders/
+    profile/
+    recipes/
+    vendors/
+```
+
+Feature folders should move toward:
+
+```text
+domain/        Typed models, enums, pure business concepts
+data/          Mock repositories now, backend adapters later
+application/   Riverpod providers/notifiers/controllers
+presentation/  Pages and widgets
 ```
 
 ## Quick Start
 
 ### Prerequisites
-- Flutter SDK 3.x (stable channel)
-- Android Studio or VS Code with Flutter / Dart extensions
-- Android emulator (API 28+) or a physical Android device with USB debugging
+
+- Flutter SDK 3.x
+- Android Studio or VS Code with Flutter/Dart extensions
+- Android emulator or physical Android device
 - Git
 
-### Installation
+### Install
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd palengkego
-
-# Fetch dependencies
 flutter pub get
-
-# Verify setup
 flutter doctor
 ```
 
-### Run the App
+### Run
 
 ```bash
-# Android device / emulator (primary target)
 flutter run
-
-# Or Chrome for quick UI preview (no native plugins)
 flutter run -d chrome
-
-# List available devices
 flutter devices
 ```
 
-### Build for Production
+### Build
 
 ```bash
-# Release APK
+flutter build apk --debug
 flutter build apk --release
-
-# App bundle (for Play Store)
 flutter build appbundle --release
 ```
 
+Release signing is not finalized yet. Do not treat release build commands as Play Store-ready until signing secrets and package release policy are configured.
+
+## Quality Gates
+
+Run these before pushing frontend changes:
+
+```bash
+flutter pub get
+flutter analyze
+flutter test --coverage
+flutter build apk --debug
+```
+
+The GitHub Actions workflow in `.github/workflows/flutter-ci.yml` runs the same baseline on pushes and pull requests to `main` or `master`.
+
+CI artifacts:
+
+- `coverage-lcov`: line coverage report from `coverage/lcov.info`
+- `app-debug-apk`: debug Android APK from `build/app/outputs/flutter-apk/app-debug.apk`
+
+Current CI intent:
+
+- block analyzer regressions
+- block failing tests
+- prove the Android debug APK still builds
+- publish coverage without enforcing a percentage threshold yet
+
+## Configuration
+
+Public compile-time config uses `--dart-define`:
+
+```bash
+flutter run --dart-define=APP_ENV=development
+flutter run --dart-define=FIREBASE_ENABLED=false
+flutter run --dart-define=SUPABASE_URL=https://example.supabase.co
+flutter run --dart-define=SUPABASE_ANON_KEY=public-anon-key
+flutter run --dart-define=PAYMONGO_PUBLIC_KEY=pk_test_xxx
+```
+
+Never commit:
+
+- PayMongo secret keys
+- Firebase service account JSON
+- webhook signing secrets
+- Supabase service role key
+- local Firebase/Supabase secret files
+
+## Backend Direction
+
+The backend source of truth is [docs/BACKEND_ARCHITECTURE.md](docs/BACKEND_ARCHITECTURE.md).
+
+Summary:
+
+- Use Firebase for auth, operational app data, images, notifications, Cloud Functions, and payment side effects.
+- Use Supabase Postgres for recipes because recipe recommendations need relational joins.
+- Do not use Firebase Data Connect unless the budget/hosting decision changes.
+- Do not use Firestore for recipe recommendation joins.
+- Do not call Firebase, Supabase, or PayMongo directly from widgets.
+- Route backend access through repositories and Riverpod providers.
+
 ## Development Workflow
 
-1. **Before coding:** Run `flutter analyze` on a clean state to confirm baseline is green.
-2. **During coding:** Use hot reload (`r` in terminal) for quick UI iteration.
-3. **After code changes:** Always run `flutter analyze` and fix all warnings before committing.
-4. **Before a commit:** Restart the dev server fresh — do not rely on hot restart when modifying global state or services.
-5. **Before a PR:** Run the app on a real device or emulator to verify flows end-to-end.
-
-## Tips
-
-- **Firebase setup:** Ensure `google-services.json` is in `android/app/` and Firebase is initialized in `main.dart` before running auth or database features.
-- **Paymongo testing:** Payment flows are mocked in development. For real testing, configure your Paymongo secret keys in environment variables or a secure config file.
-- **Recipe API placeholder:** The recipe generation feature currently uses static/mock data. Once the team decides on an API (e.g., Spoonacular, OpenAI, or a custom backend), swap the mock service in `core/services/recipe_service.dart`.
-- **Asset images:** If you add new images to `assets/`, remember to list them in `pubspec.yaml` and fully restart the app (hot reload won't pick them up).
-- **Global state gotchas:** Service classes in `core/services/` hold singleton state. If behavior feels "stuck" after code changes, stop the dev server and restart fresh.
-- **Emulator vs device:** Some Firebase features (like push notifications) only work on real devices. Test critical flows on hardware when possible.
+1. Run `flutter analyze` before starting if you need a clean baseline.
+2. Make small, focused changes.
+3. Keep UI in `presentation/`, state orchestration in `application/`, repositories in `data/`, and models in `domain/`.
+4. Prefer typed route results over `Map<String, dynamic>` for cross-screen data.
+5. Run the quality gates before pushing.
+6. Test critical customer and vendor flows manually on Android before release/demo checkpoints.
 
 ## Code Standards
 
-- Use `const` constructors for widgets and literals where possible
-- Prefer `SizedBox` over `Container` when you only need whitespace
-- Do not use `BuildContext` across async gaps without a `mounted` guard
-- Avoid deprecated Flutter APIs — `flutter analyze` will flag them
-- Keep UI code in `presentation/pages/` and business logic in `core/services/`
-- Follow the existing feature-based folder structure for new screens
-
-## Architecture Notes
-
-- **Presentation layer:** StatelessWidget / StatefulWidget in `features/*/presentation/pages/`
-- **Service layer:** Plain Dart classes in `core/services/` hold business logic and in-memory state
-- **No external state management:** The app uses StatefulWidget + service singletons. If the project grows, consider migrating to Riverpod or Bloc.
-- **Navigation:** Imperative (`Navigator.push`) for now. Deep linking and declarative routing are future considerations.
-- **Frontend refactor plan:** See `docs/ARCHITECTURE_REFACTOR.md` for the phased frontend-only refactor direction before backend integration.
+- Use `const` constructors where practical.
+- Prefer `SizedBox` over `Container` for spacing.
+- Do not use `BuildContext` across async gaps without a `mounted` guard.
+- Keep analyzer output clean.
+- Keep backend SDK calls out of widgets.
+- Keep mock behavior behind repository/provider boundaries.
+- Do not store raw card data in Flutter state, navigation results, logs, or source files.
 
 ## Platform Support
 
 | Platform | Status | Notes |
-|----------|--------|-------|
-| Android  | Primary | Full feature support |
-| iOS      | Not supported | No macOS build environment |
-| Web      | Preview | Good for UI testing; some native plugins may not work |
-| Windows  | Not supported | Desktop not in project scope |
-| Linux    | Not supported | Desktop not in project scope |
-| macOS    | Not supported | Desktop not in project scope |
+| --- | --- | --- |
+| Android | Primary | Main target for demo/build verification |
+| Web | Preview | Useful for quick UI checks |
+| iOS | Not supported | No macOS build environment |
+| Windows | Not supported | Desktop not in project scope |
+| Linux | Not supported | Desktop not in project scope |
+| macOS | Not supported | Desktop not in project scope |
 
 ## Troubleshooting
 
-- **`flutter analyze` fails:** Fix all warnings before opening a PR. The project enforces a zero-warning policy.
-- **App crashes on hot restart:** Stop the server and run `flutter run` again. Stale global service state can cause errors.
-- **Images not loading:** Ensure `assets/` folder is listed in `pubspec.yaml` and the app has been rebuilt (not just hot reloaded).
-- **Firebase auth errors:** Verify `google-services.json` is present and Firebase is initialized in `main.dart`. Check that your device has an internet connection.
-- **Paymongo payment errors:** Payment flows are mocked in development. For live testing, configure Paymongo API keys and ensure the device can reach Paymongo servers.
+- **`flutter analyze` fails:** Fix every issue before opening a PR.
+- **Tests fail locally:** Run the failing test file first, then the full suite.
+- **Debug APK fails:** Check Android package config, Gradle output, and Java/Flutter versions.
+- **Images do not load:** Confirm assets are listed in `pubspec.yaml` and restart the app.
+- **Firebase auth errors:** Firebase is not wired yet. Current auth uses mock repositories/providers.
+- **Supabase recipe errors:** Supabase is not wired yet. Current recipes use mock repositories.
+- **PayMongo payment errors:** Payment flows are mocked. Real PayMongo work must go through Cloud Functions.
 
-## Contributing
+## Important Docs
 
-1. Fork the repository and create a feature branch (`git checkout -b feature/your-feature`)
-2. Make your changes and ensure `flutter analyze` passes with zero issues
-3. Test on an Android emulator or physical device
-4. Commit with a clear message describing the change
-5. Open a pull request with a short description of what changed and why
+- [Architecture Refactor](docs/ARCHITECTURE_REFACTOR.md)
+- [Backend Architecture](docs/BACKEND_ARCHITECTURE.md)
+- [Refactor Handoff](docs/REFACTOR_HANDOFF.md)
+- [Audit Findings](docs/audit-findings-and-issues-to-address-2026-06-04.md)
 
 ## License
 
-This project is for academic / thesis purposes. Contact the maintainers for reuse or distribution questions.
+This project is for academic/thesis purposes. Contact the maintainers for reuse or distribution questions.

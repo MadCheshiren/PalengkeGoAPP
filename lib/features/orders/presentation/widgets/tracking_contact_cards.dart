@@ -59,7 +59,7 @@ class PickupVerificationCard extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'PlusJakartaSans',
               fontSize: 12,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -103,13 +103,17 @@ class RiderInfoCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Ricardo Dalisay',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        'Ricardo Dalisay',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -155,11 +159,22 @@ class RiderInfoCard extends StatelessWidget {
           ),
           Row(
             children: [
-              _ActionButton(icon: Icons.message_outlined, onTap: () {}),
+              _ActionButton(
+                icon: Icons.message_outlined,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Messaging driver...')),
+                  );
+                },
+              ),
               const SizedBox(width: 8),
               _ActionButton(
-                icon: Icons.phone_outlined,
-                onTap: () {},
+                icon: Icons.call_outlined,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Calling driver...')),
+                  );
+                },
                 backgroundColor: const Color(0xFFFACC15),
                 iconColor: const Color(0xFF0B372B),
               ),

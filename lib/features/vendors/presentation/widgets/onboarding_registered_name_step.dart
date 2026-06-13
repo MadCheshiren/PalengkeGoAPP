@@ -63,10 +63,7 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF0B372B),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,

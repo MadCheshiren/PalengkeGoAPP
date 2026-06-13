@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 
 class OrderDetailsItemsList extends StatelessWidget {
-  const OrderDetailsItemsList({
-    super.key,
-    required this.items,
-  });
+  const OrderDetailsItemsList({super.key, required this.items});
 
   final List<OrderLineItem> items;
 
@@ -76,7 +73,7 @@ class OrderDetailsItemsList extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '₱${item.pricePerKg}/kg',
+                    item.pricePerKg.replaceAll('PHP', '₱'),
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 10,

@@ -20,6 +20,7 @@ class SavedRecipesNotifier extends Notifier<List<Recipe>> {
   }
 }
 
-final savedRecipesProvider = NotifierProvider<SavedRecipesNotifier, List<Recipe>>(() {
-  return SavedRecipesNotifier();
-});
+final savedRecipesProvider =
+    NotifierProvider<SavedRecipesNotifier, List<Recipe>>(() {
+      return SavedRecipesNotifier();
+    });

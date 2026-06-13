@@ -4,24 +4,22 @@ import 'package:palengkego/core/services/cart_service.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 
 void main() {
-  tearDown(() {
-    globalCart.clearCart();
-  });
-
-  test('cartServiceProvider exposes the app cart service', () {
+  test('cartServiceProvider exposes a cart service', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
     final cart = container.read(cartServiceProvider);
 
-    expect(identical(cart, globalCart), isTrue);
+    expect(cart, isA<CartService>());
   });
 
   test('cartServiceProvider can update the shared cart state', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
-    container.read(cartServiceProvider).addToCart(
+    container
+        .read(cartServiceProvider)
+        .addToCart(
           vendorName: 'Aling Nena',
           productName: 'Carrots',
           price: 120,
@@ -31,6 +29,5 @@ void main() {
         );
 
     expect(container.read(cartServiceProvider).itemCount, 1);
-    expect(globalCart.itemCount, 1);
   });
 }

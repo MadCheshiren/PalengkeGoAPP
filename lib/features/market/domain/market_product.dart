@@ -8,6 +8,7 @@ class MarketProduct {
     required this.weight,
     required this.pricePerKg,
     required this.description,
+    required this.category,
     required this.imageUrl,
   });
 
@@ -19,6 +20,7 @@ class MarketProduct {
   final String weight;
   final String pricePerKg;
   final String description;
+  final String category;
   final String imageUrl;
 
   factory MarketProduct.fromMap(Map<String, dynamic> map) {
@@ -31,6 +33,7 @@ class MarketProduct {
       weight: map['weight'] as String? ?? '1kg',
       pricePerKg: map['pricePerKg'] as String? ?? '',
       description: map['description'] as String? ?? '',
+      category: map['category'] as String? ?? '',
       imageUrl: map['imageUrl'] as String? ?? '',
     );
   }
@@ -45,6 +48,7 @@ class MarketProduct {
       'weight': weight,
       'pricePerKg': pricePerKg,
       'description': description,
+      'category': category,
       'imageUrl': imageUrl,
     };
   }

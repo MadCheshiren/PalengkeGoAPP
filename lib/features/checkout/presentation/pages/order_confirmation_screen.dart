@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
-import 'package:palengkego/core/services/customer_preferences_service.dart';
+import 'package:palengkego/features/profile/application/preferences_provider.dart';
+import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 
-class OrderConfirmationScreen extends StatelessWidget {
+class OrderConfirmationScreen extends ConsumerWidget {
   final bool isPickup;
   final List<MarketOrder> orders;
   final String? address;
@@ -19,11 +21,7 @@ class OrderConfirmationScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    debugPrint('[OrderConfirmationScreen] build called. isPickup: $isPickup, orders count: ${orders.length}');
-    for (int i = 0; i < orders.length; i++) {
-      debugPrint('  Order $i: ID=${orders[i].id}, vendorName="${orders[i].vendorName}", itemsCount=${orders[i].items.length}');
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -90,13 +88,13 @@ class OrderConfirmationScreen extends StatelessWidget {
 
                     // Information card
                     if (orders.length > 1)
-                      _buildMultiOrdersList(context)
+                      ..._buildMultiOrderWidgets(context, ref)
                     else if (orders.isNotEmpty)
-                      _buildInfoCard(orders.first),
+                      _buildInfoCard(orders.first, ref),
                     const SizedBox(height: 16),
 
                     // Payment method card
-                    _buildPaymentCard(context),
+                    _buildPaymentCard(context, ref),
                   ],
                 ),
               ),
@@ -191,7 +189,7 @@ class OrderConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(MarketOrder order) {
+  Widget _buildInfoCard(MarketOrder order, WidgetRef ref) {
     final stall = _vendorStall(order.vendorName);
     final section = _vendorSection(order.vendorName);
     if (isPickup) {
@@ -225,7 +223,10 @@ class OrderConfirmationScreen extends StatelessWidget {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0B372B),
                     borderRadius: BorderRadius.circular(999),
@@ -281,30 +282,33 @@ class OrderConfirmationScreen extends StatelessWidget {
                   color: Color(0xFF6B7280),
                 ),
                 const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'ESTIMATED READY TIME',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF9CA3AF),
-                        letterSpacing: 0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        'ESTIMATED READY TIME',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF9CA3AF),
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      '15-25 mins',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
+                      SizedBox(height: 2),
+                      Text(
+                        '15-25 mins',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -355,7 +359,7 @@ class OrderConfirmationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              address ?? globalCustomerPreferences.deliveryAddress.displayLine,
+              address ?? ref.read(preferencesProvider).deliveryAddress.displayLine,
               style: const TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
@@ -390,88 +394,187 @@ class OrderConfirmationScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildMultiOrdersList(BuildContext context) {
-    try {
-      return Column(
-        children: orders.map((order) {
-          final stall = _vendorStall(order.vendorName);
-          final section = _vendorSection(order.vendorName);
-          return Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Vendor Header
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF0B372B),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.storefront_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            order.vendorName,
-                            style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF111827),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$stall | $section',
-                            style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 12,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const Divider(color: Color(0xFFE2E8F0)),
-                const SizedBox(height: 8),
-                
-                Text(
-                  'ORDER ID: ${order.id}',
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
-                    letterSpacing: 0.5,
+  List<Widget> _buildMultiOrderWidgets(BuildContext context, WidgetRef ref) {
+    return [
+      if (!isPickup)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: const [
+                  Icon(
+                    Icons.local_shipping_outlined,
+                    size: 20,
+                    color: Color(0xFF0B372B),
                   ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Delivery Information',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0B372B),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'DELIVER TO',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF9CA3AF),
+                  letterSpacing: 0.5,
                 ),
-                const SizedBox(height: 8),
-                
-                ...order.items.map((item) => Padding(
+              ),
+              const SizedBox(height: 4),
+              Text(
+                address ??
+                    ref.read(preferencesProvider).deliveryAddress.displayLine,
+                style: const TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.access_time_rounded,
+                    size: 18,
+                    color: Color(0xFF6B7280),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'ESTIMATED ARRIVAL',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9CA3AF),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          '12-25 mins',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ...orders.map((order) {
+        final stall = _vendorStall(order.vendorName);
+        final section = _vendorSection(order.vendorName);
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Vendor Header
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF0B372B),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.storefront_outlined,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          order.vendorName,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF111827),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$stall | $section',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(color: Color(0xFFE2E8F0)),
+              const SizedBox(height: 8),
+
+              Text(
+                'ORDER ID: ${order.id}',
+                style: const TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF9CA3AF),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              ...order.items.map(
+                (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
                     children: [
@@ -508,17 +611,20 @@ class OrderConfirmationScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                )).toList(),
-                
-                const SizedBox(height: 8),
-                const Divider(color: Color(0xFFE2E8F0)),
-                const SizedBox(height: 8),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+                ),
+              ),
+
+              const SizedBox(height: 8),
+              const Divider(color: Color(0xFFE2E8F0)),
+              const SizedBox(height: 8),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
                           'TOTAL AMOUNT',
@@ -541,81 +647,56 @@ class OrderConfirmationScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          AppRoutes.trackOrder,
-                          arguments: TrackOrderRouteArgs(
-                            order: order,
-                            isPickup: isPickup,
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AppRoutes.trackOrder,
+                        arguments: TrackOrderRouteArgs(
+                          order: order,
+                          isPickup: isPickup,
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0B372B),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(
+                            Icons.gps_fixed_rounded,
+                            size: 14,
+                            color: Colors.white,
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.gps_fixed_rounded, size: 14),
-                      label: const Text('Track'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0B372B),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        textStyle: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Track',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      );
-    } catch (e, stack) {
-      debugPrint('[OrderConfirmationScreen] Error rendering multi-order list: $e');
-      debugPrint(stack.toString());
-      return Container(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.red.shade50,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.red.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.red.shade800),
-                const SizedBox(width: 8),
-                Text(
-                  'Rendering Error',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade800,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              e.toString(),
-              style: TextStyle(
-                fontFamily: 'Courier',
-                fontSize: 12,
-                color: Colors.red.shade900,
+                ],
               ),
-            ),
-          ],
-        ),
-      );
-    }
+            ],
+          ),
+        );
+      }),
+    ];
   }
 
   String _vendorStall(String vendorName) {
@@ -653,7 +734,7 @@ class OrderConfirmationScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildPaymentCard(BuildContext context) {
+  Widget _buildPaymentCard(BuildContext context, WidgetRef ref) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -687,23 +768,19 @@ class OrderConfirmationScreen extends StatelessWidget {
           GestureDetector(
             onTap: () async {
               final messenger = ScaffoldMessenger.of(context);
-                final result = await Navigator.of(context).pushNamed(
-                  AppRoutes.paymentMethods,
-                  arguments: const PaymentMethodsRouteArgs(
-                    currentMethod: 'cod',
-                  ),
-                );
-              if (result != null && result is Map<String, dynamic>) {
-                final method = result['method'] as String;
+              final result = await Navigator.of(context).pushNamed(
+                AppRoutes.paymentMethods,
+                arguments: const PaymentMethodsRouteArgs(currentMethod: 'cod'),
+              );
+              if (result is PaymentSelectionResult) {
+                final method = result.method;
                 final message = switch (method) {
                   'cod' => 'Cash on Delivery selected',
                   'gcash' => 'GCash selected',
                   'card' => 'Card selected',
                   _ => 'Payment method updated',
                 };
-                messenger.showSnackBar(
-                  SnackBar(content: Text(message)),
-                );
+                messenger.showSnackBar(SnackBar(content: Text(message)));
               }
             },
             child: Container(
@@ -728,9 +805,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                      globalCustomerPreferences.paymentTitle,
+                  Expanded(
+                    child: Text(
+                      ref.read(preferencesProvider).paymentTitle,
                       style: TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 14,

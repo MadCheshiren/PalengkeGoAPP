@@ -57,10 +57,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
             ),
             child: Row(
               children: [
@@ -70,7 +67,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
-                      color: value != null 
+                      color: value != null
                           ? const Color(0xFF111827)
                           : const Color(0xFF9CA3AF),
                     ),
@@ -116,10 +113,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
             ),
             child: Row(
               children: [
@@ -132,7 +126,9 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                       color: fileName != null
                           ? const Color(0xFF0B372B)
                           : const Color(0xFFF59E0B),
-                      fontWeight: fileName != null ? FontWeight.w500 : FontWeight.w600,
+                      fontWeight: fileName != null
+                          ? FontWeight.w500
+                          : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -166,14 +162,15 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
           // Registered Name field (navigates to step 1)
           _buildNavigationField(
             label: 'Registered Name',
-            hint: 'Enter your full legal name as written on your government-issued ID',
-            value: registeredNameController.text.isNotEmpty 
-                ? registeredNameController.text 
+            hint:
+                'Enter your full legal name as written on your government-issued ID',
+            value: registeredNameController.text.isNotEmpty
+                ? registeredNameController.text
                 : null,
             onTap: onTapRegisteredName,
           ),
           const SizedBox(height: 20),
-          
+
           // Mayor's Permit with upload
           _buildUploadField(
             label: 'Mayor\'s Permit *',
@@ -182,7 +179,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             onTap: onUploadMayorsPermit,
           ),
           const SizedBox(height: 20),
-          
+
           // Sanitary Permit with upload
           _buildUploadField(
             label: 'Sanitary Permit *',
@@ -191,7 +188,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             onTap: onUploadSanitaryPermit,
           ),
           const SizedBox(height: 20),
-          
+
           // Fire Certification with upload
           _buildUploadField(
             label: 'Fire Certification *',
@@ -200,7 +197,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             onTap: onUploadFireCertification,
           ),
           const SizedBox(height: 20),
-          
+
           // Market Clearance with upload
           _buildUploadField(
             label: 'Market Clearance *',
@@ -209,13 +206,13 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             onTap: onUploadMarketClearance,
           ),
           const SizedBox(height: 20),
-          
+
           // Phone Number (navigates to step 3)
           _buildNavigationField(
             label: 'Phone Number *',
             hint: '09XX XXX XXXX',
-            value: phoneController.text.isNotEmpty 
-                ? phoneController.text 
+            value: phoneController.text.isNotEmpty
+                ? phoneController.text
                 : null,
             onTap: onTapPhone,
           ),

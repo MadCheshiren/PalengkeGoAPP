@@ -138,7 +138,13 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Full payout history coming soon.'),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'View All',
                       style: TextStyle(
@@ -258,10 +264,7 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
               color: const Color(0xFFF0FDF4),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.account_balance,
-              color: Color(0xFF166534),
-            ),
+            child: const Icon(Icons.account_balance, color: Color(0xFF166534)),
           ),
           const SizedBox(width: 16),
           Expanded(

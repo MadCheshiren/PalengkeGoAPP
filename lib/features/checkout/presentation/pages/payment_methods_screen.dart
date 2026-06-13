@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
+import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 
 /// Payment Methods Screen
 /// Allows user to select or add payment methods.
-/// 
+///
 /// Supports:
 /// - Cash on Delivery (default)
 /// - GCash (via Paymongo)
@@ -12,10 +13,7 @@ import 'package:palengkego/core/widgets/app_screen_header.dart';
 class PaymentMethodsScreen extends StatefulWidget {
   final String? currentMethod;
 
-  const PaymentMethodsScreen({
-    super.key,
-    this.currentMethod,
-  });
+  const PaymentMethodsScreen({super.key, this.currentMethod});
 
   @override
   State<PaymentMethodsScreen> createState() => _PaymentMethodsScreenState();
@@ -35,22 +33,22 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       _selectedMethod = method;
     });
     // Return selected method to previous screen
-    Navigator.pop(context, {'method': method});
+    Navigator.pop(context, PaymentSelectionResult(method: method));
   }
 
   Future<void> _addCard() async {
-    final result = await Navigator.of(context).pushNamed(
-      AppRoutes.addCreditCard,
-    );
-    if (result != null && result is Map<String, dynamic>) {
+    final result = await Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.addCreditCard);
+    if (result is CardSelectionData) {
       if (!mounted) return;
       setState(() {
         _selectedMethod = 'card';
       });
-      Navigator.pop(context, {
-        'method': 'card',
-        'cardData': result,
-      });
+      Navigator.pop(
+        context,
+        PaymentSelectionResult(method: 'card', cardData: result),
+      );
     }
   }
 
@@ -88,7 +86,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               titleSize: 18,
               onBack: () => Navigator.pop(context),
             ),
-            
+
             // Payment options
             Expanded(
               child: SingleChildScrollView(
@@ -106,7 +104,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Cash on Delivery
                     _buildPaymentOption(
                       method: 'cod',
@@ -119,7 +117,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       onTap: () => _selectMethod('cod'),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // GCash
                     _buildPaymentOption(
                       method: 'gcash',
@@ -132,7 +130,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       onTap: _addGCash,
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Credit/Debit Card
                     _buildPaymentOption(
                       method: 'card',
@@ -184,11 +182,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 color: iconBgColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                size: 24,
-                color: iconColor,
-              ),
+              child: Icon(icon, size: 24, color: iconColor),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -224,11 +218,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   color: Color(0xFF0B372B),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  size: 16,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.check, size: 16, color: Colors.white),
               )
             else
               Container(
@@ -237,10 +227,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE5E7EB),
-                    width: 2,
-                  ),
+                  border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
                 ),
               ),
           ],

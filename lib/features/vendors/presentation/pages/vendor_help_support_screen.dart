@@ -5,14 +5,15 @@ class VendorHelpSupportScreen extends StatefulWidget {
   const VendorHelpSupportScreen({super.key});
 
   @override
-  State<VendorHelpSupportScreen> createState() => _VendorHelpSupportScreenState();
+  State<VendorHelpSupportScreen> createState() =>
+      _VendorHelpSupportScreenState();
 }
 
 class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
   final _reportFormKey = GlobalKey<FormState>();
   final _reportController = TextEditingController();
   String _selectedTopic = 'App Issue';
-  
+
   final List<String> _topics = [
     'App Issue',
     'Payout/Earnings',
@@ -30,14 +31,20 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
   void _submitReport() {
     if (_reportFormKey.currentState!.validate()) {
       _reportController.clear();
-      
+
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: Color(0xFF22C55E), size: 24),
+              Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF22C55E),
+                size: 24,
+              ),
               SizedBox(width: 8),
               Text(
                 'Report Submitted',
@@ -92,7 +99,10 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
             const AppScreenHeader(title: 'Help & Support'),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -111,25 +121,30 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                     // Flat FAQ Expansion tiles
                     _buildFaqTile(
                       question: 'How do I update my products?',
-                      answer: 'Go to the Inventory tab in your dashboard, tap the edit icon on the product you want to change, and update the details, price, or stock status.',
+                      answer:
+                          'Go to the Inventory tab in your dashboard, tap the edit icon on the product you want to change, and update the details, price, or stock status.',
                     ),
                     _buildFaqTile(
                       question: 'How do I manage orders?',
-                      answer: 'Active orders will show up in your Orders tab. Tap an order to view items, and change the status (e.g., Prepared, Ready for Pickup) as you process it.',
+                      answer:
+                          'Active orders will show up in your Orders tab. Tap an order to view items, and change the status (e.g., Prepared, Ready for Pickup) as you process it.',
                     ),
                     _buildFaqTile(
                       question: 'How do payouts work?',
-                      answer: 'Payouts are processed weekly every Monday directly to your registered bank account. You can track all your transactions in the Earnings page.',
+                      answer:
+                          'Payouts are processed weekly every Monday directly to your registered bank account. You can track all your transactions in the Earnings page.',
                     ),
                     _buildFaqTile(
                       question: 'Can I change my stall location?',
-                      answer: 'Stall locations are assigned by the market administration. If you need to relocate, please contact the support team or visit the administration office.',
+                      answer:
+                          'Stall locations are assigned by the market administration. If you need to relocate, please contact the support team or visit the administration office.',
                     ),
                     _buildFaqTile(
                       question: 'How do I contact a customer?',
-                      answer: "On the order details page of an active order, tap the phone/chat icon next to the customer's name to contact them directly regarding their order.",
+                      answer:
+                          "On the order details page of an active order, tap the phone/chat icon next to the customer's name to contact them directly regarding their order.",
                     ),
-                    
+
                     const SizedBox(height: 32),
 
                     // Section Title: Contact Us
@@ -152,7 +167,9 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                           SnackBar(
                             behavior: SnackBarBehavior.floating,
                             backgroundColor: const Color(0xFF0B372B),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             content: const Text(
                               'Live chat support is coming soon!',
                               style: TextStyle(
@@ -173,7 +190,11 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 20),
+                            Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Chat with Support',
@@ -244,14 +265,20 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                               onTap: () => _showTopicPicker(context),
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  border: Border.all(
+                                    color: const Color(0xFFCBD5E1),
+                                  ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _selectedTopic,
@@ -300,11 +327,15 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFCBD5E1),
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFCBD5E1),
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -330,7 +361,9 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                               onTap: _submitReport,
                               child: Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF0B372B),
                                   borderRadius: BorderRadius.circular(10),
@@ -494,7 +527,10 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                     ),
                   ),
                   trailing: _selectedTopic == topic
-                      ? const Icon(Icons.check_rounded, color: Color(0xFF0B372B))
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Color(0xFF0B372B),
+                        )
                       : null,
                   onTap: () {
                     setState(() {

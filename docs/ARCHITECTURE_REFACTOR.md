@@ -2,6 +2,8 @@
 
 Date: 2026-06-04
 
+Latest status update: 2026-06-13
+
 ## Purpose
 
 This document is the main architecture and execution guide for making PalengkeGo easier to maintain, easier to test, and safer to connect to real backend services later.
@@ -10,16 +12,25 @@ The app is still frontend-first. Do not add Firebase, Paymongo, production APIs,
 
 ## Current Audit Baseline
 
-Audit summary from 2026-06-04:
+Current verified checkpoint from 2026-06-13:
 
-- Overall codebase rating: 7/10.
-- `flutter test`: passed with `25/25` tests.
-- `flutter analyze`: reported `48 info` issues, all observed as deprecated `withOpacity(...)` usage.
-- `flutter build apk --debug`: timed out after 5 minutes, so APK build readiness is unconfirmed.
-- Cart/order/checkout flows are real local flows, not static mock screens.
-- Many feature folders already exist with `domain`, `data`, `application`, and `presentation` layers.
-- The app still has singleton service state behind providers.
-- Android release configuration is still template-level.
+- `flutter analyze`: `No issues found`.
+- `flutter test --coverage`: all tests passed, `73/73`.
+- `flutter build apk --debug`: built `build/app/outputs/flutter-apk/app-debug.apk`.
+- Basic Flutter CI exists at `.github/workflows/flutter-ci.yml`.
+- QA pipeline documentation exists at `docs/QA_PIPELINE.md`.
+- Backend source of truth exists at `docs/BACKEND_ARCHITECTURE.md`.
+- Backend direction is hybrid Firebase + Supabase, not Firebase Data Connect.
+- Android package identity has been updated to `com.palengkego.app`.
+- `pubspec.lock` is no longer ignored and should be committed for reproducible CI.
+- Cart, orders, preferences, search, favorites, notifications, vendor stall/orders, recipes, and market state have Riverpod/provider boundaries.
+- High-risk checkout/address/payment route results now use typed results instead of raw route maps.
+- Add-to-cart bottom sheet now accepts typed `VendorProduct` data instead of UI-level product maps.
+- New checkout orders intentionally start as `pending` until the vendor accepts them.
+- Vendor order action provider tests cover accept, reject, ready, and complete transitions.
+- Auth guard widget tests cover logged-out and logged-in rendering.
+- Router tests cover invalid route arguments and unknown routes.
+- Some lower-risk mock/data conversion maps still exist in repositories/domain model serialization and are acceptable until backend adapters replace them.
 
 ## Non-Negotiable Refactor Rules
 
@@ -77,14 +88,16 @@ Great domain code looks like this:
 ```dart
 enum OrderStatus {
   pending,
-  confirmed,
+  preparing,
+  ready,
   completed,
   cancelled;
 
   String get label {
     return switch (this) {
       OrderStatus.pending => 'Pending',
-      OrderStatus.confirmed => 'Confirmed',
+      OrderStatus.preparing => 'Preparing',
+      OrderStatus.ready => 'Ready',
       OrderStatus.completed => 'Completed',
       OrderStatus.cancelled => 'Cancelled',
     };
@@ -230,6 +243,8 @@ Do not report `dart analyze` as authoritative for this Flutter app. The plain Da
 
 ## Phase 1: Analyzer Cleanup
 
+Status: Completed as of 2026-06-13.
+
 ### Goal
 
 Make the codebase analyzer-clean again by removing deprecated API usage.
@@ -240,7 +255,7 @@ The project docs require a zero-warning policy. Any later refactor is harder to 
 
 ### Main Issue
 
-`flutter analyze` found 48 `deprecated_member_use` info issues for `withOpacity(...)`.
+Earlier audits found `deprecated_member_use` info issues for `withOpacity(...)`. Current verified state is analyzer-clean.
 
 ### Files To Inspect
 
@@ -275,13 +290,13 @@ Known areas include:
 
 ### Execution Steps
 
-- [ ] Search for all deprecated calls:
+- [x] Search for all deprecated calls:
 
 ```powershell
 rg -n "withOpacity" lib
 ```
 
-- [ ] Replace each call mechanically:
+- [x] Replace each call mechanically:
 
 ```dart
 color.withOpacity(0.12)
@@ -293,10 +308,10 @@ becomes:
 color.withValues(alpha: 0.12)
 ```
 
-- [ ] Preserve the exact alpha value.
-- [ ] Do not change colors, spacing, widgets, or behavior during this phase.
-- [ ] Run analyzer.
-- [ ] Run tests.
+- [x] Preserve the exact alpha value.
+- [x] Do not change colors, spacing, widgets, or behavior during this phase.
+- [x] Run analyzer.
+- [x] Run tests.
 - [ ] Commit only the analyzer cleanup files.
 
 ### Verification
@@ -1072,17 +1087,23 @@ This phase is not good enough when:
 
 ## Phase 10: Android Release Readiness
 
+Status: Partially completed as of 2026-06-13.
+
 ### Goal
 
 Prepare Android configuration for a real debug/beta/release pipeline.
 
 ### Current Problem
 
-Android still uses template values:
+Android debug identity has been updated:
 
-- namespace: `com.example.palengkego`
-- applicationId: `com.example.palengkego`
-- release signing uses debug signing
+- namespace: `com.palengkego.app`
+- applicationId: `com.palengkego.app`
+- app label: `PalengkeGo`
+
+Remaining release issue:
+
+- release signing still needs a proper secret-backed signing setup before Play Store/internal testing release lanes.
 
 ### Files To Inspect
 
@@ -1094,12 +1115,12 @@ Android still uses template values:
 
 ### Execution Steps
 
-- [ ] Choose final package ID, for example `com.palengkego.app` or team-approved equivalent.
-- [ ] Update Android namespace.
-- [ ] Update Android application ID.
+- [x] Choose final package ID, currently `com.palengkego.app`.
+- [x] Update Android namespace.
+- [x] Update Android application ID.
 - [ ] Move Kotlin package directory if needed.
-- [ ] Update `MainActivity.kt` package declaration if needed.
-- [ ] Update app label from `palengkego` to `PalengkeGo`.
+- [x] Update `MainActivity.kt` package declaration if needed.
+- [x] Update app label from `palengkego` to `PalengkeGo`.
 - [ ] Configure release signing using local uncommitted signing files.
 - [ ] Document release signing setup without committing secrets.
 - [ ] Confirm `pubspec.yaml` versioning policy.
@@ -1116,7 +1137,7 @@ C:\Users\fragi\Music\flutter\bin\flutter.bat build apk --debug
 Expected:
 
 - Debug APK builds.
-- Package ID is no longer `com.example.palengkego`.
+- Package ID is `com.palengkego.app`.
 - App label is production-appropriate.
 - Release signing secrets are not committed.
 
@@ -1137,15 +1158,17 @@ This phase is not good enough when:
 
 ## Phase 11: Documentation And Git Hygiene
 
+Status: In progress as of 2026-06-13.
+
 ### Goal
 
 Keep docs useful, current, and trackable.
 
 ### Current Issues
 
-- `docs/AI_HANDOFF.md` is partly stale.
-- `.gitignore` ignores most docs files.
-- `.gitignore` ignores `pubspec.lock`, which is usually not ideal for Flutter apps.
+- `docs/AI_HANDOFF.md` has been reduced to a current pointer file.
+- `.gitignore` still ignores most docs by default, but current source-of-truth docs are allowlisted.
+- `pubspec.lock` is no longer ignored and should be committed.
 
 ### Files To Inspect
 
@@ -1154,16 +1177,18 @@ Keep docs useful, current, and trackable.
 - `docs/AI_HANDOFF.md`
 - `docs/REFACTOR_HANDOFF.md`
 - `docs/ARCHITECTURE_REFACTOR.md`
+- `docs/BACKEND_ARCHITECTURE.md`
+- `docs/QA_PIPELINE.md`
 - `docs/audit-findings-and-issues-to-address-2026-06-04.md`
 - `pubspec.lock`
 
 ### Execution Steps
 
-- [ ] Update stale claims in `docs/AI_HANDOFF.md`.
-- [ ] Decide which docs should be tracked.
-- [ ] Allowlist this architecture doc and the audit findings doc if needed.
-- [ ] Stop ignoring `pubspec.lock` unless the team has a strong reason.
-- [ ] Update README to match current architecture and mocked integrations.
+- [x] Update stale claims in `docs/AI_HANDOFF.md`.
+- [x] Decide which docs should be tracked.
+- [x] Allowlist current source-of-truth docs.
+- [x] Stop ignoring `pubspec.lock` unless the team has a strong reason.
+- [x] Update README to match current architecture and mocked integrations.
 - [ ] Keep handoff docs factual and dated.
 
 ### Verification

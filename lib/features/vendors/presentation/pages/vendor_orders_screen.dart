@@ -1,55 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/features/vendors/domain/vendor_order_item.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
+import 'package:intl/intl.dart';
 
 import '../widgets/vendor_screen_header.dart';
 
 /// Vendor Orders Screen
 /// Shows all orders with tabs for All, Pending, Preparing, and Ready.
-class VendorOrdersScreen extends StatefulWidget {
+class VendorOrdersScreen extends ConsumerStatefulWidget {
   const VendorOrdersScreen({super.key});
 
   @override
-  State<VendorOrdersScreen> createState() => _VendorOrdersScreenState();
+  ConsumerState<VendorOrdersScreen> createState() => _VendorOrdersScreenState();
 }
 
-class _VendorOrdersScreenState extends State<VendorOrdersScreen>
+class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  final List<VendorOrderItem> _allOrders = [
-    VendorOrderItem(
-      id: '1029',
-      customer: 'Maria S.',
-      items: ['2kg Bangus', '1kg Tomato', '0.5kg Garlic'],
-      total: 'PHP 450.00',
-      time: 'Today, 08:30 AM',
-      status: 'Pending',
-      deliveryType: 'Pick-Up',
-    ),
-    VendorOrderItem(
-      id: '1032',
-      customer: 'Jose R.',
-      items: [
-        '1kg Pork Belly',
-        '2kg Rice (Jasmine)',
-        '1 bunch Kangkong',
-        '2 pcs Onion',
-      ],
-      total: 'PHP 820.00',
-      time: 'Today, 09:15 AM',
-      status: 'Pending',
-      deliveryType: 'Delivery',
-    ),
-    VendorOrderItem(
-      id: '1030',
-      customer: 'Juan D.',
-      items: ['1kg Chicken Breast', '1 dozen Eggs'],
-      total: 'PHP 320.00',
-      time: 'Today, 08:10 AM',
-      status: 'Preparing',
-      deliveryType: 'Delivery',
-    ),
-  ];
 
   @override
   void initState() {
@@ -101,10 +70,10 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: const [
-                  _VendorOrdersTab(status: 'All'),
-                  _VendorOrdersTab(status: 'Pending'),
-                  _VendorOrdersTab(status: 'Preparing'),
-                  _VendorOrdersTab(status: 'Ready'),
+                  _VendorOrdersTab(statusFilter: null),
+                  _VendorOrdersTab(statusFilter: OrderStatus.pending),
+                  _VendorOrdersTab(statusFilter: OrderStatus.preparing),
+                  _VendorOrdersTab(statusFilter: OrderStatus.ready),
                 ],
               ),
             ),
@@ -113,47 +82,19 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen>
       ),
     );
   }
-
-  List<VendorOrderItem> _filteredOrders(String filterStatus) {
-    if (filterStatus == 'All') return _allOrders;
-    return _allOrders.where((order) => order.status == filterStatus).toList();
-  }
-
-  void _rejectOrder(VendorOrderItem order) {
-    setState(() {
-      _allOrders.removeWhere((candidate) => candidate.id == order.id);
-    });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Order #${order.id} was rejected.')));
-  }
-
-  void _updateOrderStatus(VendorOrderItem order, String status, String message) {
-    setState(() {
-      order.status = status;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _completeOrder(VendorOrderItem order) {
-    setState(() {
-      _allOrders.removeWhere((candidate) => candidate.id == order.id);
-    });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Order #${order.id} was completed.')));
-  }
 }
 
-class _VendorOrdersTab extends StatelessWidget {
-  const _VendorOrdersTab({required this.status});
+class _VendorOrdersTab extends ConsumerWidget {
+  const _VendorOrdersTab({this.statusFilter});
 
-  final String status;
+  final OrderStatus? statusFilter;
 
   @override
-  Widget build(BuildContext context) {
-    final state = context.findAncestorStateOfType<_VendorOrdersScreenState>()!;
-    final orders = state._filteredOrders(status);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allOrders = ref.watch(vendorOrdersProvider);
+    final orders = statusFilter == null
+        ? allOrders
+        : allOrders.where((order) => order.status == statusFilter).toList();
 
     if (orders.isEmpty) {
       return const Center(
@@ -173,6 +114,7 @@ class _VendorOrdersTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: orders.map((order) {
         final statusColor = _getStatusColor(order.status);
+        final formatCurrency = NumberFormat.currency(symbol: 'PHP ', decimalDigits: 2);
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
@@ -199,7 +141,7 @@ class _VendorOrdersTab extends StatelessWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          order.status,
+                          order.statusLabel,
                           style: TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
@@ -210,7 +152,7 @@ class _VendorOrdersTab extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        order.deliveryType,
+                        order.isPickup ? 'Pick-Up' : 'Delivery',
                         style: const TextStyle(
                           fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
@@ -220,7 +162,7 @@ class _VendorOrdersTab extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    order.total,
+                    formatCurrency.format(order.total),
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 16,
@@ -235,7 +177,7 @@ class _VendorOrdersTab extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Order #${order.id}',
+                    'Order ${order.id}',
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
@@ -244,7 +186,7 @@ class _VendorOrdersTab extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    order.time,
+                    DateFormat('MMM d, hh:mm a').format(order.placedAt),
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 11,
@@ -254,9 +196,9 @@ class _VendorOrdersTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                order.customer,
-                style: const TextStyle(
+              const Text(
+                'Customer', // We don't have customer name in MarketOrder yet
+                style: TextStyle(
                   fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -278,7 +220,7 @@ class _VendorOrdersTab extends StatelessWidget {
                 (item) => Padding(
                   padding: const EdgeInsets.only(left: 8, bottom: 2),
                   child: Text(
-                    '• $item',
+                    '• ${item.quantity} ${item.weight} ${item.productName}',
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
@@ -287,8 +229,57 @@ class _VendorOrdersTab extends StatelessWidget {
                   ),
                 ),
               ),
+              if (order.notes != null && order.notes!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7).withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFEF3C7)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.note_alt_outlined,
+                        size: 16,
+                        color: Color(0xFFD97706),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Special Instructions:',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFB45309),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              order.notes!,
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 13,
+                                color: Color(0xFF78350F),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
-              _VendorOrderActions(order: order, owner: state),
+              _VendorOrderActions(order: order),
             ],
           ),
         );
@@ -296,13 +287,15 @@ class _VendorOrdersTab extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(OrderStatus status) {
     switch (status) {
-      case 'Pending':
+      case OrderStatus.pending:
         return const Color(0xFFFFB902);
-      case 'Preparing':
+      case OrderStatus.preparing:
         return const Color(0xFF3B82F6);
-      case 'Ready':
+      case OrderStatus.ready:
+        return const Color(0xFF22C55E);
+      case OrderStatus.completed:
         return const Color(0xFF22C55E);
       default:
         return const Color(0xFF64748B);
@@ -310,15 +303,16 @@ class _VendorOrdersTab extends StatelessWidget {
   }
 }
 
-class _VendorOrderActions extends StatelessWidget {
-  const _VendorOrderActions({required this.order, required this.owner});
+class _VendorOrderActions extends ConsumerWidget {
+  const _VendorOrderActions({required this.order});
 
-  final VendorOrderItem order;
-  final _VendorOrdersScreenState owner;
+  final MarketOrder order;
 
   @override
-  Widget build(BuildContext context) {
-    if (order.status == 'Pending') {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(vendorOrdersProvider.notifier);
+
+    if (order.status == OrderStatus.pending) {
       return Row(
         children: [
           Expanded(
@@ -326,7 +320,12 @@ class _VendorOrderActions extends StatelessWidget {
               label: 'Reject',
               isPrimary: false,
               textColor: const Color(0xFFEF4444),
-              onTap: () => owner._rejectOrder(order),
+              onTap: () {
+                notifier.rejectOrder(order.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Order ${order.id} was rejected.')),
+                );
+              },
             ),
           ),
           const SizedBox(width: 12),
@@ -334,18 +333,19 @@ class _VendorOrderActions extends StatelessWidget {
             child: _buildActionButton(
               label: 'Accept',
               isPrimary: true,
-              onTap: () => owner._updateOrderStatus(
-                order,
-                'Preparing',
-                'Order #${order.id} is now preparing.',
-              ),
+              onTap: () {
+                notifier.acceptOrder(order.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Order ${order.id} is now preparing.')),
+                );
+              },
             ),
           ),
         ],
       );
     }
 
-    if (order.status == 'Preparing') {
+    if (order.status == OrderStatus.preparing) {
       return SizedBox(
         width: double.infinity,
         child: _buildActionButton(
@@ -354,23 +354,33 @@ class _VendorOrderActions extends StatelessWidget {
           backgroundColor: const Color(0xFFF1F5F9),
           textColor: const Color(0xFF64748B),
           icon: Icons.inventory_2_outlined,
-          onTap: () => owner._updateOrderStatus(
-            order,
-            'Ready',
-            'Order #${order.id} is ready for pickup or dispatch.',
-          ),
+          onTap: () {
+            notifier.markOrderReady(order.id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Order ${order.id} is ready for pickup or dispatch.')),
+            );
+          },
         ),
       );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: _buildActionButton(
-        label: 'Mark as Picked Up',
-        isPrimary: true,
-        onTap: () => owner._completeOrder(order),
-      ),
-    );
+    if (order.status == OrderStatus.ready) {
+      return SizedBox(
+        width: double.infinity,
+        child: _buildActionButton(
+          label: order.isPickup ? 'Mark as Picked Up' : 'Dispatch Order',
+          isPrimary: true,
+          onTap: () {
+            notifier.completeOrder(order.id);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Order ${order.id} has been completed.')),
+            );
+          },
+        ),
+      );
+    }
+
+    return const SizedBox.shrink(); // No actions for completed or cancelled
   }
 
   Widget _buildActionButton({
@@ -386,7 +396,9 @@ class _VendorOrderActions extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFF0B372B) : (backgroundColor ?? Colors.white),
+          color: isPrimary
+              ? const Color(0xFF0B372B)
+              : (backgroundColor ?? Colors.white),
           borderRadius: BorderRadius.circular(12),
           border: isPrimary ? null : Border.all(color: const Color(0xFFE2E8F0)),
         ),
@@ -395,7 +407,11 @@ class _VendorOrderActions extends StatelessWidget {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(icon, size: 16, color: textColor ?? const Color(0xFF64748B)),
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: textColor ?? const Color(0xFF64748B),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       label,
@@ -414,7 +430,9 @@ class _VendorOrderActions extends StatelessWidget {
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isPrimary ? Colors.white : (textColor ?? const Color(0xFF0B372B)),
+                    color: isPrimary
+                        ? Colors.white
+                        : (textColor ?? const Color(0xFF0B372B)),
                   ),
                 ),
         ),

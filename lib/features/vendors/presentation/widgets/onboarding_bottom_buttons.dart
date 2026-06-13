@@ -19,10 +19,7 @@ class OnboardingBottomButtons extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.2),
-            width: 1,
-          ),
+          top: BorderSide(color: Colors.grey.withValues(alpha: 0.2), width: 1),
         ),
       ),
       child: Row(
@@ -37,9 +34,7 @@ class OnboardingBottomButtons extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFF0B372B),
-                    ),
+                    border: Border.all(color: const Color(0xFF0B372B)),
                   ),
                   child: const Center(
                     child: Text(
@@ -80,7 +75,7 @@ class OnboardingBottomButtons extends StatelessWidget {
               ),
             ),
           ],
-          
+
           // Steps 1-2: Just Save (full width)
           if (currentStep == 1 || currentStep == 2)
             Expanded(
@@ -106,7 +101,7 @@ class OnboardingBottomButtons extends StatelessWidget {
                 ),
               ),
             ),
-          
+
           // Phone Number (Step 3): Submit + Verify
           if (currentStep == 3) ...[
             Expanded(
@@ -117,9 +112,7 @@ class OnboardingBottomButtons extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFF0B372B),
-                    ),
+                    border: Border.all(color: const Color(0xFF0B372B)),
                   ),
                   child: const Center(
                     child: Text(

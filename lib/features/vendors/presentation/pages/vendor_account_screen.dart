@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/vendors/application/vendor_stall_controller.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'vendor_earnings_screen.dart';
 import 'vendor_stall_settings_screen.dart';
 import 'vendor_account_details_screen.dart';
@@ -10,11 +12,12 @@ import 'vendor_help_support_screen.dart';
 /// Vendor Account Screen
 /// The vendor's own profile/settings page, displayed in the Dashboard's Profile tab.
 /// Shows stall info, quick links to Earnings, and account settings.
-class VendorAccountScreen extends StatelessWidget {
+class VendorAccountScreen extends ConsumerWidget {
   const VendorAccountScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stall = ref.watch(vendorStallProvider);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -22,37 +25,36 @@ class VendorAccountScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Vendor Avatar & Name
-          ListenableBuilder(
-            listenable: VendorStallController.instance,
-            builder: (context, _) {
-              final controller = VendorStallController.instance;
-              return Column(
-                children: [
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFF0B372B),
-                      border: Border.all(color: const Color(0xFFD5E7DE), width: 3),
-                      image: controller.avatarImage != null
-                          ? DecorationImage(
-                              image: NetworkImage(controller.avatarImage!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: controller.avatarImage == null
-                        ? const Icon(
-                            Icons.storefront_rounded,
-                            color: Colors.white,
-                            size: 40,
-                          )
-                        : null,
+          Column(
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF0B372B),
+                  border: Border.all(
+                    color: const Color(0xFFD5E7DE),
+                    width: 3,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    controller.name,
+                  image: stall.avatarImage != null
+                      ? DecorationImage(
+                          image: NetworkImage(stall.avatarImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: stall.avatarImage == null
+                    ? const Icon(
+                        Icons.storefront_rounded,
+                        color: Colors.white,
+                        size: 40,
+                      )
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                stall.name,
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 20,
@@ -61,18 +63,16 @@ class VendorAccountScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    controller.location,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              );
-            },
+              Text(
+                stall.location,
+                style: const TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Container(
@@ -84,7 +84,11 @@ class VendorAccountScreen extends StatelessWidget {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.verified_rounded, color: Color(0xFF22C55E), size: 14),
+                Icon(
+                  Icons.verified_rounded,
+                  color: Color(0xFF22C55E),
+                  size: 14,
+                ),
                 SizedBox(width: 4),
                 Text(
                   'Verified Vendor',
@@ -111,9 +115,24 @@ class VendorAccountScreen extends StatelessWidget {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _StatItem(value: '4.8', label: 'Rating', icon: Icons.star_rounded, iconColor: Color(0xFFF59E0B)),
-                _StatItem(value: '152', label: 'Orders', icon: Icons.receipt_long_rounded, iconColor: Color(0xFF22C55E)),
-                _StatItem(value: '28', label: 'Products', icon: Icons.inventory_2_rounded, iconColor: Color(0xFF3B82F6)),
+                _StatItem(
+                  value: '4.8',
+                  label: 'Rating',
+                  icon: Icons.star_rounded,
+                  iconColor: Color(0xFFF59E0B),
+                ),
+                _StatItem(
+                  value: '152',
+                  label: 'Orders',
+                  icon: Icons.receipt_long_rounded,
+                  iconColor: Color(0xFF22C55E),
+                ),
+                _StatItem(
+                  value: '28',
+                  label: 'Products',
+                  icon: Icons.inventory_2_rounded,
+                  iconColor: Color(0xFF3B82F6),
+                ),
               ],
             ),
           ),
@@ -138,7 +157,9 @@ class VendorAccountScreen extends StatelessWidget {
             subtitle: 'Edit stall info, photos & operating hours',
             onTap: () {
               Navigator.of(context).push(
-                PageTransitions.slideFromRight(const VendorStallSettingsScreen()),
+                PageTransitions.slideFromRight(
+                  const VendorStallSettingsScreen(),
+                ),
               );
             },
           ),
@@ -149,7 +170,9 @@ class VendorAccountScreen extends StatelessWidget {
             subtitle: 'Edit your personal information',
             onTap: () {
               Navigator.of(context).push(
-                PageTransitions.slideFromRight(const VendorAccountDetailsScreen()),
+                PageTransitions.slideFromRight(
+                  const VendorAccountDetailsScreen(),
+                ),
               );
             },
           ),
@@ -169,7 +192,7 @@ class VendorAccountScreen extends StatelessWidget {
 
           // Logout Button
           GestureDetector(
-            onTap: () => _showLogoutDialog(context),
+            onTap: () => _showLogoutDialog(context, ref),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -181,7 +204,11 @@ class VendorAccountScreen extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 20),
+                  Icon(
+                    Icons.logout_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Log Out',
@@ -269,9 +296,7 @@ class VendorAccountScreen extends StatelessWidget {
     );
   }
 
-
-
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -302,12 +327,14 @@ class VendorAccountScreen extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                AppRoutes.login,
-                (route) => false,
-              );
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),

@@ -24,6 +24,17 @@ migrate_working_dir/
 #.vscode/
 
 # Project docs are local by default; keep refactor plans tracked for the team.
+docs/*
+!docs/ARCHITECTURE_REFACTOR.md
+!docs/audit-findings-and-issues-to-address-2026-06-04.md
+!docs/BACKEND_ARCHITECTURE.md
+!docs/QA_PIPELINE.md
+!docs/REFACTOR_HANDOFF.md
+!docs/superpowers/
+docs/superpowers/*
+!docs/superpowers/plans/
+docs/superpowers/plans/*
+!docs/superpowers/plans/2026-05-10-production-refactor.md
 
 # Project-local agent/tooling files
 .qwen/
@@ -39,7 +50,6 @@ stitch_req.json
 /build/
 /coverage/
 .metadata
-pubspec.lock
 
 # Platform-specific build outputs (keep source, ignore generated)
 /android/.gradle/

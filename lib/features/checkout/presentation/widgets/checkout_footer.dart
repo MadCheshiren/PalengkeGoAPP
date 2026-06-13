@@ -31,7 +31,7 @@ class CheckoutFooter extends StatelessWidget {
               disabledBackgroundColor: const Color(0xFFCBD5E1),
               disabledForegroundColor: Colors.white70,
               elevation: 6,
-              shadowColor: const Color(0xFF0B372B).withOpacity(0.18),
+              shadowColor: const Color(0xFF0B372B).withValues(alpha: 0.18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

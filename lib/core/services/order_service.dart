@@ -3,10 +3,19 @@ import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
+import 'package:palengkego/features/orders/domain/payment_status.dart';
 
-final globalOrders = OrderService();
+/// Callback fired after an order status changes.
+/// Provides the orderId, vendorName, and the new status so the
+/// notification layer can react without coupling to Riverpod.
+typedef OrderStatusChangedCallback =
+    void Function(String orderId, String vendorName, OrderStatus newStatus);
 
 class OrderService extends ChangeNotifier {
+  /// Optional callback wired by [orderServiceProvider] to route
+  /// status-change events into [NotificationService].
+  OrderStatusChangedCallback? onStatusChanged;
   final List<MarketOrder> _orders = [
     MarketOrder(
       id: '#88293',
@@ -15,7 +24,11 @@ class OrderService extends ChangeNotifier {
           'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=200&auto=format&fit=crop',
       status: OrderStatus.pending,
       placedAt: DateTime(2023, 10, 24, 10, 30),
-      isPickup: false,
+      paymentStatus: PaymentStatus.paid,
+      fulfillmentMethod: FulfillmentMethod.delivery,
+      deliveryAddress: '123 Main St, Manila',
+      deliveryFee: 49.0,
+      serviceFee: 15.0,
       items: const [
         OrderLineItem(
           productName: 'Pork Belly',
@@ -53,7 +66,10 @@ class OrderService extends ChangeNotifier {
           'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=200&auto=format&fit=crop',
       status: OrderStatus.completed,
       placedAt: DateTime(2023, 10, 22, 8, 15),
-      isPickup: true,
+      paymentStatus: PaymentStatus.pending,
+      fulfillmentMethod: FulfillmentMethod.pickup,
+      deliveryFee: 0.0,
+      serviceFee: 15.0,
       items: const [
         OrderLineItem(
           productName: 'Bangus',
@@ -91,7 +107,11 @@ class OrderService extends ChangeNotifier {
           'https://images.unsplash.com/photo-1602470520998-f4a52199a3d6?q=80&w=200&auto=format&fit=crop',
       status: OrderStatus.cancelled,
       placedAt: DateTime(2023, 10, 20, 14, 45),
-      isPickup: false,
+      paymentStatus: PaymentStatus.failed,
+      fulfillmentMethod: FulfillmentMethod.delivery,
+      deliveryAddress: '456 Elm St, Quezon City',
+      deliveryFee: 49.0,
+      serviceFee: 15.0,
       items: const [
         OrderLineItem(
           productName: 'Ground Beef',
@@ -120,7 +140,11 @@ class OrderService extends ChangeNotifier {
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=200&auto=format&fit=crop',
       status: OrderStatus.confirmed,
       placedAt: DateTime(2023, 10, 25, 9, 15),
-      isPickup: false,
+      paymentStatus: PaymentStatus.paid,
+      fulfillmentMethod: FulfillmentMethod.delivery,
+      deliveryAddress: '789 Pine St, Makati',
+      deliveryFee: 49.0,
+      serviceFee: 15.0,
       items: const [
         OrderLineItem(
           productName: 'Pineapple',
@@ -161,7 +185,11 @@ class OrderService extends ChangeNotifier {
     return List<MarketOrder>.unmodifiable(sorted);
   }
 
-  List<MarketOrder> placeOrders({required List<CartItem> items, required bool isPickup}) {
+  List<MarketOrder> placeOrders({
+    required List<CartItem> items,
+    required bool isPickup,
+    String? notes,
+  }) {
     if (items.isEmpty) {
       return [];
     }
@@ -192,10 +220,17 @@ class OrderService extends ChangeNotifier {
         id: '#${_nextOrderNumber++}',
         vendorName: entry.key,
         vendorImage: entry.value.first.image,
-        status: isPickup ? OrderStatus.pending : OrderStatus.confirmed,
+        status: OrderStatus.pending,
+        paymentStatus: PaymentStatus.pending,
+        fulfillmentMethod: isPickup
+            ? FulfillmentMethod.pickup
+            : FulfillmentMethod.delivery,
+        deliveryAddress: isPickup ? null : '123 Default Address',
+        deliveryFee: isPickup ? 0.0 : 49.0,
+        serviceFee: 15.0,
         placedAt: DateTime.now(),
         items: orderItems,
-        isPickup: isPickup,
+        notes: notes,
       );
 
       _orders.add(order);
@@ -204,5 +239,16 @@ class OrderService extends ChangeNotifier {
 
     notifyListeners();
     return createdOrders;
+  }
+
+  void updateOrderStatus(String orderId, OrderStatus newStatus) {
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index != -1) {
+      final order = _orders[index];
+      _orders[index] = order.copyWith(status: newStatus);
+      notifyListeners();
+      // Notify the notification layer (wired by orderServiceProvider).
+      onStatusChanged?.call(orderId, order.vendorName, newStatus);
+    }
   }
 }

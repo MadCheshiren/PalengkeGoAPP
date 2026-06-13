@@ -1,465 +1,472 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/features/notifications/application/notification_provider.dart';
 
-class VendorNotificationsScreen extends StatefulWidget {
+class VendorNotificationsScreen extends ConsumerWidget {
   const VendorNotificationsScreen({super.key});
 
   @override
-  State<VendorNotificationsScreen> createState() => _VendorNotificationsScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifService = ref.watch(notificationServiceProvider);
+
+    return ListenableBuilder(
+      listenable: notifService,
+      builder: (context, _) {
+        final notifications = notifService.forVendor;
+        final unreadCount = notifService.vendorUnreadCount;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          body: SafeArea(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Header
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.maybePop(context),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF1F5F9),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  size: 16,
+                                  color: Color(0xFF0B372B),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Notifications',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0B372B),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (unreadCount > 0)
+                          GestureDetector(
+                            onTap: () => notifService
+                                .markAllRead(NotificationTarget.vendor),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Mark all read',
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0B372B),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Morphing sticky banner
+                SliverPersistentHeader(
+                  pinned: true,
+                  floating: false,
+                  delegate:
+                      _VendorStatusBannerDelegate(unreadCount: unreadCount),
+                ),
+
+                // Notifications list
+                if (notifications.isEmpty)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _EmptyVendorNotifications(),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final notif = notifications[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: _VendorNotificationCard(
+                              notification: notif,
+                              onTap: () => notifService.markRead(notif.id),
+                            ),
+                          );
+                        },
+                        childCount: notifications.length,
+                      ),
+                    ),
+                  ),
+
+                // Vendor pro-tip box (always shown at bottom)
+                if (notifications.isNotEmpty)
+                  const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    sliver: SliverToBoxAdapter(child: _VendorProTip()),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _VendorNotificationsScreenState extends State<VendorNotificationsScreen> {
-  // Mock notifications list to allow items to be dismissed or updated
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'id': 'notif-1',
-      'type': 'order',
-      'title': 'New Order Received!',
-      'description': 'Order #RG-1030 from Maria Santos is ready for preparation (2kg Bangus).',
-      'time': 'Just now',
-      'isRead': false,
-      'primaryAction': 'Start Preparing',
-    },
-    {
-      'id': 'notif-2',
-      'type': 'stock',
-      'title': 'Low Stock Alert!',
-      'description': 'Your Tilapia inventory is currently at 3kg (Critical threshold: 5kg).',
-      'time': '10 mins ago',
-      'isRead': false,
-      'primaryAction': 'Restock Now',
-    },
-    {
-      'id': 'notif-3',
-      'type': 'review',
-      'title': 'New 5-Star Rating!',
-      'description': 'Ricardo D. left a review: "Super fresh tilapia and fast preparation. Will buy again!"',
-      'time': '2 hours ago',
-      'isRead': true,
-      'primaryAction': 'Thank Customer',
-      'rating': 5,
-    },
-    {
-      'id': 'notif-4',
-      'type': 'admin',
-      'title': 'Market Maintenance Notice',
-      'description': 'The Wet Market section will undergo sanitization this Sunday, May 31, from 8:00 PM to 11:00 PM.',
-      'time': 'Yesterday',
-      'isRead': true,
-      'primaryAction': 'Acknowledge',
-    },
-  ];
-
-  void _handleAction(String id, String action, String title) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    
-    // Simulate updating notification state
-    setState(() {
-      final index = _notifications.indexWhere((n) => n['id'] == id);
-      if (index != -1) {
-        _notifications[index]['isRead'] = true;
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF0B372B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Success: $action for "$title"',
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _markAllAsRead() {
-    setState(() {
-      for (var n in _notifications) {
-        n['isRead'] = true;
-      }
-    });
-    
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF0B372B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: const Text(
-          'All notifications marked as read',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+class _EmptyVendorNotifications extends StatelessWidget {
+  const _EmptyVendorNotifications();
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount = _notifications.where((n) => !n['isRead']).length;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F5E9),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: Color(0xFF0B372B),
+              size: 36,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'All alerts cleared!',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0B372B),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'New order alerts will appear here.',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 13,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Standard Premium Header with Back Button and Mark All Read
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Row(
+// ---------------------------------------------------------------------------
+// Vendor notification card
+// ---------------------------------------------------------------------------
+class _VendorNotificationCard extends StatelessWidget {
+  const _VendorNotificationCard({
+    required this.notification,
+    required this.onTap,
+  });
+
+  final AppNotification notification;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final config = _typeConfig(notification.type);
+    final isRead = notification.isRead;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+          border: Border.all(
+            color: isRead
+                ? const Color(0xFFE2E8F0)
+                : config.accent.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: isRead ? const Color(0xFFCBD5E1) : config.accent,
+                  width: 4,
+                ),
+              ),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: config.bg,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(config.icon, color: config.accent, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  notification.title,
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: isRead
+                                        ? const Color(0xFF475569)
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              if (!isRead)
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: config.accent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            notification.body,
+                            style: const TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.maybePop(context),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              size: 16,
-                              color: Color(0xFF0B372B),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Notifications',
-                          style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF0B372B),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      _relativeTime(notification.createdAt),
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF94A3B8),
+                      ),
                     ),
-                    if (unreadCount > 0)
+                    if (!isRead)
                       GestureDetector(
-                        onTap: _markAllAsRead,
+                        onTap: onTap,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9),
-                            borderRadius: BorderRadius.circular(20),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
                           ),
-                          child: const Text(
-                            'Mark all read',
+                          decoration: BoxDecoration(
+                            color: config.accent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            'Mark Read',
                             style: TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: config.accent,
                             ),
                           ),
                         ),
                       ),
                   ],
                 ),
-              ),
+              ],
             ),
-
-            // Morphing Sticky Header showing priority vendor breakdown
-            SliverPersistentHeader(
-              pinned: true,
-              floating: false,
-              delegate: _VendorStatusBannerDelegate(unreadCount: unreadCount),
-            ),
-
-            // Tailored List of Vendor Notification Cards
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 8),
-                  
-                  // Today Section
-                  _buildSectionHeader('OPERATIONAL ALERTS'),
-                  const SizedBox(height: 12),
-                  
-                  ..._notifications.map((notif) {
-                    return _buildVendorNotificationCard(notif);
-                  }),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Security / Tips box for vendors
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0F2FE),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFBAE6FD)),
-                    ),
-                    child: const Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline_rounded,
-                          color: Color(0xFF0369A1),
-                          size: 24,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Vendor Pro-Tip',
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0369A1),
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Keeping your inventory updated reduces order cancellations and builds buyer trust. Try editing your stock levels immediately after a low-stock alert!',
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF075985),
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ]),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: Color(0xFF94A3B8),
-        letterSpacing: 1.2,
-      ),
-    );
+  ({IconData icon, Color accent, Color bg}) _typeConfig(NotificationType type) {
+    return switch (type) {
+      NotificationType.order => (
+          icon: Icons.receipt_long_rounded,
+          accent: const Color(0xFF22C55E),
+          bg: const Color(0xFFF0FDF4),
+        ),
+      NotificationType.stock => (
+          icon: Icons.inventory_2_outlined,
+          accent: const Color(0xFFEF4444),
+          bg: const Color(0xFFFEF2F2),
+        ),
+      NotificationType.review => (
+          icon: Icons.star_rate_rounded,
+          accent: const Color(0xFFF59E0B),
+          bg: const Color(0xFFFEF3C7),
+        ),
+      NotificationType.admin => (
+          icon: Icons.campaign_rounded,
+          accent: const Color(0xFF3B82F6),
+          bg: const Color(0xFFEFF6FF),
+        ),
+      NotificationType.promo => (
+          icon: Icons.local_offer_outlined,
+          accent: const Color(0xFF059669),
+          bg: const Color(0xFFECFDF5),
+        ),
+    };
   }
+}
 
-  Widget _buildVendorNotificationCard(Map<String, dynamic> notif) {
-    final String type = notif['type'];
-    final String id = notif['id'];
-    final String title = notif['title'];
-    final String description = notif['description'];
-    final String time = notif['time'];
-    final bool isRead = notif['isRead'];
-    final String primaryAction = notif['primaryAction'];
-    
-    IconData icon;
-    Color accentColor;
-    Color bgColor;
+// ---------------------------------------------------------------------------
+// Pro-tip box
+// ---------------------------------------------------------------------------
+class _VendorProTip extends StatelessWidget {
+  const _VendorProTip();
 
-    switch (type) {
-      case 'order':
-        icon = Icons.receipt_long_rounded;
-        accentColor = const Color(0xFF22C55E); // Green
-        bgColor = const Color(0xFFF0FDF4);
-        break;
-      case 'stock':
-        icon = Icons.inventory_2_outlined;
-        accentColor = const Color(0xFFEF4444); // Red/Amber
-        bgColor = const Color(0xFFFEF2F2);
-        break;
-      case 'review':
-        icon = Icons.star_rate_rounded;
-        accentColor = const Color(0xFFF59E0B); // Amber/Gold
-        bgColor = const Color(0xFFFEF3C7);
-        break;
-      case 'admin':
-      default:
-        icon = Icons.campaign_rounded;
-        accentColor = const Color(0xFF3B82F6); // Blue
-        bgColor = const Color(0xFFEFF6FF);
-        break;
-    }
-
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFE0F2FE),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          const BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+        border: Border.all(color: const Color(0xFFBAE6FD)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.lightbulb_outline_rounded,
+            color: Color(0xFF0369A1),
+            size: 24,
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Vendor Pro-Tip',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0369A1),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Keeping your inventory updated reduces order cancellations and builds buyer trust.',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF075985),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
-        border: Border.all(
-          color: isRead ? const Color(0xFFE2E8F0) : accentColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(
-                color: isRead ? const Color(0xFFCBD5E1) : accentColor,
-                width: 4,
-              ),
-            ),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(icon, color: accentColor, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: isRead ? const Color(0xFF475569) : const Color(0xFF0F172A),
-                              ),
-                            ),
-                            if (!isRead)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: accentColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          description,
-                          style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF64748B),
-                            height: 1.35,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    time,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _handleAction(id, primaryAction, title),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isRead ? const Color(0xFFF1F5F9) : accentColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        primaryAction,
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isRead ? const Color(0xFF64748B) : accentColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 }
 
+// ---------------------------------------------------------------------------
+// Relative time helper
+// ---------------------------------------------------------------------------
+String _relativeTime(DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inSeconds < 60) return 'Just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} mins ago';
+  if (diff.inHours < 24) return '${diff.inHours} hours ago';
+  if (diff.inDays == 1) return 'Yesterday';
+  if (diff.inDays < 7) return '${diff.inDays} days ago';
+  return '${diff.inDays ~/ 7} week${diff.inDays ~/ 7 > 1 ? 's' : ''} ago';
+}
+
+// ---------------------------------------------------------------------------
+// Sticky status banner delegate
+// ---------------------------------------------------------------------------
 class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
   _VendorStatusBannerDelegate({required this.unreadCount});
 
   final int unreadCount;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
-
-    // Horizontal padding: starts at 16, shrinks to 0 to touch screen edges
     final horizontalPadding = 16.0 * (1.0 - progress);
-
     final isAllCaughtUp = unreadCount == 0;
-    final bannerColor = isAllCaughtUp ? const Color(0xFF6D9773) : const Color(0xFF0B372B);
+    final bannerColor =
+        isAllCaughtUp ? const Color(0xFF6D9773) : const Color(0xFF0B372B);
 
     return SizedBox.expand(
       child: Container(
@@ -496,7 +503,9 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      isAllCaughtUp ? 'STALL OPERATIONAL STATUS' : 'URGENT NOTIFICATIONS',
+                      isAllCaughtUp
+                          ? 'STALL OPERATIONAL STATUS'
+                          : 'URGENT NOTIFICATIONS',
                       style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
@@ -507,9 +516,9 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isAllCaughtUp 
-                          ? "All alerts cleared! Nice job." 
-                          : "$unreadCount critical tasks require attention",
+                      isAllCaughtUp
+                          ? 'All alerts cleared! Nice job.'
+                          : '$unreadCount critical tasks require attention',
                       style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
@@ -531,7 +540,9 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isAllCaughtUp ? Icons.check_rounded : Icons.notifications_active_rounded,
+                  isAllCaughtUp
+                      ? Icons.check_rounded
+                      : Icons.notifications_active_rounded,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -544,10 +555,10 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 120; // Resting height
+  double get maxExtent => 120;
 
   @override
-  double get minExtent => 84; // Stuck height
+  double get minExtent => 84;
 
   @override
   bool shouldRebuild(covariant _VendorStatusBannerDelegate oldDelegate) {

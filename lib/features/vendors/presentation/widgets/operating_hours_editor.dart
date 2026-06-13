@@ -20,7 +20,11 @@ class OperatingHoursEditor extends StatelessWidget {
     return '$hour:$minute $period';
   }
 
-  Future<void> _selectTime(BuildContext context, int index, bool isOpenTime) async {
+  Future<void> _selectTime(
+    BuildContext context,
+    int index,
+    bool isOpenTime,
+  ) async {
     final schedule = schedules[index];
     final initialTime = isOpenTime ? schedule.openTime : schedule.closeTime;
 
@@ -61,7 +65,11 @@ class OperatingHoursEditor extends StatelessWidget {
           children: [
             const Row(
               children: [
-                Icon(Icons.schedule_rounded, color: Color(0xFF0B372B), size: 20),
+                Icon(
+                  Icons.schedule_rounded,
+                  color: Color(0xFF0B372B),
+                  size: 20,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Operating Hours',
@@ -75,7 +83,11 @@ class OperatingHoursEditor extends StatelessWidget {
               ],
             ),
             TextButton.icon(
-              icon: const Icon(Icons.copy_rounded, size: 14, color: Color(0xFF0B372B)),
+              icon: const Icon(
+                Icons.copy_rounded,
+                size: 14,
+                color: Color(0xFF0B372B),
+              ),
               label: const Text(
                 'Apply Mon to All',
                 style: TextStyle(
@@ -123,11 +135,16 @@ class OperatingHoursEditor extends StatelessWidget {
                             InkWell(
                               onTap: () => _selectTime(context, index, true),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  border: Border.all(
+                                    color: const Color(0xFFCBD5E1),
+                                  ),
                                 ),
                                 child: Text(
                                   _formatTime(schedule.openTime),
@@ -142,16 +159,24 @@ class OperatingHoursEditor extends StatelessWidget {
                             ),
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 4),
-                              child: Text('-', style: TextStyle(color: Color(0xFF64748B))),
+                              child: Text(
+                                '-',
+                                style: TextStyle(color: Color(0xFF64748B)),
+                              ),
                             ),
                             InkWell(
                               onTap: () => _selectTime(context, index, false),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                                  border: Border.all(
+                                    color: const Color(0xFFCBD5E1),
+                                  ),
                                 ),
                                 child: Text(
                                   _formatTime(schedule.closeTime),
@@ -183,7 +208,9 @@ class OperatingHoursEditor extends StatelessWidget {
                     onChanged();
                   },
                   activeThumbColor: const Color(0xFF0B372B),
-                  activeTrackColor: const Color(0xFF0B372B).withValues(alpha: 0.3),
+                  activeTrackColor: const Color(
+                    0xFF0B372B,
+                  ).withValues(alpha: 0.3),
                 ),
               ],
             ),

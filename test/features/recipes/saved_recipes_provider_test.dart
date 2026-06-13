@@ -11,7 +11,8 @@ void main() {
       category: 'Seafood',
       time: '30 min',
       difficulty: 'Easy',
-      imageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=250&fit=crop',
+      imageUrl:
+          'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=250&fit=crop',
       backgroundColor: Color(0xFFE0F2FE),
     );
 

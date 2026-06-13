@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/vendors/application/vendor_stall_controller.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/notifications/application/notification_provider.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/dashboard_sales_card.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/dashboard_stall_card.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/dashboard_recent_order_card.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 
 import 'vendor_orders_screen.dart';
 import 'vendor_products_screen.dart';
@@ -13,45 +18,25 @@ import 'vendor_account_screen.dart';
 /// Vendor Dashboard Screen
 /// Main screen for vendors after completing onboarding.
 /// Shows earnings summary, order stats, and quick actions.
-class VendorDashboardScreen extends StatefulWidget {
+class VendorDashboardScreen extends ConsumerStatefulWidget {
   const VendorDashboardScreen({super.key});
 
   @override
-  State<VendorDashboardScreen> createState() => _VendorDashboardScreenState();
+  ConsumerState<VendorDashboardScreen> createState() => _VendorDashboardScreenState();
 }
 
-class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
+class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
   int _selectedIndex = 0;
-  bool _isStallOpen = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _isStallOpen = VendorStallController.instance.isOpen;
-    VendorStallController.instance.addListener(_onStallControllerChanged);
-  }
-
-  @override
-  void dispose() {
-    VendorStallController.instance.removeListener(_onStallControllerChanged);
-    super.dispose();
-  }
-
-  void _onStallControllerChanged() {
-    if (mounted) {
-      setState(() {
-        _isStallOpen = VendorStallController.instance.isOpen;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final stall = ref.watch(vendorStallProvider);
     final screens = [
       _DashboardHome(
-        isStallOpen: _isStallOpen,
+        isStallOpen: stall.isOpen,
         onToggleStallOpen: (value) {
-          VendorStallController.instance.updateStall(isOpen: value);
+          ref.read(vendorStallProvider.notifier).updateStall(isOpen: value);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -88,9 +73,19 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard, 'Dashboard'),
+            _buildNavItem(
+              0,
+              Icons.dashboard_outlined,
+              Icons.dashboard,
+              'Dashboard',
+            ),
             _buildNavItem(1, Icons.receipt_outlined, Icons.receipt, 'Orders'),
-            _buildNavItem(2, Icons.inventory_2_outlined, Icons.inventory_2, 'Products'),
+            _buildNavItem(
+              2,
+              Icons.inventory_2_outlined,
+              Icons.inventory_2,
+              'Products',
+            ),
             _buildNavItem(3, Icons.person_outline, Icons.person, 'Profile'),
           ],
         ),
@@ -113,7 +108,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           Icon(
             isSelected ? iconFilled : iconOutlined,
             size: 24,
-            color: isSelected ? const Color(0xFF0B372B) : const Color(0xFF94A3B8),
+            color: isSelected
+                ? const Color(0xFF0B372B)
+                : const Color(0xFF94A3B8),
           ),
           const SizedBox(height: 4),
           Text(
@@ -133,7 +130,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   }
 }
 
-class _DashboardHome extends StatelessWidget {
+class _DashboardHome extends ConsumerWidget {
   const _DashboardHome({
     required this.isStallOpen,
     required this.onToggleStallOpen,
@@ -147,7 +144,11 @@ class _DashboardHome extends StatelessWidget {
   final VoidCallback onStartPreparing;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stall = ref.watch(vendorStallProvider);
+    final user = ref.watch(authProvider);
+    final greetingName = user?.displayName ?? stall.name;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -162,14 +163,14 @@ class _DashboardHome extends StatelessWidget {
                   color: const Color(0xFF0B372B),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
-                  image: VendorStallController.instance.avatarImage != null
+                  image: stall.avatarImage != null
                       ? DecorationImage(
-                          image: NetworkImage(VendorStallController.instance.avatarImage!),
+                          image: NetworkImage(stall.avatarImage!),
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                child: VendorStallController.instance.avatarImage == null
+                child: stall.avatarImage == null
                     ? const Icon(
                         Icons.storefront_outlined,
                         color: Colors.white,
@@ -178,11 +179,11 @@ class _DashboardHome extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'PalengkeGo Vendor',
                       style: TextStyle(
                         fontFamily: 'PlusJakartaSans',
@@ -191,10 +192,10 @@ class _DashboardHome extends StatelessWidget {
                         color: Color(0xFF94A3B8),
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Good morning, Mang Juan!',
-                      style: TextStyle(
+                      'Good morning, $greetingName!',
+                      style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -204,45 +205,58 @@ class _DashboardHome extends StatelessWidget {
                   ],
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    PageTransitions.slideFromRight(
-                      const VendorNotificationsScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF6F8F7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Stack(
-                    children: [
-                      const Center(
-                        child: Icon(
-                          Icons.notifications_outlined,
-                          color: Color(0xFF0B372B),
-                          size: 20,
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
+              Consumer(
+                builder: (context, ref, _) {
+                  final notifService =
+                      ref.read(notificationServiceProvider);
+                  return ListenableBuilder(
+                    listenable: notifService,
+                    builder: (context, _) {
+                      final unread = notifService.vendorUnreadCount;
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            PageTransitions.slideFromRight(
+                              const VendorNotificationsScreen(),
+                            ),
+                          );
+                        },
                         child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEF4444),
-                            shape: BoxShape.circle,
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6F8F7),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Stack(
+                            children: [
+                              const Center(
+                                child: Icon(
+                                  Icons.notifications_outlined,
+                                  color: Color(0xFF0B372B),
+                                  size: 20,
+                                ),
+                              ),
+                              if (unread > 0)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFEF4444),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
@@ -260,7 +274,6 @@ class _DashboardHome extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           DashboardStallCard(
-            isStallOpen: isStallOpen,
             onToggleStallOpen: onToggleStallOpen,
           ),
           const SizedBox(height: 24),
@@ -291,22 +304,43 @@ class _DashboardHome extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          DashboardRecentOrderCard(
-            orderId: 'Order #RG-1029',
-            customer: 'Maria Santos',
-            items: '2kg Bangus | 1kg Tomatoes | 500g Ginger',
-            total: 'PHP 450.00',
-            time: '2 mins ago',
-            onPrimaryAction: onStartPreparing,
-          ),
-          const SizedBox(height: 12),
-          DashboardRecentOrderCard(
-            orderId: 'Order #RG-1028',
-            customer: 'Ricardo Dalisay',
-            items: '1kg Tilapia | 1kg Eggplant | 500g Garlic',
-            total: 'PHP 420.00',
-            time: '15 mins ago',
-            onPrimaryAction: onViewOrders,
+          Consumer(
+            builder: (context, ref, _) {
+              final orders = ref.watch(vendorOrdersProvider)
+                  .where((o) => o.status == OrderStatus.pending || o.status == OrderStatus.preparing)
+                  .take(2)
+                  .toList();
+                  
+              if (orders.isEmpty) {
+                return const Text(
+                  'No recent orders.',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    color: Color(0xFF64748B),
+                  ),
+                );
+              }
+              
+              return Column(
+                children: orders.map((order) {
+                  final itemsStr = order.items.map((i) => '${i.quantity} ${i.weight} ${i.productName}').join(' | ');
+                  final totalStr = 'PHP ${order.total.toStringAsFixed(2)}';
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DashboardRecentOrderCard(
+                      orderId: 'Order #${order.id}',
+                      customer: 'Customer',
+                      items: itemsStr,
+                      total: totalStr,
+                      time: 'Just now',
+                      primaryActionText: order.status == OrderStatus.pending ? 'Start Preparing' : 'View Order',
+                      onPrimaryAction: order.status == OrderStatus.pending ? onStartPreparing : onViewOrders,
+                    ),
+                  );
+                }).toList(),
+              );
+            },
           ),
         ],
       ),

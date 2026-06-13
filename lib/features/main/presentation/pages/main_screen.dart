@@ -13,13 +13,6 @@ import 'package:palengkego/features/recipes/presentation/pages/recipes_screen.da
 /// Tabs: 0=Home, 1=Market, 2=Orders, 3=Recipes
 final mainTabNotifier = ValueNotifier<int>(0);
 
-/// Shared cart badge notifier used by the main shell and sub-pages.
-final cartCountNotifier = ValueNotifier<int>(0);
-
-void updateCartBadgeCount(int count) {
-  cartCountNotifier.value = count;
-}
-
 void navigateToMainTab(BuildContext context, int index) {
   // Cart is no longer a tab - push cart screen as standalone route
   if (index == 4) {
@@ -65,15 +58,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     // Clamp index to valid range after removing cart from tabs
     final clampedIndex = widget.initialIndex.clamp(0, _pages.length - 1);
     mainTabNotifier.value = clampedIndex;
-    cartCountNotifier.value = ref.read(cartServiceProvider).itemCount;
   }
 
   void _onItemTapped(int index) {
-      if (index == 4) {
-        // Cart button pushes the cart screen as a standalone route
-        Navigator.of(context).pushNamed(AppRoutes.cart);
-        return;
-      }
+    if (index == 4) {
+      // Cart button pushes the cart screen as a standalone route
+      Navigator.of(context).pushNamed(AppRoutes.cart);
+      return;
+    }
     mainTabNotifier.value = index.clamp(0, 3);
   }
 
@@ -88,9 +80,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         final safeIndex = selectedIndex.clamp(0, _pages.length - 1);
         return Scaffold(
           body: IndexedStack(index: safeIndex, children: _pages),
-          bottomNavigationBar: ValueListenableBuilder<int>(
-            valueListenable: cartCountNotifier,
-            builder: (context, cartCount, _) {
+          bottomNavigationBar: ListenableBuilder(
+            listenable: ref.watch(cartServiceProvider),
+            builder: (context, _) {
+              final cartCount = ref.read(cartServiceProvider).itemCount;
               return AppBottomNavBar(
                 selectedIndex: safeIndex,
                 onTap: _onItemTapped,

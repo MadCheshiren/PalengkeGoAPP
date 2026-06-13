@@ -20,62 +20,65 @@ class CookbookScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: const Color(0xFFF9FAFB),
         body: SafeArea(
-        child: Column(
-          children: [
-            // Custom Header with Back Button and Title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 16,
-                        color: Color(0xFF0B372B),
+          child: Column(
+            children: [
+              // Custom Header with Back Button and Title
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.maybePop(context),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 16,
+                          color: Color(0xFF0B372B),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    'My Cookbook',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF0B372B),
+                    const SizedBox(width: 16),
+                    Text(
+                      'My Cookbook',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0B372B),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            // Main Content Area
-            Expanded(
-              child: savedRecipes.isEmpty
-                  ? _buildEmptyState(context)
-                  : _buildRecipesList(context, savedRecipes, ref),
-            ),
-          ],
+              // Main Content Area
+              Expanded(
+                child: savedRecipes.isEmpty
+                    ? _buildEmptyState(context)
+                    : _buildRecipesList(context, savedRecipes, ref),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
@@ -189,7 +192,11 @@ class CookbookScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecipesList(BuildContext context, List<Recipe> recipes, WidgetRef ref) {
+  Widget _buildRecipesList(
+    BuildContext context,
+    List<Recipe> recipes,
+    WidgetRef ref,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: recipes.length,
@@ -207,9 +214,7 @@ class CookbookScreen extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          PageTransitions.slideFromRight(
-            RecipeDetailsScreen(recipe: recipe),
-          ),
+          PageTransitions.slideFromRight(RecipeDetailsScreen(recipe: recipe)),
         );
       },
       child: Container(
@@ -219,7 +224,7 @@ class CookbookScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               offset: const Offset(0, 1),
               blurRadius: 3,
             ),
@@ -339,7 +344,9 @@ class CookbookScreen extends ConsumerWidget {
                       label: 'Undo',
                       textColor: const Color(0xFFFFB902),
                       onPressed: () {
-                        ref.read(savedRecipesProvider.notifier).toggleSave(recipe);
+                        ref
+                            .read(savedRecipesProvider.notifier)
+                            .toggleSave(recipe);
                       },
                     ),
                   ),

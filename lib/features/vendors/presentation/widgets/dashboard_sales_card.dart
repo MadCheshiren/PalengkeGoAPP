@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:intl/intl.dart';
 
-class DashboardSalesCard extends StatelessWidget {
+class DashboardSalesCard extends ConsumerWidget {
   const DashboardSalesCard({super.key});
 
   Widget _buildStatBox({
@@ -19,7 +23,10 @@ class DashboardSalesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 4,
             children: [
               Text(
                 label,
@@ -29,10 +36,12 @@ class DashboardSalesCard extends StatelessWidget {
                   color: textColor.withValues(alpha: 0.8),
                 ),
               ),
-              if (badge != null) ...[
-                const SizedBox(width: 6),
+              if (badge != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEF3C7),
                     borderRadius: BorderRadius.circular(4),
@@ -47,7 +56,6 @@ class DashboardSalesCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
             ],
           ),
           const SizedBox(height: 4),
@@ -66,7 +74,23 @@ class DashboardSalesCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orders = ref.watch(vendorOrdersProvider);
+
+    final pendingOrdersCount = orders
+        .where((o) => o.status == OrderStatus.pending || o.status == OrderStatus.preparing)
+        .length;
+
+    final completedOrdersCount = orders
+        .where((o) => o.status == OrderStatus.completed)
+        .length;
+
+    final todaysSales = orders
+        .where((o) => o.status == OrderStatus.completed)
+        .fold<double>(0.0, (sum, o) => sum + o.total);
+
+    final currencyFormatter = NumberFormat.currency(symbol: 'PHP ', decimalDigits: 2);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -86,9 +110,9 @@ class DashboardSalesCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'PHP 4,250.00',
-            style: TextStyle(
+          Text(
+            currencyFormatter.format(todaysSales),
+            style: const TextStyle(
               fontFamily: 'PlusJakartaSans',
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -101,17 +125,17 @@ class DashboardSalesCard extends StatelessWidget {
               Expanded(
                 child: _buildStatBox(
                   label: 'Pending',
-                  value: '12 Orders',
+                  value: pendingOrdersCount == 1 ? '1 Order' : '$pendingOrdersCount Orders',
                   color: const Color(0xFFFFF7ED),
                   textColor: const Color(0xFFB45309),
-                  badge: 'ACTION REQUIRED',
+                  badge: pendingOrdersCount > 0 ? 'ACTION REQUIRED' : null,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatBox(
                   label: 'Completed',
-                  value: '45 Orders',
+                  value: completedOrdersCount == 1 ? '1 Order' : '$completedOrdersCount Orders',
                   color: const Color(0xFFF0FDF4),
                   textColor: const Color(0xFF166534),
                 ),

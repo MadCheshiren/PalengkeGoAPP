@@ -34,7 +34,7 @@ class OnboardingScreen extends StatelessWidget {
                         child: Icon(
                           Icons.storefront_outlined,
                           size: 120,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                     ),
@@ -88,14 +88,14 @@ class OnboardingScreen extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                            'Get Started',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
+                        'Get Started',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ],

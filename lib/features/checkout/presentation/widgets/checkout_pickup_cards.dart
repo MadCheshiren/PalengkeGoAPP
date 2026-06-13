@@ -87,7 +87,8 @@ class CheckoutPickupCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                vendorImageUrl ?? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face',
+                vendorImageUrl ??
+                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face',
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => const Icon(
                   Icons.storefront_rounded,

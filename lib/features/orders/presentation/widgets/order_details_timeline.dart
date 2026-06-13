@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OrderDetailsTimeline extends StatelessWidget {
-  const OrderDetailsTimeline({
-    super.key,
-    required this.currentStatus,
-  });
+  const OrderDetailsTimeline({super.key, required this.currentStatus});
 
   final String currentStatus;
 
@@ -16,11 +13,7 @@ class OrderDetailsTimeline extends StatelessWidget {
         'time': '10:30 AM, Oct 24',
         'status': 'completed',
       },
-      {
-        'label': 'Confirmed',
-        'time': '10:35 AM, Oct 24',
-        'status': 'completed',
-      },
+      {'label': 'Confirmed', 'time': '10:35 AM, Oct 24', 'status': 'completed'},
       {
         'label': currentStatus,
         'time': 'Vendor is weighing items',
@@ -55,12 +48,12 @@ class OrderDetailsTimeline extends StatelessWidget {
                   child: isCompleted
                       ? const Icon(Icons.check, size: 14, color: Colors.white)
                       : isActive
-                          ? const Icon(
-                              Icons.more_horiz,
-                              size: 14,
-                              color: Colors.white,
-                            )
-                          : null,
+                      ? const Icon(
+                          Icons.more_horiz,
+                          size: 14,
+                          color: Colors.white,
+                        )
+                      : null,
                 ),
                 if (!isLast)
                   Container(
@@ -99,8 +92,8 @@ class OrderDetailsTimeline extends StatelessWidget {
                         color: isCompleted
                             ? const Color(0xFF6B7280)
                             : isActive
-                                ? const Color(0xFF0B372B)
-                                : const Color(0xFF9CA3AF),
+                            ? const Color(0xFF0B372B)
+                            : const Color(0xFF9CA3AF),
                       ),
                     ),
                   ],

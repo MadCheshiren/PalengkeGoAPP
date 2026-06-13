@@ -1,0 +1,8 @@
+enum PaymentStatus {
+  pending('Pending'),
+  paid('Paid'),
+  failed('Failed');
+
+  const PaymentStatus(this.label);
+  final String label;
+}
