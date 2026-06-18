@@ -14,6 +14,7 @@ import 'vendor_orders_screen.dart';
 import 'vendor_products_screen.dart';
 import 'vendor_notifications_screen.dart';
 import 'vendor_account_screen.dart';
+import 'package:palengkego/features/vendors/presentation/widgets/floating_new_order_notification.dart';
 
 /// Vendor Dashboard Screen
 /// Main screen for vendors after completing onboarding.
@@ -57,7 +58,16 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(child: screens[_selectedIndex]),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            screens[_selectedIndex],
+            FloatingNewOrderNotification(
+              onViewOrders: () => setState(() => _selectedIndex = 1),
+            ),
+          ],
+        ),
+      ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }

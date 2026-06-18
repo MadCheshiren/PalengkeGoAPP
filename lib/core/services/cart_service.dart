@@ -25,6 +25,8 @@ class CartService extends ChangeNotifier {
     required String weight,
     required String pricePerKg,
     required String image,
+    int quantity = 1,
+    int stockQuantity = 10,
   }) {
     final existingIndex = _items.indexWhere(
       (item) =>
@@ -35,7 +37,8 @@ class CartService extends ChangeNotifier {
 
     if (existingIndex >= 0) {
       _items[existingIndex] = _items[existingIndex].copyWith(
-        quantity: _items[existingIndex].quantity + 1,
+        quantity: _items[existingIndex].quantity + quantity,
+        stockQuantity: stockQuantity,
       );
     } else {
       _items.add(
@@ -46,6 +49,8 @@ class CartService extends ChangeNotifier {
           weight: weight,
           pricePerKg: pricePerKg,
           image: image,
+          quantity: quantity,
+          stockQuantity: stockQuantity,
         ),
       );
     }

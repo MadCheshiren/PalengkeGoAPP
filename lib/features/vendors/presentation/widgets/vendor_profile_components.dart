@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/mock/mock_data.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import 'package:palengkego/features/vendors/domain/vendor_profile.dart';
 import 'package:palengkego/core/utils/unit_helper.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/add_to_cart_bottom_sheet.dart';
+
 
 class VendorProfileTopBar extends StatelessWidget {
   const VendorProfileTopBar({super.key});
@@ -41,19 +44,17 @@ class VendorProfileTopBar extends StatelessWidget {
                 ),
                 color: Colors.white,
                 onSelected: (value) {
-                  if (value == 'flag') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Vendor flagged successfully'),
-                      ),
-                    );
-                  } else if (value == 'block') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Vendor blocked successfully'),
-                      ),
-                    );
-                  }
+                  // Defer to next frame so the popup menu route fully dismisses
+                  // before we call ScaffoldMessenger — prevents deactivated-
+                  // ancestor errors from the popup menu's own cleanup code.
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!context.mounted) return;
+                    if (value == 'flag') {
+                      AppServices.showSnackBar('Vendor flagged successfully');
+                    } else if (value == 'block') {
+                      AppServices.showSnackBar('Vendor blocked successfully');
+                    }
+                  });
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(
@@ -230,8 +231,10 @@ class VendorProfileDetailsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fetch mock reviews for this vendor
+    final reviews = MockDataService.getReviewsForVendor(profile.id);
+
     return SizedBox(
-      height: 169,
       width: double.infinity,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -291,7 +294,21 @@ class VendorProfileDetailsSection extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            if (reviews.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              // We need to wrap it in a slightly transformed padding so it bleeds out if we want,
+              // but since we are already inside a Padding(horizontal: 16), we should offset it
+              Transform.translate(
+                offset: const Offset(-16, 0),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: VendorReviewsCarousel(reviews: reviews),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ] else ...[
+              const SizedBox(height: 24),
+            ],
             Row(
               children: [
                 Expanded(
@@ -316,6 +333,7 @@ class VendorProfileDetailsSection extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _inlineMeta({required IconData icon, required String text}) {
     return Row(
@@ -342,9 +360,9 @@ class VendorProfileDetailsSection extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$label vendor coming soon!')));
+        if (!context.mounted) return;
+        ScaffoldMessenger.maybeOf(context)
+            ?.showSnackBar(SnackBar(content: Text('$label vendor coming soon!')));
       },
       child: Container(
         height: 40,
@@ -419,15 +437,40 @@ class VendorProfileProductCard extends StatelessWidget {
                       )
                     : null,
               ),
-              child: product.imageUrl.isEmpty
-                  ? const Center(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (product.imageUrl.isEmpty)
+                    const Center(
                       child: Icon(
                         Icons.image_outlined,
                         size: 40,
                         color: Color(0xFF94A3B8),
                       ),
-                    )
-                  : null,
+                    ),
+                  if (product.hasDiscount)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '-${product.discountPercentage!.toInt()}%',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -447,16 +490,57 @@ class VendorProfileProductCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  product.category,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF6B7280),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        product.category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                    if (product.stockQuantity == 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEE2E2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Out of stock',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFDC2626),
+                          ),
+                        ),
+                      )
+                    else if (product.stockQuantity <= 5)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Only ${product.stockQuantity} left',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFD97706),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -468,7 +552,7 @@ class VendorProfileProductCard extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: 'PHP $price',
+                              text: 'PHP ${product.discountedPrice.toInt()}',
                               style: const TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
@@ -476,6 +560,17 @@ class VendorProfileProductCard extends StatelessWidget {
                                 color: Color(0xFF0B372B),
                               ),
                             ),
+                            if (product.hasDiscount)
+                              TextSpan(
+                                text: ' PHP $price',
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF94A3B8),
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
                             TextSpan(
                               text:
                                   '/${UnitHelper.getUnitString(UnitHelper.isPieceUnit(product.name, product.description))}',
@@ -492,18 +587,18 @@ class VendorProfileProductCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: () {
+                      onTap: product.stockQuantity > 0 ? () {
                         AddToCartBottomSheet.show(
                           context,
                           vendorName: vendorName,
                           product: product,
                         );
-                      },
+                      } : null,
                       child: Container(
                         width: 32,
                         height: 32,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0B372B),
+                        decoration: BoxDecoration(
+                          color: product.stockQuantity > 0 ? const Color(0xFF0B372B) : const Color(0xFFD1D5DB),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -519,6 +614,149 @@ class VendorProfileProductCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class VendorReviewsCarousel extends StatefulWidget {
+  final List<Map<String, dynamic>> reviews;
+
+  const VendorReviewsCarousel({super.key, required this.reviews});
+
+  @override
+  State<VendorReviewsCarousel> createState() => _VendorReviewsCarouselState();
+}
+
+class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
+  late ScrollController _scrollController;
+  bool _isScrolling = true;
+  int _scrollToken = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.reviews.isNotEmpty) {
+        _autoScroll();
+      }
+    });
+  }
+
+  Future<void> _autoScroll() async {
+    final myToken = ++_scrollToken;
+    while (_isScrolling && mounted && _scrollController.hasClients) {
+      if (myToken != _scrollToken) break;
+
+      final maxScrollExtent = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+      
+      if (maxScrollExtent == 0) {
+        await Future.delayed(const Duration(milliseconds: 1000));
+        continue;
+      }
+
+      if (currentScroll >= maxScrollExtent) {
+        _scrollController.jumpTo(0);
+        await Future.delayed(const Duration(milliseconds: 50));
+      } else {
+        await _scrollController.animateTo(
+          currentScroll + 50.0,
+          duration: const Duration(milliseconds: 2000),
+          curve: Curves.linear,
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _isScrolling = false;
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.reviews.isEmpty) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onPanDown: (_) => _isScrolling = false,
+      onPanCancel: () {
+        _isScrolling = true;
+        _autoScroll();
+      },
+      onPanEnd: (_) {
+        _isScrolling = true;
+        _autoScroll();
+      },
+      child: SizedBox(
+        height: 88,
+        child: ListView.separated(
+          controller: _scrollController,
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: widget.reviews.length,
+          separatorBuilder: (context, index) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final review = widget.reviews[index];
+            return Container(
+              width: 240,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        review['customerName'] ?? 'Customer',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFACC15)),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${review['rating'] ?? 5.0}',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '"${review['comment'] ?? ''}"',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF6B7280),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

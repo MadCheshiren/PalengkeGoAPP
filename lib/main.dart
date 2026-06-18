@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/navigation/app_router.dart';
 import 'core/navigation/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/responsive_wrapper.dart';
+import 'core/services/app_services.dart';
+import 'core/services/preferences_provider.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Pre-initialize SharedPreferences so notifiers can read it synchronously.
+  final prefs = await SharedPreferences.getInstance();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -59,7 +66,16 @@ void main() {
     );
   };
 
-  runApp(const ProviderScope(child: PalengkeGoApp()));
+  runApp(
+    ProviderScope(
+      overrides: [
+        // Inject the pre-initialized instance so all notifiers can access
+        // SharedPreferences synchronously in their build() methods.
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const PalengkeGoApp(),
+    ),
+  );
 }
 
 class PalengkeGoApp extends ConsumerWidget {
@@ -71,6 +87,7 @@ class PalengkeGoApp extends ConsumerWidget {
       title: 'PalengkeGo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      scaffoldMessengerKey: AppServices.scaffoldMessengerKey,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,
       builder: (context, child) {

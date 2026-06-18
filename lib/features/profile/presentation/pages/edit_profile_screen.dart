@@ -1,20 +1,42 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:palengkego/core/services/app_services.dart';
+import 'package:palengkego/core/utils/image_picker_helper.dart';
+import 'package:palengkego/features/profile/application/profile_provider.dart';
+import 'package:palengkego/features/profile/domain/customer_profile.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'Juan Dela Cruz');
-  final _emailController = TextEditingController(
-    text: 'juan.delacruz@palengkego.ph',
-  );
-  final _phoneController = TextEditingController(text: '+63 917 123 4567');
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  File? _pickedImage;
+  bool _isLoading = false;
+  CustomerProfile? _initialProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialProfile = ref.read(currentProfileProvider).value;
+    _nameController = TextEditingController(
+      text: _initialProfile?.displayName ?? '',
+    );
+    _emailController = TextEditingController(
+      text: _initialProfile?.email ?? '',
+    );
+    _phoneController = TextEditingController(
+      text: _initialProfile?.phoneNumber ?? '',
+    );
+  }
 
   @override
   void dispose() {
@@ -24,154 +46,307 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _saveChanges() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_initialProfile == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final updatedProfile = _initialProfile!.copyWith(
+        displayName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        avatarUrl: _pickedImage != null
+            ? _pickedImage!.path
+            : _initialProfile!.avatarUrl,
+      );
+
+      final repo = ref.read(profileRepositoryProvider);
+      await repo.updateProfile(updatedProfile);
+
+      if (!mounted) return;
+      ref.invalidate(currentProfileProvider);
+
+      AppServices.showSnackBar('Profile updated successfully!');
+      Navigator.of(context).pop();
+    } catch (e) {
+      AppServices.showError('Failed to update profile: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: SvgPicture.asset(
-                        'assets/icons/back button icon.svg',
-                        width: 16,
-                        height: 16,
-                        colorFilter: const ColorFilter.mode(
-                          Color(0xFF0B372B),
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
-                    ),
-                  ),
-                ],
-              ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: SvgPicture.asset(
+            'assets/icons/back button icon.svg',
+            width: 20,
+            height: 20,
+            colorFilter: const ColorFilter.mode(
+              Color(0xFF0B372B),
+              BlendMode.srcIn,
             ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+          ),
+          onPressed: () => Navigator.maybePop(context),
+        ),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0B372B),
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: _initialProfile == null
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 24),
-
                       // Profile Photo Section
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: const Color(0xFF0B372B),
-                                width: 2,
-                              ),
-                            ),
-                            child: ClipOval(
-                              child: Image.network(
-                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(
-                                  color: const Color(0xFFE8F5E9),
-                                  child: const Icon(
-                                    Icons.person_rounded,
-                                    size: 48,
-                                    color: Color(0xFF0B372B),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 32,
-                              height: 32,
+                      GestureDetector(
+                        onTap: () async {
+                          final file = await ImagePickerHelper.pickImage(
+                            context,
+                          );
+                          if (!mounted) return;
+                          if (file != null) setState(() => _pickedImage = file);
+                        },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 110,
+                              height: 110,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0B372B),
                                 shape: BoxShape.circle,
+                                color: const Color(0xFFF1F5F9),
                                 border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
+                                  color: const Color(0xFFE2E8F0),
+                                  width: 1,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                size: 16,
-                                color: Colors.white,
+                              child: ClipOval(
+                                child: _pickedImage != null
+                                    ? Image.file(
+                                        _pickedImage!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : (_initialProfile!.avatarUrl != null
+                                          ? Image.network(
+                                              _initialProfile!.avatarUrl!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, _, _) =>
+                                                  const Icon(
+                                                    Icons.person_rounded,
+                                                    size: 48,
+                                                    color: Color(0xFF94A3B8),
+                                                  ),
+                                            )
+                                          : const Icon(
+                                              Icons.person_rounded,
+                                              size: 48,
+                                              color: Color(0xFF94A3B8),
+                                            )),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Change Photo',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF6B7280),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0B372B),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 32),
 
                       // Full Name Field
-                      _buildTextField(
-                        label: 'FULL NAME',
-                        hintText: 'Enter your full name',
+                      _buildInputField(
                         controller: _nameController,
+                        label: 'Full Name',
                         prefixIcon: Icons.person_outline_rounded,
+                        validator: (value) =>
+                            value == null || value.trim().isEmpty
+                            ? 'Name is required'
+                            : null,
                       ),
                       const SizedBox(height: 20),
 
                       // Email Field
-                      _buildTextField(
-                        label: 'EMAIL ADDRESS',
-                        hintText: 'Enter your email',
+                      _buildInputField(
                         controller: _emailController,
+                        label: 'Email Address',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Enter a valid email';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 20),
 
-                      // Phone Field
-                      _buildTextField(
-                        label: 'PHONE NUMBER',
-                        hintText: 'Enter your phone number',
-                        controller: _phoneController,
-                        prefixIcon: Icons.phone_outlined,
-                        keyboardType: TextInputType.phone,
+                      // Phone Field (Read Only with Verified Badge)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Phone Number',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.phone_outlined,
+                                  size: 22,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _phoneController.text.isEmpty
+                                        ? 'No phone number'
+                                        : _phoneController.text,
+                                    style: const TextStyle(
+                                      fontFamily: 'PlusJakartaSans',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_rounded,
+                                        size: 14,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Verified',
+                                        style: TextStyle(
+                                          fontFamily: 'PlusJakartaSans',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF10B981),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                GestureDetector(
+                                  onTap: () {
+                                    AppServices.showSnackBar(
+                                      'Changing your phone number requires SMS verification. This feature is coming soon.',
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Change',
+                                    style: TextStyle(
+                                      fontFamily: 'PlusJakartaSans',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF0B372B),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
 
                       // Status Cards Row
                       Row(
@@ -179,131 +354,123 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           Expanded(
                             child: _buildStatusCard(
                               icon: 'assets/icons/shield check icon.svg',
-                              label: 'ACCOUNT STATUS',
+                              label: 'Account Status',
                               value: 'Verified Buyer',
-                              color: const Color(0xFF0B372B),
+                              color: const Color(0xFF10B981),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: _buildStatusCard(
                               icon: 'assets/icons/calendar icon.svg',
-                              label: 'JOINED SINCE',
+                              label: 'Joined Since',
                               value: 'Oct 2023',
                               color: const Color(0xFFF59E0B),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
 
                       // Save Changes Button
                       SizedBox(
                         width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            if (_formKey.currentState?.validate() ?? false) {
-                              // Save changes
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Profile updated successfully!',
-                                  ),
-                                  backgroundColor: Color(0xFF0B372B),
-                                ),
-                              );
-                            }
-                          },
-                          icon: const Icon(Icons.save_outlined, size: 20),
-                          label: const Text(
-                            'Save Changes',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _saveChanges,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0B372B),
                             foregroundColor: Colors.white,
+                            elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
+                              borderRadius: BorderRadius.circular(16),
                             ),
+                            disabledBackgroundColor: const Color(0xFF94A3B8),
                           ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required String hintText,
+  Widget _buildInputField({
     required TextEditingController controller,
+    required String label,
     required IconData prefixIcon,
     TextInputType? keyboardType,
+    String? Function(String?)? validator,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF9CA3AF),
-            letterSpacing: 0.5,
-          ),
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: const TextStyle(
+        fontFamily: 'PlusJakartaSans',
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        color: Color(0xFF1E293B),
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(
+          fontFamily: 'PlusJakartaSans',
+          color: Color(0xFF64748B),
+          fontWeight: FontWeight.w500,
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF9CA3AF),
-              ),
-              prefixIcon: Icon(
-                prefixIcon,
-                size: 20,
-                color: const Color(0xFF9CA3AF),
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF1F2937),
-            ),
-          ),
+        floatingLabelStyle: const TextStyle(
+          fontFamily: 'PlusJakartaSans',
+          color: Color(0xFF0B372B),
+          fontWeight: FontWeight.w600,
         ),
-      ],
+        prefixIcon: Icon(prefixIcon, size: 22, color: const Color(0xFF94A3B8)),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+        ),
+      ),
     );
   }
 
@@ -314,38 +481,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SvgPicture.asset(
-            icon,
-            width: 24,
-            height: 24,
-            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: SvgPicture.asset(
+              icon,
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             label,
             style: const TextStyle(
               fontFamily: 'PlusJakartaSans',
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF9CA3AF),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: color,
+              color: Color(0xFF1E293B),
             ),
           ),
         ],

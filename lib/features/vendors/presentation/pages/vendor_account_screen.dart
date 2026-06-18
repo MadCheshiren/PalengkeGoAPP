@@ -5,6 +5,7 @@ import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'vendor_earnings_screen.dart';
+import 'vendor_reviews_screen.dart';
 import 'vendor_stall_settings_screen.dart';
 import 'vendor_account_details_screen.dart';
 import 'vendor_help_support_screen.dart';
@@ -139,6 +140,19 @@ class VendorAccountScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Menu Items
+          _buildMenuItem(
+            context,
+            icon: Icons.star_half_rounded,
+            title: 'Customer Reviews',
+            subtitle: 'See what customers are saying',
+            onTap: () {
+              Navigator.of(context).push(
+                PageTransitions.slideFromRight(
+                  const VendorReviewsScreen(),
+                ),
+              );
+            },
+          ),
           _buildMenuItem(
             context,
             icon: Icons.account_balance_wallet_rounded,

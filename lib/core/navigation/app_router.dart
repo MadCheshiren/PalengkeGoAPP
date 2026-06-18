@@ -12,7 +12,6 @@ import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/onboarding/presentation/pages/onboarding_screen.dart';
 import 'package:palengkego/features/onboarding/presentation/pages/splash_screen.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
-import 'package:palengkego/features/orders/presentation/pages/track_order_screen.dart';
 import 'package:palengkego/features/profile/presentation/pages/set_delivery_address_screen.dart';
 import 'package:palengkego/features/recipes/presentation/pages/cookbook_screen.dart';
 import 'package:palengkego/features/orders/presentation/pages/order_details_screen.dart';
@@ -77,7 +76,10 @@ class AppRouter {
           AuthGuard(child: MainScreen(initialIndex: initialIndex)),
         );
       case AppRoutes.cart:
-        return _slideRoute(settings, const AuthGuard(child: ShoppingCartScreen()));
+        return _slideRoute(
+          settings,
+          const AuthGuard(child: ShoppingCartScreen()),
+        );
       case AppRoutes.checkout:
         return _slideRoute(settings, const AuthGuard(child: CheckoutScreen()));
       case AppRoutes.paymentMethods:
@@ -90,7 +92,10 @@ class AppRouter {
           AuthGuard(child: PaymentMethodsScreen(currentMethod: currentMethod)),
         );
       case AppRoutes.addCreditCard:
-        return _materialRoute(settings, const AuthGuard(child: AddCreditCardScreen()));
+        return _materialRoute(
+          settings,
+          const AuthGuard(child: AddCreditCardScreen()),
+        );
       case AppRoutes.orderConfirmation:
         final args = settings.arguments;
         if (args is! OrderConfirmationRouteArgs) {
@@ -113,12 +118,13 @@ class AppRouter {
         }
         return _materialRoute(
           settings,
-          AuthGuard(
-            child: TrackOrderScreen(order: args.order, isPickup: args.isPickup),
-          ),
+          AuthGuard(child: OrderDetailsScreen(order: args.order)),
         );
       case AppRoutes.setDeliveryAddress:
-        return _materialRoute(settings, const AuthGuard(child: SetDeliveryAddressScreen()));
+        return _materialRoute(
+          settings,
+          const AuthGuard(child: SetDeliveryAddressScreen()),
+        );
       case AppRoutes.cookbook:
         return _slideRoute(settings, const AuthGuard(child: CookbookScreen()));
       case AppRoutes.orderDetails:
@@ -131,9 +137,15 @@ class AppRouter {
           AuthGuard(child: OrderDetailsScreen(order: args.order)),
         );
       case AppRoutes.vendorAddProduct:
-        return _slideRoute(settings, const AuthGuard(child: VendorAddProductScreen()));
+        return _slideRoute(
+          settings,
+          const AuthGuard(child: VendorAddProductScreen()),
+        );
       case AppRoutes.vendorDashboard:
-        return _materialRoute(settings, const AuthGuard(child: VendorDashboardScreen()));
+        return _materialRoute(
+          settings,
+          const AuthGuard(child: VendorDashboardScreen()),
+        );
       default:
         return _errorRoute(settings);
     }

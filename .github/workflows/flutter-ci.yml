@@ -31,6 +31,39 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      - name: Secret hygiene check
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          forbidden_files=(
+            ".env"
+            ".env.local"
+            "android/key.properties"
+            "android/app/google-services.json"
+            "ios/Runner/GoogleService-Info.plist"
+            "lib/firebase_options.dart"
+          )
+
+          for file in "${forbidden_files[@]}"; do
+            if [[ -f "$file" ]]; then
+              echo "::error file=$file::Secret/config file must not be committed. Use GitHub Secrets or local-only setup."
+              exit 1
+            fi
+          done
+
+          scan_dirs=()
+          for dir in lib android ios test; do
+            if [[ -d "$dir" ]]; then
+              scan_dirs+=("$dir")
+            fi
+          done
+
+          if grep -RInE "(service_role|PAYMONGO_SECRET|sk_live_|sk_test_)" "${scan_dirs[@]}" --exclude-dir=build --exclude-dir=.dart_tool; then
+            echo "::error::Potential backend/payment secret found in source-controlled app files."
+            exit 1
+          fi
+
       - name: Install dependencies
         run: flutter pub get
 

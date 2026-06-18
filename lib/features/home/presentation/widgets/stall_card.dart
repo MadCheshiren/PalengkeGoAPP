@@ -3,25 +3,40 @@ import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/market/domain/market_vendor.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
 
-class StallCard extends StatelessWidget {
+class StallCard extends StatefulWidget {
   final MarketVendor vendor;
   final String? selectedCategory;
 
   const StallCard({super.key, required this.vendor, this.selectedCategory});
 
   @override
+  State<StallCard> createState() => _StallCardState();
+}
+
+class _StallCardState extends State<StallCard> {
+  @override
   Widget build(BuildContext context) {
-    final rating = vendor.rating.toStringAsFixed(1);
-    final category = vendor.category;
-    final stallLocation = _stallLabelFor(vendor.id);
-    final status = _statusFor(vendor.id);
+    final rating = widget.vendor.rating.toStringAsFixed(1);
+    final category = widget.vendor.category;
+    final stallLocation = _stallLabelFor(widget.vendor.id);
+    final status = _statusFor(widget.vendor.id);
     final isOpen = status == 'OPEN';
 
     return GestureDetector(
       onTap: () {
+        if (!mounted) return;
+        if (!isOpen) {
+          ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+            const SnackBar(
+              content: Text('This stall is currently closed and will open soon.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
         Navigator.of(context).push(
           PageTransitions.slideFromRight(
-            VendorProfileScreen(vendorId: vendor.id, filterCategory: selectedCategory),
+            VendorProfileScreen(vendorId: widget.vendor.id, filterCategory: widget.selectedCategory),
           ),
         );
       },
@@ -50,7 +65,7 @@ class StallCard extends StatelessWidget {
                     ),
                     child: SizedBox.expand(
                       child: Image.network(
-                        vendor.imageUrl,
+                        widget.vendor.imageUrl,
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
                         loadingBuilder: (context, child, loadingProgress) {
@@ -152,39 +167,91 @@ class StallCard extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 92,
+              flex: 115,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    Text(
-                      category,
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF6D9773),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
+                    // Top group ─ Expanded + ClipRect prevents any overflow
+                    // from pushing the bottom row off the card.
                     Expanded(
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: Text(
-                          vendor.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0B372B),
-                            height: 1.2,
+                      child: ClipRect(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                category,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF6D9773),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.vendor.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0B372B),
+                                  height: 1.2,
+                                ),
+                              ),
+                              if (widget.vendor.reviewCount > 0) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      size: 11,
+                                      color: Color(0xFFFBBF24),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '(${widget.vendor.reviewCount})',
+                                      style: const TextStyle(
+                                        fontFamily: 'PlusJakartaSans',
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (widget.vendor.topReviewText != null) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '"${widget.vendor.topReviewText}"',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontFamily: 'PlusJakartaSans',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xFF9CA3AF),
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ],
                           ),
                         ),
                       ),
                     ),
+                    // Bottom row ─ always pinned, never overflowed
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Expanded(
@@ -192,11 +259,11 @@ class StallCard extends StatelessWidget {
                             stallLocation,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
-                              color: const Color(0xFF94A3B8),
+                              color: Color(0xFF94A3B8),
                             ),
                           ),
                         ),

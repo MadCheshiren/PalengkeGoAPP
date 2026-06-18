@@ -7,6 +7,7 @@ class CartItem {
   final String image;
   final int quantity;
   final bool selected;
+  final int stockQuantity;
 
   const CartItem({
     required this.vendorName,
@@ -17,6 +18,7 @@ class CartItem {
     required this.image,
     this.quantity = 1,
     this.selected = true,
+    this.stockQuantity = 10,
   });
 
   double get total => price * quantity;
@@ -30,6 +32,7 @@ class CartItem {
     String? image,
     int? quantity,
     bool? selected,
+    int? stockQuantity,
   }) {
     return CartItem(
       vendorName: vendorName ?? this.vendorName,
@@ -40,6 +43,7 @@ class CartItem {
       image: image ?? this.image,
       quantity: quantity ?? this.quantity,
       selected: selected ?? this.selected,
+      stockQuantity: stockQuantity ?? this.stockQuantity,
     );
   }
 }

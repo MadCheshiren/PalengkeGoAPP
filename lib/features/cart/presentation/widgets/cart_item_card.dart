@@ -93,7 +93,7 @@ class CartItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item.pricePerKg,
+                  '${item.weight} • ${item.pricePerKg}',
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
@@ -115,6 +115,7 @@ class CartItemCard extends StatelessWidget {
                     const Spacer(),
                     _QuantityStepper(
                       quantity: item.quantity,
+                      maxQuantity: item.stockQuantity,
                       onChanged: onQuantityChange,
                     ),
                     const SizedBox(width: 8),
@@ -138,9 +139,10 @@ class CartItemCard extends StatelessWidget {
 }
 
 class _QuantityStepper extends StatelessWidget {
-  const _QuantityStepper({required this.quantity, required this.onChanged});
+  const _QuantityStepper({required this.quantity, required this.maxQuantity, required this.onChanged});
 
   final int quantity;
+  final int maxQuantity;
   final ValueChanged<int> onChanged;
 
   @override
@@ -179,13 +181,18 @@ class _QuantityStepper extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () => onChanged(1),
+            onTap: quantity < maxQuantity ? () => onChanged(1) : () {
+              if (!context.mounted) return;
+              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                const SnackBar(content: Text('Maximum stock reached')),
+              );
+            },
             child: Container(
               width: 30,
               height: 30,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: const Color(0xFF0B372B),
+                color: quantity < maxQuantity ? const Color(0xFF0B372B) : const Color(0xFFD1D5DB),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(

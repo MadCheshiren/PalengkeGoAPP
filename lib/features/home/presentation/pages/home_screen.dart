@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/animated_entrance.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
+import 'package:palengkego/features/profile/application/blocked_vendors_provider.dart';
 import 'package:palengkego/features/home/presentation/widgets/home_header.dart';
 import 'package:palengkego/features/home/presentation/widgets/search_field.dart';
 import 'package:palengkego/features/home/presentation/widgets/stall_card.dart';
+import 'package:palengkego/core/mock/mock_promos.dart';
 
 class HomeScreen extends ConsumerWidget {
   final VoidCallback onMarketSelected;
@@ -12,9 +14,11 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vendors = ref
+    final allVendors = ref
         .watch(marketRepositoryProvider)
         .getVendorsByCategory('All');
+    final blockedIds = ref.watch(blockedVendorsProvider);
+    final vendors = allVendors.where((v) => !blockedIds.contains(v.id)).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
@@ -35,61 +39,71 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Promo Card Placeholder
+                    // Promo Cards Carousel
                     AnimatedEntrance(
                       index: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: AspectRatio(
-                          aspectRatio: 335 / 160,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0B372B),
-                              borderRadius: BorderRadius.circular(16),
-                              image: const DecorationImage(
-                                image: NetworkImage(
-                                  'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600',
-                                ),
-                                fit: BoxFit.cover,
-                                colorFilter: ColorFilter.mode(
-                                  Colors.black38,
-                                  BlendMode.darken,
-                                ),
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Fresh from Naga\nCity Market',
-                                    style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                      height: 1.2,
+                      child: Consumer(
+                        builder: (context, ref, _) {
+                          final promos = ref.watch(promosProvider);
+                          return SizedBox(
+                            height: 180,
+                            child: PageView.builder(
+                              controller: PageController(viewportFraction: 0.9),
+                              itemCount: promos.length,
+                              itemBuilder: (context, index) {
+                                final promo = promos[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0B372B),
+                                      borderRadius: BorderRadius.circular(16),
+                                      image: const DecorationImage(
+                                        image: NetworkImage(
+                                          'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600',
+                                        ),
+                                        fit: BoxFit.cover,
+                                        colorFilter: ColorFilter.mode(
+                                          Colors.black38,
+                                          BlendMode.darken,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Get up to 20% off on\nvegetables today!',
-                                    style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.9,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            promo.title,
+                                            style: const TextStyle(
+                                              fontFamily: 'PlusJakartaSans',
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                              height: 1.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Get up to ${promo.discountPercentage.toInt()}% off today!',
+                                            style: TextStyle(
+                                              fontFamily: 'PlusJakartaSans',
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.white.withValues(alpha: 0.9),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
 
@@ -140,8 +154,8 @@ class HomeScreen extends ConsumerWidget {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 159 / 255,
-                              crossAxisSpacing: 16,
+                              childAspectRatio: 0.55,
+                              crossAxisSpacing: 12,
                               mainAxisSpacing: 16,
                             ),
                         itemCount: vendors.take(4).length,

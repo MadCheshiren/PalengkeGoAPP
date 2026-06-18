@@ -71,11 +71,7 @@ class OrderDetailsStatusCard extends StatelessWidget {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.star,
-                        size: 12,
-                        color: Color(0xFF9A3412),
-                      ),
+                      Icon(Icons.star, size: 12, color: Color(0xFF9A3412)),
                       SizedBox(width: 4),
                       Text(
                         'PRIORITY',
@@ -92,7 +88,10 @@ class OrderDetailsStatusCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            OrderDetailsTimeline(currentStatus: order.statusLabel),
+            OrderDetailsTimeline(
+              currentStatus: order.status,
+              isPickup: order.isPickup,
+            ),
           ],
         ),
       ),
@@ -132,9 +131,7 @@ class OrderDetailsArrivalCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order.isPickup
-                      ? 'ESTIMATED READY TIME'
-                      : 'ESTIMATED ARRIVAL',
+                  order.isPickup ? 'ESTIMATED READY TIME' : 'ESTIMATED ARRIVAL',
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 10,
@@ -380,11 +377,7 @@ class OrderDetailsPaymentCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: Color(0xFF9CA3AF),
-            ),
+            const Icon(Icons.chevron_right, size: 20, color: Color(0xFF9CA3AF)),
           ],
         ),
       ),

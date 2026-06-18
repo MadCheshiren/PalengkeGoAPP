@@ -11,6 +11,7 @@ import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_history_card.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_history_empty_state.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_history_tab_row.dart';
+import 'package:palengkego/features/orders/presentation/widgets/rating_modal.dart';
 
 class OrderHistoryScreen extends ConsumerStatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -57,6 +58,10 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                                 orders[index].status == OrderStatus.completed
                                 ? () =>
                                       _handleSecondaryAction(context, orders[index])
+                                : null,
+                            onTertiaryAction:
+                                orders[index].status == OrderStatus.completed
+                                ? () => RatingModal.show(context, orders[index])
                                 : null,
                           ),
                         ),

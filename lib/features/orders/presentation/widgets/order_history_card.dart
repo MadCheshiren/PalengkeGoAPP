@@ -6,12 +6,14 @@ class OrderHistoryCard extends StatelessWidget {
   final MarketOrder order;
   final VoidCallback onPrimaryAction;
   final VoidCallback? onSecondaryAction;
+  final VoidCallback? onTertiaryAction;
 
   const OrderHistoryCard({
     super.key,
     required this.order,
     required this.onPrimaryAction,
     this.onSecondaryAction,
+    this.onTertiaryAction,
   });
 
   @override
@@ -19,6 +21,7 @@ class OrderHistoryCard extends StatelessWidget {
     final statusStyle = _statusStyle(order.status);
     final secondaryAction = _secondaryActionLabel(order.status);
     final primaryAction = _primaryActionLabel(order.status);
+    final tertiaryAction = order.status == OrderStatus.completed ? 'Rate' : null;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -158,6 +161,16 @@ class OrderHistoryCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
+              if (tertiaryAction != null && onTertiaryAction != null) ...[
+                Expanded(
+                  child: _actionButton(
+                    label: tertiaryAction,
+                    onTap: onTertiaryAction!,
+                    trailingIcon: Icons.star_outline_rounded,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               if (secondaryAction != null && onSecondaryAction != null) ...[
                 Expanded(
                   child: _actionButton(

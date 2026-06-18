@@ -11,6 +11,20 @@ import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.
 import 'package:palengkego/features/orders/application/order_provider.dart';
 
 void main() {
+  Future<void> pumpUntilFound(
+    WidgetTester tester,
+    Finder finder, {
+    int maxPumps = 20,
+    Duration step = const Duration(milliseconds: 100),
+  }) async {
+    for (var i = 0; i < maxPumps; i++) {
+      await tester.pump(step);
+      if (finder.evaluate().isNotEmpty) {
+        return;
+      }
+    }
+  }
+
   testWidgets(
     'Full Checkout to OrderConfirmationScreen flow with multiple vendors and hover',
     (WidgetTester tester) async {
@@ -58,7 +72,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
 
       // Verify we are on checkout screen and it has items
       expect(find.byType(CheckoutScreen), findsOneWidget);
@@ -67,7 +81,7 @@ void main() {
       final pickupTab = find.text('Pick-Up');
       expect(pickupTab, findsOneWidget);
       await tester.tap(pickupTab);
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // Tap on Place Order button
       final placeOrderButton = find.text('Place Order');
@@ -75,7 +89,7 @@ void main() {
       await tester.tap(placeOrderButton);
 
       // Wait for route transition animations to complete
-      await tester.pumpAndSettle();
+      await pumpUntilFound(tester, find.text('Orders Placed\nSuccessfully!'));
 
       // Now we should be on OrderConfirmationScreen
       expect(find.text('Orders Placed\nSuccessfully!'), findsOneWidget);
@@ -86,13 +100,13 @@ void main() {
       final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(const Offset(100, 100));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       await gesture.moveTo(const Offset(200, 200));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       await gesture.moveTo(const Offset(300, 300));
-      await tester.pumpAndSettle();
+      await tester.pump();
     },
   );
 }
