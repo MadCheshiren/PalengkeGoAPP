@@ -9,6 +9,8 @@ class MarketVendor {
     required this.imageUrl,
     this.stallNumber,
     this.marketSection,
+    this.reviewCount = 0,
+    this.topReviewText,
   });
 
   final String id;
@@ -20,6 +22,8 @@ class MarketVendor {
   final String imageUrl;
   final String? stallNumber;
   final String? marketSection;
+  final int reviewCount;
+  final String? topReviewText;
 
   factory MarketVendor.fromMap(Map<String, dynamic> map) {
     return MarketVendor(
@@ -32,6 +36,8 @@ class MarketVendor {
       imageUrl: map['imageUrl'] as String? ?? '',
       stallNumber: map['stallNumber'] as String?,
       marketSection: map['marketSection'] as String?,
+      reviewCount: map['reviewCount'] as int? ?? 0,
+      topReviewText: map['topReviewText'] as String?,
     );
   }
 
@@ -46,6 +52,8 @@ class MarketVendor {
       'imageUrl': imageUrl,
       if (stallNumber != null) 'stallNumber': stallNumber,
       if (marketSection != null) 'marketSection': marketSection,
+      'reviewCount': reviewCount,
+      if (topReviewText != null) 'topReviewText': topReviewText,
     };
   }
 }

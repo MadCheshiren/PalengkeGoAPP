@@ -40,6 +40,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
   late final List<String> _weights;
   late String _selectedWeight;
   int _quantity = 1;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -50,7 +51,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final basePrice = widget.product.price;
+    final basePrice = widget.product.discountedPrice;
     final selectedMultiplier = _weightMultiplier(_selectedWeight);
     final selectedUnitPrice = basePrice * selectedMultiplier;
 
@@ -267,9 +268,18 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                         _roundQuantityButton(
                           icon: Icons.add_rounded,
                           onTap: () {
-                            setState(() {
-                              _quantity++;
-                            });
+                            if (_quantity < widget.product.stockQuantity) {
+                              setState(() {
+                                _quantity++;
+                              });
+                            } else {
+                              if (!mounted) return;
+                              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Maximum stock reached'),
+                                ),
+                              );
+                            }
                           },
                           background: const Color(0xFF0C3A2D),
                           foreground: Colors.white,
@@ -284,41 +294,43 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (!mounted) return;
-                    final cart = ref.read(cartServiceProvider);
-                    cart.addToCart(
-                      vendorName: widget.vendorName,
-                      productName: widget.product.name,
-                      price: selectedUnitPrice,
-                      weight: _selectedWeight,
-                      pricePerKg: _priceLabel(basePrice),
-                      image: widget.product.imageUrl.isNotEmpty
-                          ? widget.product.imageUrl
-                          : 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=300&fit=crop',
-                    );
+                  onPressed: _isSubmitting
+                      ? null
+                      : () {
+                          if (!mounted) return;
+                          setState(() {
+                            _isSubmitting = true;
+                          });
+                          final cart = ref.read(cartServiceProvider);
+                          // Capture navigator and messenger BEFORE modifying state or popping
+                          final navigator = Navigator.of(context);
+                          final messenger = ScaffoldMessenger.maybeOf(context);
 
-                    final latestIndex = cart.items.lastIndexWhere(
-                      (item) =>
-                          item.vendorName == widget.vendorName &&
-                          item.productName == widget.product.name &&
-                          item.weight == _selectedWeight,
-                    );
+                          cart.addToCart(
+                            vendorName: widget.vendorName,
+                            productName: widget.product.name,
+                            price: selectedUnitPrice,
+                            weight: _selectedWeight,
+                            pricePerKg: _priceLabel(basePrice),
+                            image: widget.product.imageUrl.isNotEmpty
+                                ? widget.product.imageUrl
+                                : 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=300&fit=crop',
+                            quantity: _quantity,
+                            stockQuantity: widget.product.stockQuantity,
+                          );
 
-                    if (latestIndex >= 0) {
-                      cart.updateQuantity(latestIndex, _quantity);
-                    }
-
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${widget.product.name} added to cart',
-                          style: const TextStyle(fontFamily: 'PlusJakartaSans'),
-                        ),
-                      ),
-                    );
-                  },
+                          navigator.pop();
+                          messenger?.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${widget.product.name} added to cart',
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0C3A2D),
                     foregroundColor: Colors.white,

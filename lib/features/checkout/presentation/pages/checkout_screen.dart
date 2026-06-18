@@ -39,10 +39,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartServiceProvider);
+    final cart = ref.read(cartServiceProvider);
+    final items = ref.watch(cartItemsProvider);
     final orders = ref.watch(orderServiceProvider);
     final preferences = ref.watch(preferencesProvider);
-    final selectedItems = cart.items.where((item) => item.selected).toList();
+    final selectedItems = items.where((item) => item.selected).toList();
     final subtotal = selectedItems.fold<double>(
       0,
       (sum, item) => sum + item.total,
@@ -92,14 +93,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           final result = await Navigator.of(
                             context,
                           ).pushNamed(AppRoutes.setDeliveryAddress);
+                          if (!mounted) return;
                           if (result is DeliveryAddress) {
-                            ref.read(preferencesProvider.notifier).updateAddress(
-                              primaryAddress: result.primaryAddress.isEmpty
-                                  ? deliveryAddress.primaryAddress
-                                  : result.primaryAddress,
-                              streetAddress: result.streetAddress,
-                              notes: result.notes,
-                            );
+                            ref
+                                .read(preferencesProvider.notifier)
+                                .updateAddress(
+                                  primaryAddress: result.primaryAddress.isEmpty
+                                      ? deliveryAddress.primaryAddress
+                                      : result.primaryAddress,
+                                  streetAddress: result.streetAddress,
+                                  notes: result.notes,
+                                );
                           }
                         },
                       ),
@@ -222,20 +226,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           AppRoutes.paymentMethods,
           arguments: const PaymentMethodsRouteArgs(currentMethod: 'cod'),
         );
+        if (!mounted) return;
         if (result is PaymentSelectionResult) {
           final method = result.method;
           final cardLabel = result.cardData?.displayLabel;
-          ref.read(preferencesProvider.notifier).updatePaymentMethod(
-            method,
-            cardLabel: cardLabel,
-          );
+          ref
+              .read(preferencesProvider.notifier)
+              .updatePaymentMethod(method, cardLabel: cardLabel);
           final message = switch (method) {
             'cod' => 'Cash on Delivery selected',
             'gcash' => 'GCash selected',
             'card' => 'Card selected',
             _ => 'Payment method updated',
           };
-          if (!mounted) return;
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
@@ -308,7 +311,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         color: Color(0xFF1E293B),
       ),
       decoration: InputDecoration(
-        hintText: 'e.g. chop the pork into small cubes, select green bananas, etc.',
+        hintText:
+            'e.g. chop the pork into small cubes, select green bananas, etc.',
         hintStyle: const TextStyle(
           fontFamily: 'PlusJakartaSans',
           fontSize: 14,

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:intl/intl.dart';
+import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/vendors/presentation/pages/sales_report_screen.dart';
 
 class DashboardSalesCard extends ConsumerWidget {
   const DashboardSalesCard({super.key});
@@ -100,14 +102,45 @@ class DashboardSalesCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Today\'s Sales',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white70,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Today\'s Sales',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white70,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    PageTransitions.slideFromRight(const SalesReportScreen()),
+                  );
+                },
+                child: const Row(
+                  children: [
+                    Text(
+                      'Report',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 10,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(

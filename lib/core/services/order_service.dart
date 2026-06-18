@@ -13,6 +13,8 @@ typedef OrderStatusChangedCallback =
     void Function(String orderId, String vendorName, OrderStatus newStatus);
 
 class OrderService extends ChangeNotifier {
+  static const cancelWindow = Duration(minutes: 5);
+
   /// Optional callback wired by [orderServiceProvider] to route
   /// status-change events into [NotificationService].
   OrderStatusChangedCallback? onStatusChanged;
@@ -22,7 +24,7 @@ class OrderService extends ChangeNotifier {
       vendorName: 'Aling Nena\'s Vegetable Stall',
       vendorImage:
           'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=200&auto=format&fit=crop',
-      status: OrderStatus.pending,
+      status: OrderStatus.completed,
       placedAt: DateTime(2023, 10, 24, 10, 30),
       paymentStatus: PaymentStatus.paid,
       fulfillmentMethod: FulfillmentMethod.delivery,
@@ -138,7 +140,7 @@ class OrderService extends ChangeNotifier {
       vendorName: 'Bicol Fruits Center',
       vendorImage:
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=200&auto=format&fit=crop',
-      status: OrderStatus.confirmed,
+      status: OrderStatus.completed,
       placedAt: DateTime(2023, 10, 25, 9, 15),
       paymentStatus: PaymentStatus.paid,
       fulfillmentMethod: FulfillmentMethod.delivery,
@@ -250,5 +252,29 @@ class OrderService extends ChangeNotifier {
       // Notify the notification layer (wired by orderServiceProvider).
       onStatusChanged?.call(orderId, order.vendorName, newStatus);
     }
+  }
+
+  bool cancelOrder(String orderId, {DateTime? now}) {
+    final index = _orders.indexWhere((order) => order.id == orderId);
+    if (index == -1) {
+      return false;
+    }
+
+    final order = _orders[index];
+    if (order.status == OrderStatus.completed ||
+        order.status == OrderStatus.cancelled) {
+      return false;
+    }
+
+    final currentTime = now ?? DateTime.now();
+    final cancelUntil = order.placedAt.add(cancelWindow);
+    if (currentTime.isAfter(cancelUntil)) {
+      return false;
+    }
+
+    _orders[index] = order.copyWith(status: OrderStatus.cancelled);
+    notifyListeners();
+    onStatusChanged?.call(orderId, order.vendorName, OrderStatus.cancelled);
+    return true;
   }
 }

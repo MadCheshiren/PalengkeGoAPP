@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/profile/application/favorites_provider.dart';
+import 'package:palengkego/features/profile/application/blocked_vendors_provider.dart';
 
 import 'package:palengkego/core/widgets/app_bottom_nav_bar.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/vendor_profile_components.dart';
-
+import 'package:palengkego/features/vendors/presentation/widgets/block_vendor_dialog.dart';
+import 'package:palengkego/features/vendors/presentation/widgets/flag_vendor_bottom_sheet.dart';
 class VendorProfileScreen extends ConsumerStatefulWidget {
   final String vendorId;
   final String? filterCategory;
@@ -90,28 +93,14 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                               // ❤️ Favorite button
                               GestureDetector(
                                 onTap: () {
+                                  if (!context.mounted) return;
                                   ref
                                       .read(favoritesProvider.notifier)
                                       .toggle(widget.vendorId);
                                   final msg = isFavorite
                                       ? 'Removed from favorites'
                                       : '${profile.name} added to favorites';
-                                  ScaffoldMessenger.of(context)
-                                      .clearSnackBars();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        msg,
-                                        style: const TextStyle(
-                                            fontFamily: 'PlusJakartaSans'),
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
-                                      duration: const Duration(seconds: 2),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  );
+                                  AppServices.showSnackBar(msg);
                                 },
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
@@ -143,12 +132,35 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                 ),
                                 color: Colors.white,
                                 onSelected: (value) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Vendor ${value}d successfully'),
-                                    ),
-                                  );
+                                  // Defer to next frame so the popup menu route
+                                  // fully dismisses before we push a new route.
+                                  // This prevents "deactivated ancestor" errors
+                                  // from the PopupMenu's own route cleanup code.
+                                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                    if (!context.mounted) return;
+                                    if (value == 'flag') {
+                                      FlagVendorBottomSheet.show(context, vendorName: profile.name);
+                                    } else if (value == 'block') {
+                                      // Await dialog — it ONLY returns true/false, never pops
+                                      // this screen or touches any provider.
+                                      final confirmed = await BlockVendorDialog.show(
+                                        context,
+                                        vendorName: profile.name,
+                                      );
+                                      // Guard: VendorProfileScreen must still be mounted.
+                                      // All operations below happen on a live widget —
+                                      // no deactivated-context errors possible.
+                                      if (confirmed && context.mounted) {
+                                        ref
+                                            .read(blockedVendorsProvider.notifier)
+                                            .block(profile.id);
+                                        AppServices.showSnackBar(
+                                          '${profile.name} has been blocked.',
+                                        );
+                                        Navigator.of(context).pop();
+                                      }
+                                    }
+                                  });
                                 },
                                 itemBuilder: (context) => [
                                   const PopupMenuItem<String>(
@@ -268,17 +280,16 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
           },
         ),
       ),
-      bottomNavigationBar: ListenableBuilder(
-        listenable: ref.watch(cartServiceProvider),
-        builder: (context, child) {
-          final cartItemCount = ref.read(cartServiceProvider).itemCount;
-          return AppBottomNavBar(
-            selectedIndex: 1, // Market tab
-            onTap: (index) => navigateToMainTab(context, index),
-            cartBadgeCount: cartItemCount > 0 ? cartItemCount : null,
-            isCartAction: true,
-          );
+      bottomNavigationBar: AppBottomNavBar(
+        selectedIndex: 1, // Market tab
+        onTap: (index) {
+          if (!context.mounted) return;
+          navigateToMainTab(context, index);
         },
+        cartBadgeCount: ref.watch(cartCountProvider) > 0
+            ? ref.watch(cartCountProvider)
+            : null,
+        isCartAction: true,
       ),
     );
   }

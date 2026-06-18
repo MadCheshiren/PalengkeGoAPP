@@ -1,8 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/services/preferences_provider.dart';
 import 'package:palengkego/features/home/application/search_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  Future<ProviderContainer> buildContainer({
+    List<String> blockedIds = const [],
+  }) async {
+    SharedPreferences.setMockInitialValues({'blocked_vendors': blockedIds});
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    addTearDown(container.dispose);
+    return container;
+  }
+
   group('SearchQueryNotifier', () {
     test('starts with an empty query', () {
       final container = ProviderContainer();
@@ -33,17 +47,15 @@ void main() {
   });
 
   group('filteredVendorsProvider', () {
-    test('returns all vendors in category when query is empty', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test('returns all vendors in category when query is empty', () async {
+      final container = await buildContainer();
 
       final all = container.read(filteredVendorsProvider('All'));
       expect(all, isNotEmpty);
     });
 
-    test('filters vendors by name (case-insensitive)', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test('filters vendors by name (case-insensitive)', () async {
+      final container = await buildContainer();
 
       // Seed a query that matches a known vendor name fragment in mock data
       container.read(searchQueryProvider.notifier).update('diosa');
@@ -59,22 +71,18 @@ void main() {
       }
     });
 
-    test('filters vendors by category chip + query simultaneously', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test('filters vendors by category chip + query simultaneously', () async {
+      final container = await buildContainer();
 
       // Query that should match nothing in the Fish category
-      container
-          .read(searchQueryProvider.notifier)
-          .update('zzznomatch_xyz');
+      container.read(searchQueryProvider.notifier).update('zzznomatch_xyz');
 
       final results = container.read(filteredVendorsProvider('Fish'));
       expect(results, isEmpty);
     });
 
-    test('returns empty list when no vendors match query', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test('returns empty list when no vendors match query', () async {
+      final container = await buildContainer();
 
       container
           .read(searchQueryProvider.notifier)
@@ -84,9 +92,16 @@ void main() {
       expect(results, isEmpty);
     });
 
-    test('results update when query changes', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test('excludes blocked vendors from filtered results', () async {
+      final container = await buildContainer(blockedIds: ['v1']);
+
+      final results = container.read(filteredVendorsProvider('All'));
+
+      expect(results.map((vendor) => vendor.id), isNot(contains('v1')));
+    });
+
+    test('results update when query changes', () async {
+      final container = await buildContainer();
 
       final notifier = container.read(searchQueryProvider.notifier);
 
@@ -99,10 +114,7 @@ void main() {
 
       // Clear query — should restore all
       notifier.clear();
-      expect(
-        container.read(filteredVendorsProvider('All')).length,
-        allCount,
-      );
+      expect(container.read(filteredVendorsProvider('All')).length, allCount);
     });
   });
 }

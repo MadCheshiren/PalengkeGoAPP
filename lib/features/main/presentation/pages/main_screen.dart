@@ -7,6 +7,7 @@ import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/home/presentation/pages/home_screen.dart';
 import 'package:palengkego/features/home/presentation/pages/market_screen.dart';
 import 'package:palengkego/features/orders/presentation/pages/order_history_screen.dart';
+import 'package:palengkego/features/orders/presentation/widgets/floating_order_progress.dart';
 import 'package:palengkego/features/recipes/presentation/pages/recipes_screen.dart';
 
 /// Shared tab state so pushed detail pages can switch tabs and return cleanly.
@@ -79,18 +80,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         // Clamp to valid range (0-3: Home, Market, Orders, Recipes)
         final safeIndex = selectedIndex.clamp(0, _pages.length - 1);
         return Scaffold(
-          body: IndexedStack(index: safeIndex, children: _pages),
-          bottomNavigationBar: ListenableBuilder(
-            listenable: ref.watch(cartServiceProvider),
-            builder: (context, _) {
-              final cartCount = ref.read(cartServiceProvider).itemCount;
-              return AppBottomNavBar(
-                selectedIndex: safeIndex,
-                onTap: _onItemTapped,
-                cartBadgeCount: cartCount > 0 ? cartCount : null,
-                isCartAction: true,
-              );
-            },
+          body: Stack(
+            children: [
+              IndexedStack(index: safeIndex, children: _pages),
+              const FloatingOrderProgress(),
+            ],
+          ),
+          bottomNavigationBar: AppBottomNavBar(
+            selectedIndex: safeIndex,
+            onTap: _onItemTapped,
+            cartBadgeCount: ref.watch(cartCountProvider) > 0
+                ? ref.watch(cartCountProvider)
+                : null,
+            isCartAction: true,
           ),
         );
       },

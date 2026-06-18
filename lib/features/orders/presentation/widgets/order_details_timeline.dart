@@ -1,34 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class OrderDetailsTimeline extends StatelessWidget {
-  const OrderDetailsTimeline({super.key, required this.currentStatus});
+  const OrderDetailsTimeline({
+    super.key,
+    required this.currentStatus,
+    required this.isPickup,
+  });
 
-  final String currentStatus;
+  final OrderStatus currentStatus;
+  final bool isPickup;
 
   @override
   Widget build(BuildContext context) {
-    final steps = [
-      {
-        'label': 'Order Placed',
-        'time': '10:30 AM, Oct 24',
-        'status': 'completed',
-      },
-      {'label': 'Confirmed', 'time': '10:35 AM, Oct 24', 'status': 'completed'},
-      {
-        'label': currentStatus,
-        'time': 'Vendor is weighing items',
-        'status': 'active',
-      },
-      {'label': 'Out for Delivery', 'time': '', 'status': 'pending'},
-      {'label': 'Completed', 'time': '', 'status': 'pending'},
-    ];
+    final steps = _stepsFor(currentStatus, isPickup: isPickup);
 
     return Column(
       children: steps.asMap().entries.map((entry) {
         final index = entry.key;
         final step = entry.value;
-        final isCompleted = step['status'] == 'completed';
-        final isActive = step['status'] == 'active';
+        final isCompleted = step.state == _TimelineStepState.completed;
+        final isActive = step.state == _TimelineStepState.active;
         final isLast = index == steps.length - 1;
 
         return Row(
@@ -49,7 +41,7 @@ class OrderDetailsTimeline extends StatelessWidget {
                       ? const Icon(Icons.check, size: 14, color: Colors.white)
                       : isActive
                       ? const Icon(
-                          Icons.more_horiz,
+                          Icons.more_horiz_rounded,
                           size: 14,
                           color: Colors.white,
                         )
@@ -71,7 +63,7 @@ class OrderDetailsTimeline extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    step['label']!,
+                    step.label,
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
@@ -81,10 +73,10 @@ class OrderDetailsTimeline extends StatelessWidget {
                           : const Color(0xFF9CA3AF),
                     ),
                   ),
-                  if (step['time']!.isNotEmpty) ...[
+                  if (step.subtitle.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      step['time']!,
+                      step.subtitle,
                       style: TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
@@ -105,4 +97,97 @@ class OrderDetailsTimeline extends StatelessWidget {
       }).toList(),
     );
   }
+
+  List<_TimelineStep> _stepsFor(OrderStatus status, {required bool isPickup}) {
+    final travelLabel = isPickup ? 'Ready for Pick-Up' : 'Out for Delivery';
+    final travelSubtitle = isPickup
+        ? 'Head to the vendor stall'
+        : 'Rider is heading your way';
+
+    if (status == OrderStatus.cancelled) {
+      return const [
+        _TimelineStep.completed('Order Placed', 'Order was submitted'),
+        _TimelineStep.active('Cancelled', 'This order has been cancelled'),
+        _TimelineStep.pending('Preparing', ''),
+        _TimelineStep.pending('Completed', ''),
+      ];
+    }
+
+    return [
+      _TimelineStep.completed('Order Placed', 'Order was submitted'),
+      _TimelineStep(
+        label: 'Vendor Confirmation',
+        subtitle: 'Waiting for vendor confirmation',
+        state: status == OrderStatus.pending
+            ? _TimelineStepState.active
+            : _TimelineStepState.completed,
+      ),
+      _TimelineStep(
+        label: 'Preparing',
+        subtitle: 'Vendor is preparing your items',
+        state: _stateFor(status, active: OrderStatus.preparing),
+      ),
+      _TimelineStep(
+        label: travelLabel,
+        subtitle: travelSubtitle,
+        state: _stateFor(status, active: OrderStatus.ready),
+      ),
+      _TimelineStep(
+        label: 'Completed',
+        subtitle: 'Order completed',
+        state: status == OrderStatus.completed
+            ? _TimelineStepState.completed
+            : _TimelineStepState.pending,
+      ),
+    ];
+  }
+
+  _TimelineStepState _stateFor(
+    OrderStatus status, {
+    required OrderStatus active,
+  }) {
+    if (status == active) {
+      return _TimelineStepState.active;
+    }
+
+    final rank = {
+      OrderStatus.pending: 0,
+      OrderStatus.confirmed: 1,
+      OrderStatus.preparing: 2,
+      OrderStatus.ready: 3,
+      OrderStatus.completed: 4,
+      OrderStatus.cancelled: -1,
+    };
+
+    return rank[status]! > rank[active]!
+        ? _TimelineStepState.completed
+        : _TimelineStepState.pending;
+  }
+}
+
+enum _TimelineStepState { completed, active, pending }
+
+class _TimelineStep {
+  const _TimelineStep({
+    required this.label,
+    required this.subtitle,
+    required this.state,
+  });
+
+  const _TimelineStep.completed(String label, String subtitle)
+    : this(
+        label: label,
+        subtitle: subtitle,
+        state: _TimelineStepState.completed,
+      );
+
+  const _TimelineStep.active(String label, String subtitle)
+    : this(label: label, subtitle: subtitle, state: _TimelineStepState.active);
+
+  const _TimelineStep.pending(String label, String subtitle)
+    : this(label: label, subtitle: subtitle, state: _TimelineStepState.pending);
+
+  final String label;
+  final String subtitle;
+  final _TimelineStepState state;
 }

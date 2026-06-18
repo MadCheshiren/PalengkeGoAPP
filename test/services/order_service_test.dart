@@ -138,5 +138,93 @@ void main() {
       expect(orders.single.statusLabel, 'Pending');
       expect(orders.single.isPickup, isFalse);
     });
+
+    test(
+      'cancelOrder moves a pending order to cancelled within the cancel window',
+      () {
+        final service = OrderService();
+        final orders = service.placeOrders(
+          isPickup: false,
+          items: [
+            cartItem(
+              vendorName: 'Aling Nena',
+              productName: 'Carrots',
+              price: 120,
+            ),
+          ],
+        );
+
+        final cancelled = service.cancelOrder(
+          orders.single.id,
+          now: orders.single.placedAt.add(const Duration(minutes: 4)),
+        );
+
+        expect(cancelled, isTrue);
+        expect(
+          service.orders
+              .firstWhere((order) => order.id == orders.single.id)
+              .status,
+          OrderStatus.cancelled,
+        );
+      },
+    );
+
+    test('cancelOrder rejects cancellation after the cancel window', () {
+      final service = OrderService();
+      final orders = service.placeOrders(
+        isPickup: false,
+        items: [
+          cartItem(
+            vendorName: 'Aling Nena',
+            productName: 'Carrots',
+            price: 120,
+          ),
+        ],
+      );
+
+      final cancelled = service.cancelOrder(
+        orders.single.id,
+        now: orders.single.placedAt.add(const Duration(minutes: 6)),
+      );
+
+      expect(cancelled, isFalse);
+      expect(
+        service.orders
+            .firstWhere((order) => order.id == orders.single.id)
+            .status,
+        OrderStatus.pending,
+      );
+    });
+
+    test(
+      'cancelOrder rejects completed orders even within the cancel window',
+      () {
+        final service = OrderService();
+        final orders = service.placeOrders(
+          isPickup: false,
+          items: [
+            cartItem(
+              vendorName: 'Aling Nena',
+              productName: 'Carrots',
+              price: 120,
+            ),
+          ],
+        );
+        service.updateOrderStatus(orders.single.id, OrderStatus.completed);
+
+        final cancelled = service.cancelOrder(
+          orders.single.id,
+          now: orders.single.placedAt.add(const Duration(minutes: 1)),
+        );
+
+        expect(cancelled, isFalse);
+        expect(
+          service.orders
+              .firstWhere((order) => order.id == orders.single.id)
+              .status,
+          OrderStatus.completed,
+        );
+      },
+    );
   });
 }

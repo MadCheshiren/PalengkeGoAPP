@@ -10,6 +10,7 @@ class MarketProduct {
     required this.description,
     required this.category,
     required this.imageUrl,
+    this.stockQuantity = 0,
   });
 
   final String id;
@@ -22,6 +23,7 @@ class MarketProduct {
   final String description;
   final String category;
   final String imageUrl;
+  final int stockQuantity;
 
   factory MarketProduct.fromMap(Map<String, dynamic> map) {
     return MarketProduct(
@@ -35,6 +37,7 @@ class MarketProduct {
       description: map['description'] as String? ?? '',
       category: map['category'] as String? ?? '',
       imageUrl: map['imageUrl'] as String? ?? '',
+      stockQuantity: map['stockQuantity'] as int? ?? 10,
     );
   }
 
@@ -50,6 +53,7 @@ class MarketProduct {
       'description': description,
       'category': category,
       'imageUrl': imageUrl,
+      'stockQuantity': stockQuantity,
     };
   }
 }

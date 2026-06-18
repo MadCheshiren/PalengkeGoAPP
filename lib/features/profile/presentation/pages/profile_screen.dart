@@ -10,6 +10,7 @@ import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_sc
 import 'package:palengkego/features/vendors/presentation/pages/vendor_onboarding_screen.dart';
 import 'edit_profile_screen.dart';
 import 'security_settings_screen.dart';
+import 'saved_stalls_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -255,6 +256,17 @@ class ProfileScreen extends ConsumerWidget {
                           },
                         ),
                         _buildMenuItem(
+                          iconData: Icons.bookmark_border_rounded,
+                          title: 'Saved Stalls',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              PageTransitions.slideFromRight(
+                                const SavedStallsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuItem(
                           iconPath: 'assets/icons/Security Icon.svg',
                           title: 'Security',
                           onTap: () {
@@ -317,7 +329,8 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildMenuItem({
-    required String iconPath,
+    String? iconPath,
+    IconData? iconData,
     required String title,
     required VoidCallback onTap,
     bool isLogout = false,
@@ -341,15 +354,22 @@ class ProfileScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            SvgPicture.asset(
-              iconPath,
-              width: 22,
-              height: 22,
-              colorFilter: ColorFilter.mode(
-                isLogout ? const Color(0xFFEF4444) : const Color(0xFF0B372B),
-                BlendMode.srcIn,
+            if (iconPath != null)
+              SvgPicture.asset(
+                iconPath,
+                width: 22,
+                height: 22,
+                colorFilter: ColorFilter.mode(
+                  isLogout ? const Color(0xFFEF4444) : const Color(0xFF0B372B),
+                  BlendMode.srcIn,
+                ),
+              )
+            else if (iconData != null)
+              Icon(
+                iconData,
+                size: 22,
+                color: isLogout ? const Color(0xFFEF4444) : const Color(0xFF0B372B),
               ),
-            ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(

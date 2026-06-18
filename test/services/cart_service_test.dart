@@ -44,6 +44,37 @@ void main() {
       expect(cart.subtotal, 240);
     });
 
+    test('adding a different product keeps existing cart items', () {
+      final cart = buildCartWithItem()
+        ..addToCart(
+          vendorName: 'Mang Juan',
+          productName: 'Bangus',
+          price: 90,
+          weight: '1pc',
+          pricePerKg: 'PHP 90/pc',
+          image: 'bangus.png',
+        );
+
+      expect(cart.items, hasLength(2));
+      expect(cart.items.map((item) => item.productName), ['Carrots', 'Bangus']);
+      expect(cart.subtotal, 210);
+    });
+
+    test('preserves stock quantity when adding an item', () {
+      final cart = CartService()
+        ..addToCart(
+          vendorName: 'Aling Nena',
+          productName: 'Carrots',
+          price: 120,
+          weight: '500g',
+          pricePerKg: 'PHP 120/500g',
+          image: 'carrots.png',
+          stockQuantity: 7,
+        );
+
+      expect(cart.items.single.stockQuantity, 7);
+    });
+
     test('updateQuantity removes an item when quantity is zero', () {
       final cart = buildCartWithItem();
 

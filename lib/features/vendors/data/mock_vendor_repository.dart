@@ -35,22 +35,36 @@ class MockVendorRepository implements VendorRepository {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 300));
 
-    return MockDataService.getProductsForVendor(vendorId)
-        .map(
-          (p) => VendorProduct(
-            id: p['id'] as String? ?? '',
-            vendorId: p['vendorId'] as String? ?? '',
-            name: p['name'] as String? ?? '',
-            category: p['category'] as String? ?? '',
-            price: (p['price'] as num?)?.toDouble() ?? 0.0,
-            description: p['description'] as String? ?? '',
-            weight: p['weight'] as String? ?? '',
-            pricePerKg: p['pricePerKg'] as String? ?? '',
-            imageUrl: p['imageUrl'] as String? ?? '',
-            isActive: p['isActive'] as bool? ?? true,
-          ),
-        )
-        .toList();
+    final rawProducts = MockDataService.getProductsForVendor(vendorId);
+
+    return rawProducts.asMap().entries.map((entry) {
+      final p = entry.value;
+
+      // Use the stored stockQuantity directly; fall back to 15 for legacy
+      // mock rows that have no stockQuantity field yet.
+      // NOTE: never derive stock from list index — that causes the wrong
+      // product to appear out-of-stock when another product is deleted.
+      final stock = (p['stockQuantity'] as num?)?.toInt() ?? 15;
+
+      // Respect the explicitly-saved isActive flag; if stock hits 0 the
+      // product is also treated as inactive regardless of the flag.
+      final explicitlyActive = p['isActive'] as bool? ?? true;
+      final active = explicitlyActive && stock > 0;
+
+      return VendorProduct(
+        id: p['id'] as String? ?? '',
+        vendorId: p['vendorId'] as String? ?? '',
+        name: p['name'] as String? ?? '',
+        category: p['category'] as String? ?? '',
+        price: (p['price'] as num?)?.toDouble() ?? 0.0,
+        description: p['description'] as String? ?? '',
+        weight: p['weight'] as String? ?? '',
+        pricePerKg: p['pricePerKg'] as String? ?? '',
+        imageUrl: p['imageUrl'] as String? ?? '',
+        isActive: active,
+        stockQuantity: stock,
+      );
+    }).toList();
   }
 
   @override

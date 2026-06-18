@@ -190,7 +190,7 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
                               crossAxisCount: 2,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 18,
-                              childAspectRatio: 0.685,
+                              childAspectRatio: 0.55,
                             ),
                             itemBuilder: (context, index) {
                               final vendor = filteredVendors[index];

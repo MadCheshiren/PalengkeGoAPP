@@ -321,8 +321,9 @@ class _VendorOrderActions extends ConsumerWidget {
               isPrimary: false,
               textColor: const Color(0xFFEF4444),
               onTap: () {
+                final messenger = ScaffoldMessenger.of(context);
                 notifier.rejectOrder(order.id);
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(content: Text('Order ${order.id} was rejected.')),
                 );
               },
@@ -334,8 +335,9 @@ class _VendorOrderActions extends ConsumerWidget {
               label: 'Accept',
               isPrimary: true,
               onTap: () {
+                final messenger = ScaffoldMessenger.of(context);
                 notifier.acceptOrder(order.id);
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(content: Text('Order ${order.id} is now preparing.')),
                 );
               },
@@ -355,8 +357,9 @@ class _VendorOrderActions extends ConsumerWidget {
           textColor: const Color(0xFF64748B),
           icon: Icons.inventory_2_outlined,
           onTap: () {
+            final messenger = ScaffoldMessenger.of(context);
             notifier.markOrderReady(order.id);
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               SnackBar(content: Text('Order ${order.id} is ready for pickup or dispatch.')),
             );
           },
@@ -371,8 +374,9 @@ class _VendorOrderActions extends ConsumerWidget {
           label: order.isPickup ? 'Mark as Picked Up' : 'Dispatch Order',
           isPrimary: true,
           onTap: () {
+            final messenger = ScaffoldMessenger.of(context);
             notifier.completeOrder(order.id);
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               SnackBar(content: Text('Order ${order.id} has been completed.')),
             );
           },

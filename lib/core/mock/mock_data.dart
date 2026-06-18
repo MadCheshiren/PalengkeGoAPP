@@ -1,5 +1,8 @@
+import 'package:palengkego/features/vendors/domain/vendor_review.dart';
+
 class MockDataService {
   static List<Map<String, dynamic>> featuredVendors = [
+
     {
       'id': 'v1',
       'name': 'Diosa Fruit Stand',
@@ -11,6 +14,8 @@ class MockDataService {
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=400&auto=format&fit=crop',
       'stallNumber': 'Stall 4',
       'marketSection': 'Fruit Section',
+      'reviewCount': 128,
+      'topReviewText': 'Always fresh and sweet!',
     },
     {
       'id': 'v2',
@@ -23,6 +28,8 @@ class MockDataService {
           'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?q=80&w=400&auto=format&fit=crop',
       'stallNumber': 'Block 15 | Stall 2',
       'marketSection': 'Meat Section',
+      'reviewCount': 245,
+      'topReviewText': 'Best pork cuts in the market.',
     },
     {
       'id': 'v3',
@@ -35,6 +42,8 @@ class MockDataService {
           'https://images.unsplash.com/photo-1587593810167-a84920ea0781?q=80&w=400&auto=format&fit=crop',
       'stallNumber': 'Stall #33',
       'marketSection': 'Meat Section',
+      'reviewCount': 89,
+      'topReviewText': 'Clean and fast service.',
     },
     {
       'id': 'v4',
@@ -47,6 +56,8 @@ class MockDataService {
           'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?q=80&w=400&auto=format&fit=crop',
       'stallNumber': 'Block 3 | Stall 4',
       'marketSection': 'Fish Section',
+      'reviewCount': 312,
+      'topReviewText': 'My go-to for tuyo and daing.',
     },
     {
       'id': 'v5',
@@ -59,6 +70,8 @@ class MockDataService {
           'https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=400&auto=format&fit=crop',
       'stallNumber': 'Block 7 | Stall 2',
       'marketSection': 'Vegetable Section',
+      'reviewCount': 421,
+      'topReviewText': 'Very affordable veggies.',
     },
     {
       'id': 'v6',
@@ -399,5 +412,163 @@ class MockDataService {
 
   static void deleteProduct(String productId) {
     products.removeWhere((p) => p['id'] == productId);
+  }
+
+  static List<Map<String, dynamic>> reviews = [
+    {
+      'id': 'r1',
+      'vendorId': 'v1',
+      'customerName': 'Maria Santos',
+      'rating': 5.0,
+      'comment': 'Always fresh and sweet! The mangoes are the best in the market.',
+      'date': '2023-10-25T08:30:00Z',
+      'reviewType': 'product',
+      'productName': 'Sweet Mangoes',
+    },
+    {
+      'id': 'r2',
+      'vendorId': 'v1',
+      'customerName': 'Juan Dela Cruz',
+      'rating': 4.5,
+      'comment': 'Good quality fruits, but sometimes the bananas are a bit too ripe.',
+      'date': '2023-10-20T10:15:00Z',
+      'reviewType': 'product',
+      'productName': 'Bananas',
+    },
+    {
+      'id': 'r3',
+      'vendorId': 'v1',
+      'customerName': 'Elena Reyes',
+      'rating': 5.0,
+      'comment': 'My go-to stall for fresh papayas. Highly recommended!',
+      'date': '2023-10-18T09:45:00Z',
+      'reviewType': 'product',
+      'productName': 'Papaya',
+    },
+    {
+      'id': 'r4',
+      'vendorId': 'v2',
+      'customerName': 'Pedro Gomez',
+      'rating': 4.0,
+      'comment': 'Best pork cuts in the market. Very clean stall.',
+      'date': '2023-10-22T07:20:00Z',
+      'reviewType': 'product',
+      'productName': 'Pork Belly',
+    },
+    {
+      'id': 'r5',
+      'vendorId': 'v2',
+      'customerName': 'Ana Lim',
+      'rating': 5.0,
+      'comment': 'Meat is always fresh. The vendor is very accommodating.',
+      'date': '2023-10-15T08:00:00Z',
+      'reviewType': 'vendor',
+    },
+    {
+      'id': 'r6',
+      'vendorId': 'v2',
+      'customerName': 'Carlos Cruz',
+      'rating': 4.5,
+      'comment': 'Reasonable prices and good quality beef.',
+      'date': '2023-10-10T11:30:00Z',
+      'reviewType': 'product',
+      'productName': 'Ground Beef',
+    },
+    {
+      'id': 'r7',
+      'vendorId': 'v3',
+      'customerName': 'Liza Soberano',
+      'rating': 5.0,
+      'comment': 'Clean and fast service. Chicken is fresh.',
+      'date': '2023-10-24T08:45:00Z',
+      'reviewType': 'vendor',
+    },
+    {
+      'id': 'r8',
+      'vendorId': 'v4',
+      'customerName': 'Nadine Lustre',
+      'rating': 4.5,
+      'comment': 'My go-to for tuyo and daing. Not too salty!',
+      'date': '2023-10-21T09:10:00Z',
+      'reviewType': 'product',
+      'productName': 'Dried Fish',
+    },
+    {
+      'id': 'r9',
+      'vendorId': 'v5',
+      'customerName': 'Kathryn Bernardo',
+      'rating': 5.0,
+      'comment': 'Very affordable veggies. Always crisp and fresh.',
+      'date': '2023-10-23T07:50:00Z',
+      'reviewType': 'vendor',
+    },
+    {
+      'id': 'r10',
+      'vendorId': 'v1',
+      'customerName': 'Dingdong Dantes',
+      'rating': 4.0,
+      'comment': 'Friendly vendor and good variety of fruits.',
+      'date': '2023-10-19T10:05:00Z',
+      'reviewType': 'vendor',
+    },
+    {
+      'id': 'r11',
+      'vendorId': 'v1',
+      'customerName': 'Bea Alonzo',
+      'rating': 5.0,
+      'comment': 'The pineapples are incredibly sweet and fresh. Will buy again!',
+      'date': '2023-10-17T11:00:00Z',
+      'reviewType': 'product',
+      'productName': 'Pineapple',
+    },
+    {
+      'id': 'r12',
+      'vendorId': 'v1',
+      'customerName': 'Richard Gomez',
+      'rating': 3.0,
+      'comment': 'Fruits were okay but not as fresh as usual. Maybe just an off day.',
+      'date': '2023-10-12T08:10:00Z',
+      'reviewType': 'vendor',
+    },
+    {
+      'id': 'r13',
+      'vendorId': 'v1',
+      'customerName': 'Sharon Cuneta',
+      'rating': 5.0,
+      'comment': 'Always consistent quality. My family loves the mangoes from here!',
+      'date': '2023-10-08T09:30:00Z',
+      'reviewType': 'product',
+      'productName': 'Sweet Mangoes',
+    },
+    {
+      'id': 'r14',
+      'vendorId': 'v1',
+      'customerName': 'Piolo Pascual',
+      'rating': 4.5,
+      'comment': 'Very fresh produce. Vendor is always polite and helpful.',
+      'date': '2023-10-05T07:45:00Z',
+      'reviewType': 'vendor',
+    },
+  ];
+
+  static List<Map<String, dynamic>> getReviewsForVendor(String vendorId) {
+    return reviews.where((r) => r['vendorId'] == vendorId).toList();
+  }
+
+  /// Returns typed [VendorReview] objects for a given vendor.
+  static List<VendorReview> getReviewsAsObjects(String vendorId) {
+    return getReviewsForVendor(vendorId).map((r) {
+      final isProduct = r['reviewType'] == 'product';
+      return VendorReview(
+        id: r['id'] as String,
+        vendorId: r['vendorId'] as String,
+        customerName: r['customerName'] as String,
+        rating: (r['rating'] as num).toDouble(),
+        comment: r['comment'] as String,
+        date: DateTime.parse(r['date'] as String),
+        reviewType: isProduct ? ReviewType.product : ReviewType.vendor,
+        productName: isProduct ? r['productName'] as String? : null,
+      );
+    }).toList();
   }
 }
