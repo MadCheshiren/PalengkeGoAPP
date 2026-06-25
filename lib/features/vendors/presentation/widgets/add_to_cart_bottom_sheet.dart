@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/core/utils/unit_helper.dart';
+import 'package:palengkego/features/cart/application/cart_provider.dart';
+
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 
 class AddToCartBottomSheet extends ConsumerStatefulWidget {
@@ -38,21 +39,27 @@ class AddToCartBottomSheet extends ConsumerStatefulWidget {
 
 class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
   late final List<String> _weights;
-  late String _selectedWeight;
-  int _quantity = 1;
+  String? _selectedWeight;
+  double _customWeightKg = 1.0;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _weights = _resolveWeights();
+    final isPiece = UnitHelper.isPieceUnit(
+      widget.product.name,
+      widget.product.description,
+    );
+    _weights = isPiece
+        ? ['1 pc', '3 pcs', '6 pcs', '12 pcs']
+        : ['1kg', '1/2kg', '1/4kg', '1/8kg'];
     _selectedWeight = _weights.first;
   }
 
   @override
   Widget build(BuildContext context) {
     final basePrice = widget.product.discountedPrice;
-    final selectedMultiplier = _weightMultiplier(_selectedWeight);
+    final selectedMultiplier = _customWeightKg;
     final selectedUnitPrice = basePrice * selectedMultiplier;
 
     return Container(
@@ -161,12 +168,29 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                   childAspectRatio: 2.32,
                 ),
                 itemBuilder: (context, index) {
-                  final weight = _weights[index];
-                  final isSelected = weight == _selectedWeight;
+                  final weightLabel = _weights[index];
+                  final isSelected = weightLabel == _selectedWeight;
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        _selectedWeight = weight;
+                        _selectedWeight = weightLabel;
+                        if (weightLabel == '1kg') {
+                          _customWeightKg = 1.0;
+                        } else if (weightLabel == '1/2kg') {
+                          _customWeightKg = 0.5;
+                        } else if (weightLabel == '1/4kg') {
+                          _customWeightKg = 0.25;
+                        } else if (weightLabel == '1/8kg') {
+                          _customWeightKg = 0.125;
+                        } else if (weightLabel == '1 pc') {
+                          _customWeightKg = 1;
+                        } else if (weightLabel == '3 pcs') {
+                          _customWeightKg = 3;
+                        } else if (weightLabel == '6 pcs') {
+                          _customWeightKg = 6;
+                        } else if (weightLabel == '12 pcs') {
+                          _customWeightKg = 12;
+                        }
                       });
                     },
                     child: Container(
@@ -192,7 +216,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        weight,
+                        weightLabel,
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
@@ -232,57 +256,103 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                       children: [
                         _roundQuantityButton(
                           icon: Icons.remove_rounded,
-                          onTap: () {
-                            if (_quantity > 1) {
-                              setState(() {
-                                _quantity--;
-                              });
-                            }
-                          },
-                          foreground: const Color(0xFF6D9773),
+                          onTap:
+                              (_selectedWeight == '1kg' ||
+                                  _selectedWeight == null)
+                              ? () {
+                                  if (_customWeightKg > 1.0) {
+                                    setState(() {
+                                      _customWeightKg -= 0.5;
+                                      if (_customWeightKg == 1.0) {
+                                        _selectedWeight = '1kg';
+                                      }
+                                    });
+                                  }
+                                }
+                              : () {}, // Disabled if not custom
+                          foreground:
+                              (_selectedWeight == '1kg' ||
+                                      _selectedWeight == null) &&
+                                  _customWeightKg > 1.0
+                              ? const Color(0xFF6D9773)
+                              : const Color(0xFF94A3B8), // Greyed out
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Text(
-                            _quantity.toString(),
-                            style: const TextStyle(
+                            (_selectedWeight == '1kg' ||
+                                    _selectedWeight == null)
+                                ? _formatCustomWeightNum(_customWeightKg)
+                                : '1', // Fixed quantity for other weights
+                            style: TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color:
+                                  (_selectedWeight == '1kg' ||
+                                      _selectedWeight == null)
+                                  ? const Color(0xFF0B372B)
+                                  : const Color(0xFF94A3B8),
                             ),
                           ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: Text(
-                            _isPieceUnit ? 'PC/s' : 'KG/s',
-                            style: const TextStyle(
+                            UnitHelper.isPieceUnit(
+                                  widget.product.name,
+                                  widget.product.description,
+                                )
+                                ? 'pc'
+                                : 'kg',
+                            style: TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF94A3B8),
+                              color:
+                                  (_selectedWeight == '1kg' ||
+                                      _selectedWeight == null)
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFFCBD5E1),
                             ),
                           ),
                         ),
                         _roundQuantityButton(
                           icon: Icons.add_rounded,
-                          onTap: () {
-                            if (_quantity < widget.product.stockQuantity) {
-                              setState(() {
-                                _quantity++;
-                              });
-                            } else {
-                              if (!mounted) return;
-                              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                                const SnackBar(
-                                  content: Text('Maximum stock reached'),
-                                ),
-                              );
-                            }
-                          },
-                          background: const Color(0xFF0C3A2D),
-                          foreground: Colors.white,
+                          onTap:
+                              (_selectedWeight == '1kg' ||
+                                  _selectedWeight == null)
+                              ? () {
+                                  if (_customWeightKg <
+                                      widget.product.stockQuantity) {
+                                    setState(() {
+                                      _customWeightKg += 0.5;
+                                      _selectedWeight = null;
+                                    });
+                                  } else {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.maybeOf(
+                                      context,
+                                    )?.showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Maximum stock reached'),
+                                      ),
+                                    );
+                                  }
+                                }
+                              : () {}, // Disabled if not custom
+                          background:
+                              (_selectedWeight == '1kg' ||
+                                  _selectedWeight == null)
+                              ? const Color(0xFF0C3A2D)
+                              : const Color(
+                                  0xFFE2E8F0,
+                                ), // Greyed out background
+                          foreground:
+                              (_selectedWeight == '1kg' ||
+                                  _selectedWeight == null)
+                              ? Colors.white
+                              : const Color(0xFF94A3B8),
                         ),
                       ],
                     ),
@@ -294,33 +364,50 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting
+                  onPressed:
+                      (_isSubmitting || widget.product.stockQuantity <= 0)
                       ? null
                       : () {
                           if (!mounted) return;
+                          if (widget.product.stockQuantity <= 0) {
+                            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                              const SnackBar(
+                                content: Text('Maximum stock reached'),
+                              ),
+                            );
+                            return;
+                          }
+
                           setState(() {
                             _isSubmitting = true;
                           });
-                          final cart = ref.read(cartServiceProvider);
-                          // Capture navigator and messenger BEFORE modifying state or popping
-                          final navigator = Navigator.of(context);
-                          final messenger = ScaffoldMessenger.maybeOf(context);
 
-                          cart.addToCart(
-                            vendorName: widget.vendorName,
-                            productName: widget.product.name,
-                            price: selectedUnitPrice,
-                            weight: _selectedWeight,
-                            pricePerKg: _priceLabel(basePrice),
-                            image: widget.product.imageUrl.isNotEmpty
-                                ? widget.product.imageUrl
-                                : 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=300&fit=crop',
-                            quantity: _quantity,
-                            stockQuantity: widget.product.stockQuantity,
-                          );
+                          ref
+                              .read(cartServiceProvider)
+                              .addToCart(
+                                vendorName: widget.vendorName,
+                                productName: widget.product.name,
+                                price: selectedUnitPrice,
+                                weight:
+                                    _selectedWeight ??
+                                    _formatCustomWeight(_customWeightKg),
+                                pricePerKg: _priceLabel(basePrice),
+                                image: widget.product.imageUrl.isNotEmpty
+                                    ? widget.product.imageUrl
+                                    : 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=300&fit=crop',
+                                quantity:
+                                    1, // Quantity is always 1, weight acts as the multiplier
+                                stockQuantity: widget.product.stockQuantity,
+                              );
 
-                          navigator.pop();
-                          messenger?.showSnackBar(
+                          // Look up messenger BEFORE popping
+                          final messenger = ScaffoldMessenger.of(context);
+
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
+
+                          messenger.showSnackBar(
                             SnackBar(
                               content: Text(
                                 '${widget.product.name} added to cart',
@@ -328,6 +415,8 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                                   fontFamily: 'PlusJakartaSans',
                                 ),
                               ),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                         },
@@ -375,47 +464,32 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
     );
   }
 
-  bool get _isPieceUnit {
-    return UnitHelper.isPieceUnit(
-      widget.product.name,
-      '${widget.product.description} ${widget.product.category}',
-    );
-  }
-
-  List<String> _resolveWeights() {
-    if (_isPieceUnit) {
-      return ['1 pc', '3 pcs', '5 pcs', '12 pcs'];
+  String _formatCustomWeightNum(double val) {
+    if (val == val.truncateToDouble()) {
+      return val.toInt().toString();
+    }
+    final intPart = val.toInt();
+    final fraction = val - intPart;
+    String fractionStr = '';
+    if (fraction == 0.5) {
+      fractionStr = '1/2';
+    } else {
+      fractionStr = fraction.toStringAsFixed(1);
     }
 
-    return ['1kg', '1/2', '1/4', '1/8'];
+    if (intPart == 0) return fractionStr;
+    return '$intPart $fractionStr';
   }
 
-  double _weightMultiplier(String weight) {
-    switch (weight) {
-      case '1/2':
-        return 0.5;
-      case '1/4':
-        return 0.25;
-      case '1/8':
-        return 0.125;
-      case '1 pc':
-        return 1;
-      case '3 pcs':
-        return 3;
-      case '5 pcs':
-        return 5;
-      case '12 pcs':
-        return 12;
-      case '1kg':
-      default:
-        return 1;
-    }
+  String _formatCustomWeight(double val) {
+    return '${_formatCustomWeightNum(val)}kg';
   }
 
   String _priceLabel(double basePrice) {
-    if (_isPieceUnit) {
-      return 'PHP ${basePrice.toInt()}/pc';
-    }
-    return 'PHP ${basePrice.toInt()}/kg';
+    final unit =
+        UnitHelper.isPieceUnit(widget.product.name, widget.product.description)
+        ? 'pc'
+        : 'kg';
+    return 'PHP ${basePrice.toInt()}/$unit';
   }
 }

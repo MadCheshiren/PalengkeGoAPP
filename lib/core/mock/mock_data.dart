@@ -2,7 +2,6 @@ import 'package:palengkego/features/vendors/domain/vendor_review.dart';
 
 class MockDataService {
   static List<Map<String, dynamic>> featuredVendors = [
-
     {
       'id': 'v1',
       'name': 'Diosa Fruit Stand',
@@ -124,6 +123,7 @@ class MockDataService {
       'description': 'Sweet and ripe',
       'imageUrl':
           'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300&h=300&fit=crop',
+      'discountPercentage': 20,
     },
     {
       'id': 'p2',
@@ -343,7 +343,8 @@ class MockDataService {
       'unit': 'pc',
       'weight': '1 pc',
       'pricePerKg': '₱25/pc',
-      'description': 'Deep fried quail eggs in orange batter. 5 pcs per portion.',
+      'description':
+          'Deep fried quail eggs in orange batter. 5 pcs per portion.',
       'imageUrl':
           'https://images.unsplash.com/photo-1562608262-f4728f3957a0?w=300&h=300&fit=crop',
     },
@@ -355,7 +356,8 @@ class MockDataService {
       'unit': 'pc',
       'weight': '1 pc',
       'pricePerKg': '₱20/pc',
-      'description': 'Fried fishballs with sweet and sour sauce. 10 pcs per portion.',
+      'description':
+          'Fried fishballs with sweet and sour sauce. 10 pcs per portion.',
       'imageUrl':
           'https://images.unsplash.com/photo-1562608262-f4728f3957a0?w=300&h=300&fit=crop',
     },
@@ -387,16 +389,35 @@ class MockDataService {
   ];
 
   static List<Map<String, dynamic>> getProductsForVendor(String vendorId) {
-    final vendor = featuredVendors.firstWhere((v) => v['id'] == vendorId, orElse: () => {});
+    final vendor = featuredVendors.firstWhere(
+      (v) => v['id'] == vendorId,
+      orElse: () => {},
+    );
     final vendorCategory = vendor['category'] ?? '';
-    
+
     return products.where((p) => p['vendorId'] == vendorId).map((p) {
       if (p.containsKey('category')) return p;
-      return {
-        ...p,
-        'category': vendorCategory,
-      };
+      return {...p, 'category': vendorCategory};
     }).toList();
+  }
+
+  static List<Map<String, dynamic>> getDiscountedProducts() {
+    return products
+        .where(
+          (p) =>
+              p.containsKey('discountPercentage') &&
+              (p['discountPercentage'] as num) > 0,
+        )
+        .map((p) {
+          final vendor = featuredVendors.firstWhere(
+            (v) => v['id'] == p['vendorId'],
+            orElse: () => {},
+          );
+          final vendorCategory = vendor['category'] ?? '';
+          if (p.containsKey('category')) return p;
+          return {...p, 'category': vendorCategory};
+        })
+        .toList();
   }
 
   static void addProduct(Map<String, dynamic> product) {
@@ -420,7 +441,8 @@ class MockDataService {
       'vendorId': 'v1',
       'customerName': 'Maria Santos',
       'rating': 5.0,
-      'comment': 'Always fresh and sweet! The mangoes are the best in the market.',
+      'comment':
+          'Always fresh and sweet! The mangoes are the best in the market.',
       'date': '2023-10-25T08:30:00Z',
       'reviewType': 'product',
       'productName': 'Sweet Mangoes',
@@ -430,7 +452,8 @@ class MockDataService {
       'vendorId': 'v1',
       'customerName': 'Juan Dela Cruz',
       'rating': 4.5,
-      'comment': 'Good quality fruits, but sometimes the bananas are a bit too ripe.',
+      'comment':
+          'Good quality fruits, but sometimes the bananas are a bit too ripe.',
       'date': '2023-10-20T10:15:00Z',
       'reviewType': 'product',
       'productName': 'Bananas',
@@ -516,7 +539,8 @@ class MockDataService {
       'vendorId': 'v1',
       'customerName': 'Bea Alonzo',
       'rating': 5.0,
-      'comment': 'The pineapples are incredibly sweet and fresh. Will buy again!',
+      'comment':
+          'The pineapples are incredibly sweet and fresh. Will buy again!',
       'date': '2023-10-17T11:00:00Z',
       'reviewType': 'product',
       'productName': 'Pineapple',
@@ -526,7 +550,8 @@ class MockDataService {
       'vendorId': 'v1',
       'customerName': 'Richard Gomez',
       'rating': 3.0,
-      'comment': 'Fruits were okay but not as fresh as usual. Maybe just an off day.',
+      'comment':
+          'Fruits were okay but not as fresh as usual. Maybe just an off day.',
       'date': '2023-10-12T08:10:00Z',
       'reviewType': 'vendor',
     },
@@ -535,7 +560,8 @@ class MockDataService {
       'vendorId': 'v1',
       'customerName': 'Sharon Cuneta',
       'rating': 5.0,
-      'comment': 'Always consistent quality. My family loves the mangoes from here!',
+      'comment':
+          'Always consistent quality. My family loves the mangoes from here!',
       'date': '2023-10-08T09:30:00Z',
       'reviewType': 'product',
       'productName': 'Sweet Mangoes',
@@ -550,6 +576,30 @@ class MockDataService {
       'reviewType': 'vendor',
     },
   ];
+
+  static void decreaseProductStockByName(
+    String productName,
+    String vendorName,
+    int quantity,
+  ) {
+    // Find the vendor ID first
+    final vendor = featuredVendors.firstWhere(
+      (v) => v['name'] == vendorName,
+      orElse: () => {'id': ''},
+    );
+    final vendorId = vendor['id'] as String;
+    if (vendorId.isEmpty) return;
+
+    final productIndex = products.indexWhere(
+      (p) => p['name'] == productName && p['vendorId'] == vendorId,
+    );
+    if (productIndex != -1) {
+      final currentStock =
+          products[productIndex]['stockQuantity'] as int? ?? 15;
+      final newStock = (currentStock - quantity).clamp(0, 9999).toInt();
+      products[productIndex]['stockQuantity'] = newStock;
+    }
+  }
 
   static List<Map<String, dynamic>> getReviewsForVendor(String vendorId) {
     return reviews.where((r) => r['vendorId'] == vendorId).toList();

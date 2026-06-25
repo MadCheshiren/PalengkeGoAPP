@@ -8,7 +8,8 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifService = ref.watch(notificationServiceProvider);
+    // ref.read only — ListenableBuilder below handles all reactivity.
+    final notifService = ref.read(notificationServiceProvider);
 
     return ListenableBuilder(
       listenable: notifService,

@@ -25,23 +25,25 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
 
   String _selectedCategory = 'All';
   late final TextEditingController _searchController;
+  late final SearchQueryNotifier _searchQueryNotifier;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _searchQueryNotifier = ref.read(searchQueryProvider.notifier);
     _searchController.addListener(() {
-      ref
-          .read(searchQueryProvider.notifier)
-          .update(_searchController.text);
+      _searchQueryNotifier.update(_searchController.text);
     });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    // Clear search when leaving the screen
-    ref.read(searchQueryProvider.notifier).clear();
+    // Clear search when leaving the screen using the cached notifier.
+    // Defer the modification to a microtask to avoid updating provider state
+    // while the widget tree is unmounting/finalizing.
+    Future.microtask(() => _searchQueryNotifier.clear());
     super.dispose();
   }
 

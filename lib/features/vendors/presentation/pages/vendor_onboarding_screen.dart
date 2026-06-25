@@ -57,8 +57,8 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
   String? _marketClearanceFile;
 
   final List<String> _steps = [
-    'Business Information',
     'Registered Name',
+    'Business Information',
     'ID Card Type',
     'Phone Number',
   ];
@@ -82,6 +82,30 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
   }
 
   void _nextStep() async {
+    // Validation
+    if (_currentStep == 0) {
+      if (_lastNameController.text.trim().isEmpty ||
+          _firstNameController.text.trim().isEmpty ||
+          _middleNameController.text.trim().isEmpty ||
+          _suffixController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all required fields.')),
+        );
+        return;
+      }
+    } else if (_currentStep == 1) {
+      if (_registeredNameController.text.trim().isEmpty ||
+          _mayorsPermitFile == null ||
+          _sanitaryPermitFile == null ||
+          _fireCertificationFile == null ||
+          _marketClearanceFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter stall name and upload all permits.')),
+        );
+        return;
+      }
+    }
+
     if (_currentStep < _steps.length - 1) {
       setState(() {
         _currentStep++;
@@ -171,9 +195,14 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
+                  OnboardingRegisteredNameStep(
+                    lastNameController: _lastNameController,
+                    firstNameController: _firstNameController,
+                    suffixController: _suffixController,
+                    middleNameController: _middleNameController,
+                  ),
                   OnboardingBusinessInfoStep(
                     registeredNameController: _registeredNameController,
-                    phoneController: _phoneController,
                     mayorsPermitFile: _mayorsPermitFile,
                     sanitaryPermitFile: _sanitaryPermitFile,
                     fireCertificationFile: _fireCertificationFile,
@@ -182,20 +211,6 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
                     onUploadSanitaryPermit: _onUploadSanitaryPermit,
                     onUploadFireCertification: _onUploadFireCertification,
                     onUploadMarketClearance: _onUploadMarketClearance,
-                    onTapRegisteredName: () {
-                      setState(() => _currentStep = 1);
-                      _pageController.jumpToPage(1);
-                    },
-                    onTapPhone: () {
-                      setState(() => _currentStep = 3);
-                      _pageController.jumpToPage(3);
-                    },
-                  ),
-                  OnboardingRegisteredNameStep(
-                    lastNameController: _lastNameController,
-                    firstNameController: _firstNameController,
-                    suffixController: _suffixController,
-                    middleNameController: _middleNameController,
                   ),
                   OnboardingIdCardStep(
                     selectedIdType: _selectedIdType,

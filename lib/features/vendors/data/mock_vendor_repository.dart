@@ -63,6 +63,7 @@ class MockVendorRepository implements VendorRepository {
         imageUrl: p['imageUrl'] as String? ?? '',
         isActive: active,
         stockQuantity: stock,
+        discountPercentage: (p['discountPercentage'] as num?)?.toDouble(),
       );
     }).toList();
   }

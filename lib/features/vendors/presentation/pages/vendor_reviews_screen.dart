@@ -6,12 +6,94 @@ import 'package:palengkego/features/vendors/domain/vendor_review.dart';
 
 // ── Filter enum ───────────────────────────────────────────────────────────────
 
-enum _ReviewFilter { all, five, four, belowFour }
+enum _ReviewFilter { all, five, four, three, two, one }
+
+// ── Reusable Section ──────────────────────────────────────────────────────────
+
+class VendorReviewsSection extends ConsumerStatefulWidget {
+  final String? vendorId;
+
+  const VendorReviewsSection({super.key, this.vendorId});
+
+  @override
+  ConsumerState<VendorReviewsSection> createState() =>
+      _VendorReviewsSectionState();
+}
+
+class _VendorReviewsSectionState extends ConsumerState<VendorReviewsSection> {
+  _ReviewFilter _filter = _ReviewFilter.all;
+
+  List<VendorReview> _applyFilter(List<VendorReview> all) {
+    switch (_filter) {
+      case _ReviewFilter.five:
+        return all.where((r) => r.rating.round() == 5).toList();
+      case _ReviewFilter.four:
+        return all.where((r) => r.rating.round() == 4).toList();
+      case _ReviewFilter.three:
+        return all.where((r) => r.rating.round() == 3).toList();
+      case _ReviewFilter.two:
+        return all.where((r) => r.rating.round() == 2).toList();
+      case _ReviewFilter.one:
+        return all.where((r) => r.rating.round() == 1).toList();
+      case _ReviewFilter.all:
+        return all;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allReviews = widget.vendorId != null
+        ? ref.watch(vendorReviewsFamilyProvider(widget.vendorId!))
+        : ref.watch(vendorReviewsProvider);
+    final filtered = _applyFilter(allReviews);
+
+    if (allReviews.isEmpty) {
+      return const _EmptyAllReviews();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: _RatingSummaryCard(reviews: allReviews),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: _FilterRow(
+            selected: _filter,
+            onChanged: (f) => setState(() => _filter = f),
+            allReviews: allReviews,
+          ),
+        ),
+        if (filtered.isEmpty)
+          _EmptyFiltered(filter: _filter)
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: filtered.length,
+            separatorBuilder: (context, idx) => const SizedBox(height: 10),
+            itemBuilder: (context, i) => Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                bottom: i == filtered.length - 1 ? 24 : 0,
+              ),
+              child: _ReviewCard(review: filtered[i]),
+            ),
+          ),
+      ],
+    );
+  }
+}
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 class VendorReviewsScreen extends ConsumerStatefulWidget {
-  const VendorReviewsScreen({super.key});
+  final String? vendorId;
+
+  const VendorReviewsScreen({super.key, this.vendorId});
 
   @override
   ConsumerState<VendorReviewsScreen> createState() =>
@@ -22,19 +104,27 @@ class _VendorReviewsScreenState extends ConsumerState<VendorReviewsScreen> {
   _ReviewFilter _filter = _ReviewFilter.all;
 
   List<VendorReview> _applyFilter(List<VendorReview> all) {
-    if (_filter == _ReviewFilter.five) {
-      return all.where((r) => r.rating >= 5.0).toList();
-    } else if (_filter == _ReviewFilter.four) {
-      return all.where((r) => r.rating >= 4.0 && r.rating < 5.0).toList();
-    } else if (_filter == _ReviewFilter.belowFour) {
-      return all.where((r) => r.rating < 4.0).toList();
+    switch (_filter) {
+      case _ReviewFilter.five:
+        return all.where((r) => r.rating.round() == 5).toList();
+      case _ReviewFilter.four:
+        return all.where((r) => r.rating.round() == 4).toList();
+      case _ReviewFilter.three:
+        return all.where((r) => r.rating.round() == 3).toList();
+      case _ReviewFilter.two:
+        return all.where((r) => r.rating.round() == 2).toList();
+      case _ReviewFilter.one:
+        return all.where((r) => r.rating.round() == 1).toList();
+      case _ReviewFilter.all:
+        return all;
     }
-    return all;
   }
 
   @override
   Widget build(BuildContext context) {
-    final allReviews = ref.watch(vendorReviewsProvider);
+    final allReviews = widget.vendorId != null
+        ? ref.watch(vendorReviewsFamilyProvider(widget.vendorId!))
+        : ref.watch(vendorReviewsProvider);
     final filtered = _applyFilter(allReviews);
 
     return Scaffold(
@@ -51,9 +141,9 @@ class _VendorReviewsScreenState extends ConsumerState<VendorReviewsScreen> {
             color: Color(0xFF0B372B),
           ),
         ),
-        title: const Text(
-          'Customer Reviews',
-          style: TextStyle(
+        title: Text(
+          widget.vendorId != null ? 'Stall Reviews' : 'Customer Reviews',
+          style: const TextStyle(
             fontFamily: 'PlusJakartaSans',
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -252,14 +342,20 @@ class _FilterRow extends StatelessWidget {
   });
 
   int _count(_ReviewFilter f) {
-    if (f == _ReviewFilter.five) {
-      return allReviews.where((r) => r.rating >= 5.0).length;
-    } else if (f == _ReviewFilter.four) {
-      return allReviews.where((r) => r.rating >= 4.0 && r.rating < 5.0).length;
-    } else if (f == _ReviewFilter.belowFour) {
-      return allReviews.where((r) => r.rating < 4.0).length;
+    switch (f) {
+      case _ReviewFilter.five:
+        return allReviews.where((r) => r.rating.round() == 5).length;
+      case _ReviewFilter.four:
+        return allReviews.where((r) => r.rating.round() == 4).length;
+      case _ReviewFilter.three:
+        return allReviews.where((r) => r.rating.round() == 3).length;
+      case _ReviewFilter.two:
+        return allReviews.where((r) => r.rating.round() == 2).length;
+      case _ReviewFilter.one:
+        return allReviews.where((r) => r.rating.round() == 1).length;
+      case _ReviewFilter.all:
+        return allReviews.length;
     }
-    return allReviews.length;
   }
 
   @override
@@ -269,7 +365,9 @@ class _FilterRow extends StatelessWidget {
       MapEntry(_ReviewFilter.all, 'All'),
       MapEntry(_ReviewFilter.five, '5★'),
       MapEntry(_ReviewFilter.four, '4★'),
-      MapEntry(_ReviewFilter.belowFour, '3★ & below'),
+      MapEntry(_ReviewFilter.three, '3★'),
+      MapEntry(_ReviewFilter.two, '2★'),
+      MapEntry(_ReviewFilter.one, '1★'),
     ];
 
     return SingleChildScrollView(
@@ -638,10 +736,20 @@ class _EmptyFiltered extends StatelessWidget {
   const _EmptyFiltered({required this.filter});
 
   String get _label {
-    if (filter == _ReviewFilter.five) return '5-star';
-    if (filter == _ReviewFilter.four) return '4-star';
-    if (filter == _ReviewFilter.belowFour) return '3-star and below';
-    return '';
+    switch (filter) {
+      case _ReviewFilter.five:
+        return '5-star';
+      case _ReviewFilter.four:
+        return '4-star';
+      case _ReviewFilter.three:
+        return '3-star';
+      case _ReviewFilter.two:
+        return '2-star';
+      case _ReviewFilter.one:
+        return '1-star';
+      case _ReviewFilter.all:
+        return '';
+    }
   }
 
   @override

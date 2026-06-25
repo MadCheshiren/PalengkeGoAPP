@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/core/services/preferences_provider.dart';
 
 /// Splash screen — always visible for at least [_minDuration].
 /// Animates the logo (scale + fade), tagline (slide + fade), and
@@ -123,7 +124,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         Navigator.of(context).pushReplacementNamed(AppRoutes.main);
       }
     } else {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+      final prefs = ref.read(sharedPreferencesProvider);
+      final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+      if (hasSeenOnboarding) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+      } else {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+      }
     }
   }
 

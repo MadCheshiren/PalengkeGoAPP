@@ -34,4 +34,11 @@ class MockMarketRepository implements MarketRepository {
       vendorId,
     ).map(MarketProduct.fromMap).toList(growable: false);
   }
+
+  @override
+  List<MarketProduct> getDiscountedProducts() {
+    return MockDataService.getDiscountedProducts()
+        .map(MarketProduct.fromMap)
+        .toList(growable: false);
+  }
 }

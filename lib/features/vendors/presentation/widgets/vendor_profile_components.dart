@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:palengkego/core/mock/mock_data.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import 'package:palengkego/features/vendors/domain/vendor_profile.dart';
+import 'package:palengkego/features/vendors/domain/vendor_review.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_reviews_screen.dart';
 import 'package:palengkego/core/utils/unit_helper.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/add_to_cart_bottom_sheet.dart';
 
@@ -232,7 +236,7 @@ class VendorProfileDetailsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Fetch mock reviews for this vendor
-    final reviews = MockDataService.getReviewsForVendor(profile.id);
+    final reviews = MockDataService.getReviewsAsObjects(profile.id);
 
     return SizedBox(
       width: double.infinity,
@@ -266,29 +270,46 @@ class VendorProfileDetailsSection extends StatelessWidget {
                     text: '${profile.category} Section',
                   ),
                   const SizedBox(width: 16),
-                  const Icon(
-                    Icons.star_rounded,
-                    size: 15,
-                    color: Color(0xFFFACC15),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${profile.rating}',
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '(${profile.reviewCount})',
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF9CA3AF),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VendorReviewsScreen(vendorId: profile.id),
+                        ),
+                      );
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star_rounded,
+                          size: 15,
+                          color: Color(0xFFFACC15),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${profile.rating}',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${profile.reviewCount})',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0B372B),
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -619,8 +640,17 @@ class VendorProfileProductCard extends StatelessWidget {
   }
 }
 
+class MouseDragScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
+}
+
 class VendorReviewsCarousel extends StatefulWidget {
-  final List<Map<String, dynamic>> reviews;
+  final List<VendorReview> reviews;
 
   const VendorReviewsCarousel({super.key, required this.reviews});
 
@@ -630,8 +660,9 @@ class VendorReviewsCarousel extends StatefulWidget {
 
 class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
   late ScrollController _scrollController;
-  bool _isScrolling = true;
-  int _scrollToken = 0;
+  Timer? _tickerTimer;
+  Timer? _resumeTimer;
+  bool _isUserInteracting = false;
 
   @override
   void initState() {
@@ -639,40 +670,54 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
     _scrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.reviews.isNotEmpty) {
-        _autoScroll();
+        _startAutoScroll();
       }
     });
   }
 
-  Future<void> _autoScroll() async {
-    final myToken = ++_scrollToken;
-    while (_isScrolling && mounted && _scrollController.hasClients) {
-      if (myToken != _scrollToken) break;
-
-      final maxScrollExtent = _scrollController.position.maxScrollExtent;
-      final currentScroll = _scrollController.position.pixels;
-      
-      if (maxScrollExtent == 0) {
-        await Future.delayed(const Duration(milliseconds: 1000));
-        continue;
+  void _startAutoScroll() {
+    _tickerTimer?.cancel();
+    _tickerTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
       }
+      if (_isUserInteracting || !_scrollController.hasClients) return;
 
-      if (currentScroll >= maxScrollExtent) {
+      final position = _scrollController.position;
+      final maxScroll = position.maxScrollExtent;
+      final current = position.pixels;
+
+      if (maxScroll <= 0) return;
+
+      if (current >= maxScroll) {
         _scrollController.jumpTo(0);
-        await Future.delayed(const Duration(milliseconds: 50));
       } else {
-        await _scrollController.animateTo(
-          currentScroll + 50.0,
-          duration: const Duration(milliseconds: 2000),
-          curve: Curves.linear,
-        );
+        _scrollController.jumpTo(current + 0.4);
       }
-    }
+    });
+  }
+
+  void _pauseAutoScroll() {
+    _resumeTimer?.cancel();
+    _isUserInteracting = true;
+  }
+
+  void _scheduleResume() {
+    _resumeTimer?.cancel();
+    _resumeTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _isUserInteracting = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _isScrolling = false;
+    _tickerTimer?.cancel();
+    _resumeTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -681,81 +726,106 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
   Widget build(BuildContext context) {
     if (widget.reviews.isEmpty) return const SizedBox.shrink();
 
-    return GestureDetector(
-      onPanDown: (_) => _isScrolling = false,
-      onPanCancel: () {
-        _isScrolling = true;
-        _autoScroll();
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollStartNotification) {
+          if (notification.dragDetails != null) {
+            _pauseAutoScroll();
+          }
+        } else if (notification is ScrollEndNotification) {
+          _scheduleResume();
+        }
+        return false;
       },
-      onPanEnd: (_) {
-        _isScrolling = true;
-        _autoScroll();
-      },
-      child: SizedBox(
-        height: 88,
-        child: ListView.separated(
-          controller: _scrollController,
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: widget.reviews.length,
-          separatorBuilder: (context, index) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            final review = widget.reviews[index];
-            return Container(
-              width: 240,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        review['customerName'] ?? 'Customer',
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF374151),
-                        ),
+      child: Listener(
+        onPointerDown: (_) {
+          _pauseAutoScroll();
+        },
+        onPointerUp: (_) {
+          _scheduleResume();
+        },
+        onPointerCancel: (_) {
+          _scheduleResume();
+        },
+        child: SizedBox(
+          height: 88,
+          child: ScrollConfiguration(
+            behavior: MouseDragScrollBehavior(),
+            child: ListView.separated(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: widget.reviews.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final review = widget.reviews[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VendorReviewsScreen(vendorId: review.vendorId),
                       ),
-                      const Spacer(),
-                      const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFACC15)),
-                      const SizedBox(width: 2),
-                      Text(
-                        '${review['rating'] ?? 5.0}',
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
+                    );
+                  },
+                  child: Container(
+                    width: 240,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              review.customerName,
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF374151),
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFACC15)),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${review.rating}',
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '"${review['comment'] ?? ''}"',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF6B7280),
-                      fontStyle: FontStyle.italic,
+                        const SizedBox(height: 6),
+                        Text(
+                          '"${review.comment}"',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF6B7280),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ),
         ),
       ),
     );

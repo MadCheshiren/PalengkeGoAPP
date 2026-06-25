@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/vendors/application/sales_report_export_service.dart';
 import 'vendor_payouts_screen.dart';
+
+import 'package:file_saver/file_saver.dart';
+import 'package:flutter/foundation.dart';
 
 // ── Per-period mock data ──────────────────────────────────────────────────────
 
@@ -67,6 +71,35 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
     return _todayData;
   }
 
+  SalesReportData get _currentReport => SalesReportData(
+    period: _selectedTab,
+    total: _exportSafeCurrency(_currentData.total),
+    change: _exportSafeCurrency(_currentData.change),
+    payouts: const [
+      SalesReportPayout(
+        method: 'Bank Transfer',
+        amount: 'PHP 4,900.00',
+        date: 'May 21, 2024',
+      ),
+      SalesReportPayout(
+        method: 'Bank Transfer',
+        amount: 'PHP 5,850.00',
+        date: 'May 14, 2024',
+      ),
+      SalesReportPayout(
+        method: 'Bank Transfer',
+        amount: 'PHP 4,100.00',
+        date: 'Apr 29, 2024',
+      ),
+    ],
+  );
+  String _exportSafeCurrency(String value) {
+    return value
+        .replaceAll('\u20B1', 'PHP ')
+        .replaceAll('₱', 'PHP ')
+        .replaceAll('â‚±', 'PHP ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = _currentData;
@@ -108,6 +141,23 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
                       color: Color(0xFF111827),
                     ),
                   ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _showExportDialog,
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.file_download_outlined,
+                        size: 20,
+                        color: Color(0xFF0B372B),
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -130,13 +180,16 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
                 transitionBuilder: (child, animation) => FadeTransition(
                   opacity: animation,
                   child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.06),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOut,
-                    )),
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, 0.06),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOut,
+                          ),
+                        ),
                     child: child,
                   ),
                 ),
@@ -162,20 +215,26 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
                       color: Color(0xFF111827),
                     ),
                   ),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      key: ValueKey('${_selectedTab}label'),
-                      _selectedTab == 'Today'
-                          ? 'Today, Jun 18'
-                          : _selectedTab == 'Week'
-                              ? 'Jun 12 – Jun 18'
-                              : 'June 2024',
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF9CA3AF),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        key: ValueKey('${_selectedTab}label'),
+                        _selectedTab == 'Today'
+                            ? 'Today, Jun 18'
+                            : _selectedTab == 'Week'
+                            ? 'Jun 12 - Jun 18'
+                            : 'June 2024',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF9CA3AF),
+                        ),
                       ),
                     ),
                   ),
@@ -246,6 +305,159 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showExportDialog() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Export Sales Report',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(
+                  Icons.picture_as_pdf,
+                  color: Color(0xFFEF4444),
+                ),
+                title: const Text(
+                  'Export as PDF',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportToPdf();
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.table_chart,
+                  color: Color(0xFF10B981),
+                ),
+                title: const Text(
+                  'Export as Excel',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportToExcel();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportToPdf() async {
+    try {
+      final report = _currentReport;
+      final bytes = await SalesReportExportService.buildPdf(report);
+      final filename = SalesReportExportService.buildFilename(
+        report,
+        DateTime.now(),
+      );
+
+      // On mobile: open native Save As picker (no permissions needed).
+      // On web/desktop: save directly to Downloads.
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS)) {
+        await FileSaver.instance.saveAs(
+          name: filename,
+          bytes: bytes,
+          fileExtension: 'pdf',
+          mimeType: MimeType.pdf,
+        );
+      } else {
+        await FileSaver.instance.saveFile(
+          name: filename,
+          bytes: bytes,
+          fileExtension: 'pdf',
+          mimeType: MimeType.pdf,
+        );
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('PDF saved as $filename.pdf'),
+          backgroundColor: const Color(0xFF10B981),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to export PDF: $e')));
+    }
+  }
+
+  Future<void> _exportToExcel() async {
+    try {
+      final report = _currentReport;
+      final fileBytes = SalesReportExportService.buildExcel(report);
+      final filename = SalesReportExportService.buildFilename(
+        report,
+        DateTime.now(),
+      );
+
+      // On mobile: open native Save As picker (no permissions needed).
+      // On web/desktop: save directly to Downloads.
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.android ||
+              defaultTargetPlatform == TargetPlatform.iOS)) {
+        await FileSaver.instance.saveAs(
+          name: filename,
+          bytes: fileBytes,
+          fileExtension: 'xlsx',
+          mimeType: MimeType.microsoftExcel,
+        );
+      } else {
+        await FileSaver.instance.saveFile(
+          name: filename,
+          bytes: fileBytes,
+          fileExtension: 'xlsx',
+          mimeType: MimeType.microsoftExcel,
+        );
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Excel saved as $filename.xlsx'),
+          backgroundColor: const Color(0xFF10B981),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to export Excel: $e')));
+    }
   }
 
   Widget _buildTab(String label) {
@@ -458,7 +670,11 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
       return Tween<double>(begin: 0, end: widget.values[i]).animate(
         CurvedAnimation(
           parent: _controller,
-          curve: Interval(start, (start + 0.6).clamp(0, 1), curve: Curves.easeOut),
+          curve: Interval(
+            start,
+            (start + 0.6).clamp(0, 1),
+            curve: Curves.easeOut,
+          ),
         ),
       );
     });

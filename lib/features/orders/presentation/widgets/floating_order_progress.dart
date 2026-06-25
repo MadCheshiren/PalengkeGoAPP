@@ -11,7 +11,11 @@ class FloatingOrderProgress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderService = ref.watch(orderServiceProvider);
+    // Use ref.read — the ListenableBuilder below handles all reactivity.
+    // Using ref.watch here would create a DOUBLE subscription (Riverpod +
+    // ListenableBuilder) that causes concurrent rebuild races and the
+    // "deactivated widget ancestor" crash.
+    final orderService = ref.read(orderServiceProvider);
 
     return Positioned(
       bottom: 16,
@@ -30,7 +34,6 @@ class FloatingOrderProgress extends ConsumerWidget {
             return const SizedBox.shrink();
           }
 
-          // For simplicity, show the first active order.
           final order = activeOrders.first;
 
           return GestureDetector(

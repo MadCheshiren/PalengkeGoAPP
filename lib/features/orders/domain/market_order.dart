@@ -8,6 +8,7 @@ class MarketOrder {
   final String id;
   final String vendorName;
   final String vendorImage;
+  final String customerName;
   final OrderStatus status;
   final PaymentStatus paymentStatus;
   final FulfillmentMethod fulfillmentMethod;
@@ -22,6 +23,7 @@ class MarketOrder {
     required this.id,
     required this.vendorName,
     required this.vendorImage,
+    this.customerName = 'Customer',
     required this.status,
     required this.paymentStatus,
     required this.fulfillmentMethod,
@@ -37,6 +39,7 @@ class MarketOrder {
     String? id,
     String? vendorName,
     String? vendorImage,
+    String? customerName,
     OrderStatus? status,
     PaymentStatus? paymentStatus,
     FulfillmentMethod? fulfillmentMethod,
@@ -51,6 +54,7 @@ class MarketOrder {
       id: id ?? this.id,
       vendorName: vendorName ?? this.vendorName,
       vendorImage: vendorImage ?? this.vendorImage,
+      customerName: customerName ?? this.customerName,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       fulfillmentMethod: fulfillmentMethod ?? this.fulfillmentMethod,

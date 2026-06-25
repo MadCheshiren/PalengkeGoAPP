@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/core/services/order_service.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
@@ -31,7 +33,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [orderServiceProvider.overrideWithValue(orderService)],
-        child: MaterialApp(home: OrderDetailsScreen(order: order)),
+        child: MaterialApp(
+          scaffoldMessengerKey: AppServices.scaffoldMessengerKey,
+          home: OrderDetailsScreen(order: order),
+          routes: {AppRoutes.main: (_) => const Scaffold()},
+        ),
       ),
     );
 
@@ -43,13 +49,13 @@ void main() {
     await tester.tap(find.textContaining('Cancel Order'));
     await tester.pump();
     await tester.tap(find.text('Yes, Cancel'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(
       orderService.orders.firstWhere((item) => item.id == order.id).status,
       OrderStatus.cancelled,
     );
-    expect(find.text('Order cancelled successfully.'), findsOneWidget);
+    expect(find.text('1 order(s) cancelled successfully.'), findsOneWidget);
     expect(find.textContaining('Cancel Order'), findsNothing);
   });
 

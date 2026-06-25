@@ -3,6 +3,7 @@ import 'package:palengkego/features/vendors/data/mock_vendor_repository.dart';
 import 'package:palengkego/features/vendors/data/vendor_repository.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import 'package:palengkego/features/vendors/domain/vendor_profile.dart';
+import 'package:palengkego/features/market/application/market_provider.dart';
 
 final vendorRepositoryProvider = Provider<VendorRepository>((ref) {
   return MockVendorRepository();
@@ -32,18 +33,21 @@ class VendorProductsManager {
     final repository = ref.read(vendorRepositoryProvider);
     await repository.addVendorProduct(product);
     ref.invalidate(vendorProductsProvider(vendorId));
+    ref.invalidate(discountedProductsProvider);
   }
 
   Future<void> updateProduct(VendorProduct product) async {
     final repository = ref.read(vendorRepositoryProvider);
     await repository.updateVendorProduct(product);
     ref.invalidate(vendorProductsProvider(vendorId));
+    ref.invalidate(discountedProductsProvider);
   }
 
   Future<void> deleteProduct(String productId) async {
     final repository = ref.read(vendorRepositoryProvider);
     await repository.deleteVendorProduct(productId);
     ref.invalidate(vendorProductsProvider(vendorId));
+    ref.invalidate(discountedProductsProvider);
   }
 }
 

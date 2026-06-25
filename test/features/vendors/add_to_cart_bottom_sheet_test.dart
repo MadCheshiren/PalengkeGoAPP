@@ -28,6 +28,7 @@ void main() {
         pricePerKg: 'PHP 80/kg',
         weight: '1kg',
         imageUrl: '',
+        stockQuantity: 10,
       );
 
       await tester.pumpWidget(
@@ -59,6 +60,11 @@ void main() {
     testWidgets('uses piece pricing when product category is piece-based', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final cart = CartService();
       addTearDown(cart.dispose);
 
@@ -72,6 +78,7 @@ void main() {
         pricePerKg: 'PHP 10/pc',
         weight: '1 pc',
         imageUrl: '',
+        stockQuantity: 12,
       );
 
       await tester.pumpWidget(
@@ -184,6 +191,50 @@ void main() {
       expect(find.text('Maximum stock reached'), findsOneWidget);
     });
 
+    testWidgets('does not add an out-of-stock product to the cart', (
+      tester,
+    ) async {
+      final cart = CartService();
+      addTearDown(cart.dispose);
+
+      const product = VendorProduct(
+        id: 'p5',
+        vendorId: 'v1',
+        name: 'Mango',
+        description: 'Fresh mango',
+        category: 'Fruits',
+        price: 150,
+        pricePerKg: 'PHP 150/kg',
+        weight: '1kg',
+        imageUrl: '',
+        stockQuantity: 0,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [cartServiceProvider.overrideWithValue(cart)],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: AddToCartBottomSheet(
+                vendorName: 'Diosa Fruit Stand',
+                product: product,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.text('Add to cart'));
+      await tester.tap(find.text('Add to cart'));
+      await tester.pump();
+
+      expect(cart.items, isEmpty);
+      final button = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Add to cart'),
+      );
+      expect(button.onPressed, isNull);
+    });
+
     testWidgets('shown bottom sheet does not throw on presentation', (
       tester,
     ) async {
@@ -200,6 +251,7 @@ void main() {
         pricePerKg: 'PHP 80/kg',
         weight: '1kg',
         imageUrl: '',
+        stockQuantity: 10,
       );
 
       await tester.pumpWidget(

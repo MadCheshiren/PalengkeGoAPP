@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
@@ -58,6 +59,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
     final result = await Navigator.of(
       context,
     ).pushNamed(AppRoutes.setDeliveryAddress);
+    if (!mounted) return;
     if (result is DeliveryAddress) {
       ref.read(preferencesProvider.notifier).updateAddress(
         primaryAddress: result.primaryAddress.isEmpty
@@ -66,6 +68,182 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
         streetAddress: result.streetAddress,
         notes: result.notes,
       );
+    }
+  }
+
+  void _showLoginRequiredSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.account_circle_outlined,
+                size: 64,
+                color: Color(0xFF0B372B),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Login Required',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0B372B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'You must be logged in to checkout your items.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 14,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final success = await Navigator.pushNamed(context, AppRoutes.login);
+                    if (success == true && context.mounted) {
+                      Navigator.pushNamed(context, AppRoutes.checkout);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0B372B),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    final success = await Navigator.pushNamed(context, AppRoutes.registration);
+                    if (success == true && context.mounted) {
+                      Navigator.pushNamed(context, AppRoutes.checkout);
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF0B372B)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: const Text(
+                    'Register',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0B372B),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCheckoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Proceed to Checkout',
+          style: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0B372B),
+          ),
+        ),
+        content: const Text(
+          'Are you ready to checkout your selected items?',
+          style: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 14,
+            color: Color(0xFF475569),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _proceedToCheckoutFlow();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0B372B),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Proceed',
+              style: TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _proceedToCheckoutFlow() {
+    if (!mounted) return;
+    final user = ref.read(authProvider);
+    if (user == null) {
+      _showLoginRequiredSheet(context);
+    } else {
+      Navigator.of(context).pushNamed(AppRoutes.checkout);
     }
   }
 
@@ -266,9 +444,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                 subtotal: subtotal,
                 hasSelectedItems: selectedItems.isNotEmpty,
                 onToggleSelectAll: _toggleSelectAllItems,
-                onCheckout: () {
-                  Navigator.of(context).pushNamed(AppRoutes.checkout);
-                },
+                onCheckout: () => _showCheckoutConfirmationDialog(context),
               ),
           ],
         ),

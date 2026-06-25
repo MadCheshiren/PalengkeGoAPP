@@ -29,11 +29,13 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   int _deliveryMethod = 0; // 0 = Delivery, 1 = Pick-Up
-  final TextEditingController _notesController = TextEditingController();
+  final Map<String, TextEditingController> _vendorNotesControllers = {};
 
   @override
   void dispose() {
-    _notesController.dispose();
+    for (final controller in _vendorNotesControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -54,6 +56,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     for (final item in selectedItems) {
       itemsByVendor.putIfAbsent(item.vendorName, () => []);
       itemsByVendor[item.vendorName]!.add(item);
+    }
+
+    for (final vendor in itemsByVendor.keys) {
+      _vendorNotesControllers.putIfAbsent(vendor, () => TextEditingController());
     }
 
     final deliveryAddress = preferences.deliveryAddress;
@@ -167,8 +173,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       title: 'Order Notes / Instructions',
                     ),
                     const SizedBox(height: 12),
-                    _notesTextField(),
-                    const SizedBox(height: 16),
+                    ...itemsByVendor.keys.map((vendorName) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Notes for $vendorName',
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF374151),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _notesTextField(vendorName),
+                          ],
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 4),
                     const Divider(color: Color(0xFFE2E8F0)),
                     const SizedBox(height: 12),
                     CheckoutSummaryRow(
@@ -189,14 +215,79 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             CheckoutFooter(
               enabled: selectedItems.isNotEmpty,
-              onPlaceOrder: () {
+              onPlaceOrder: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text(
+                      'Place Order',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0B372B),
+                      ),
+                    ),
+                    content: const Text(
+                      'Are you sure you want to place this order? This action cannot be undone.',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 14,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: const Color(0xFF10B981),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm != true) return;
+                if (!context.mounted) return;
+
+                final Map<String, String> vendorNotes = {};
+                for (final entry in _vendorNotesControllers.entries) {
+                  final text = entry.value.text.trim();
+                  if (text.isNotEmpty) {
+                    vendorNotes[entry.key] = text;
+                  }
+                }
+
                 // Create orders
                 final createdOrders = orders.placeOrders(
                   items: selectedItems,
                   isPickup: _deliveryMethod == 1,
-                  notes: _notesController.text.trim().isNotEmpty
-                      ? _notesController.text.trim()
-                      : null,
+                  vendorNotes: vendorNotes.isNotEmpty ? vendorNotes : null,
                 );
 
                 cart.removeSelectedItems();
@@ -301,9 +392,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _notesTextField() {
+  Widget _notesTextField(String vendorName) {
     return TextFormField(
-      controller: _notesController,
+      controller: _vendorNotesControllers[vendorName],
       maxLines: 3,
       style: const TextStyle(
         fontFamily: 'PlusJakartaSans',

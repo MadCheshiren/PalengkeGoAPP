@@ -72,7 +72,67 @@ class ProfileScreen extends ConsumerWidget {
                 child: profileAsyncValue.when(
                   data: (profile) {
                     if (profile == null) {
-                      return const Center(child: Text('Not Logged In'));
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          Center(
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFF0B372B),
+                                  width: 2,
+                                ),
+                              ),
+                              child: ClipOval(
+                                child: _fallbackAvatar(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Center(
+                            child: Text(
+                              'Guest User',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0B372B),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Center(
+                            child: Text(
+                              'Log in to view your profile and orders',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 48),
+                          _buildMenuItem(
+                            iconData: Icons.login_rounded,
+                            title: 'Log In',
+                            onTap: () {
+                              Navigator.of(context).pushNamed(AppRoutes.login);
+                            },
+                          ),
+                          _buildMenuItem(
+                            iconData: Icons.person_add_alt_1_rounded,
+                            title: 'Create an Account',
+                            onTap: () {
+                              Navigator.of(context).pushNamed(AppRoutes.registration);
+                            },
+                          ),
+                        ],
+                      );
                     }
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

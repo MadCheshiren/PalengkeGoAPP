@@ -6,6 +6,8 @@ import 'package:palengkego/features/profile/application/blocked_vendors_provider
 import 'package:palengkego/features/home/presentation/widgets/home_header.dart';
 import 'package:palengkego/features/home/presentation/widgets/search_field.dart';
 import 'package:palengkego/features/home/presentation/widgets/stall_card.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
+import 'package:palengkego/features/home/presentation/widgets/discounted_item_card.dart';
 import 'package:palengkego/core/mock/mock_promos.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -105,6 +107,60 @@ class HomeScreen extends ConsumerWidget {
                           );
                         },
                       ),
+                    ),
+                    // Flash Deals Section
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final discountedProducts = ref.watch(discountedProductsProvider);
+                        if (discountedProducts.isEmpty) return const SizedBox.shrink();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                'Flash Deals',
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF0B372B),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 240,
+                              child: ListView.separated(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: discountedProducts.length,
+                                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                                itemBuilder: (context, index) {
+                                  final product = discountedProducts[index];
+                                  return AnimatedEntrance(
+                                    index: index + 1,
+                                    child: DiscountedItemCard(
+                                      product: product,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VendorProfileScreen(vendorId: product.vendorId),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        );
+                      },
                     ),
 
                     // Popular Stalls Header

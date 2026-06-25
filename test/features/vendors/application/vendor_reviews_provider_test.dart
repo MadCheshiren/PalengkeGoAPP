@@ -21,6 +21,18 @@ void main() {
       expect(reviews.map((review) => review.vendorId).toSet(), {'v1'});
     },
   );
+
+  test(
+    'vendorReviewsFamilyProvider returns reviews for any vendor ID',
+    () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final v2Reviews = container.read(vendorReviewsFamilyProvider('v2'));
+      expect(v2Reviews, isNotEmpty);
+      expect(v2Reviews.every((r) => r.vendorId == 'v2'), isTrue);
+    },
+  );
 }
 
 class _VendorAuthNotifier extends AuthNotifier {

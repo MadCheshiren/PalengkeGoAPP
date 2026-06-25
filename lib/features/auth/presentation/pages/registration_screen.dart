@@ -49,7 +49,11 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         name.isEmpty ? 'Test User' : name,
       );
 
-      if (mounted) {
+      if (!mounted) return;
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context, true);
+      } else {
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);

@@ -253,6 +253,28 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                           )
                         : null,
                   ),
+                  // Discount Tag
+                  if (product.hasDiscount)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF3B30),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${product.discountPercentage!.toInt()}% OFF',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
                   // Edit badge
                   Positioned(
                     top: 8,
@@ -298,8 +320,19 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     ),
                   ),
                   const SizedBox(height: 2),
+                  if (product.hasDiscount)
+                    Text(
+                      '${formatCurrency.format(product.price)}/$unitLabel',
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF9CA3AF),
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
                   Text(
-                    '${formatCurrency.format(product.price)}/$unitLabel',
+                    '${formatCurrency.format(product.discountedPrice)}/$unitLabel',
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
