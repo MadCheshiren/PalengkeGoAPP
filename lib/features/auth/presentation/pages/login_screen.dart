@@ -39,11 +39,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
     try {
-      await ref.read(authProvider.notifier).login(
-        _emailController.text,
-        _passwordController.text,
-      );
-      if (mounted) _navigateByRole();
+      await ref
+          .read(authProvider.notifier)
+          .login(_emailController.text, _passwordController.text);
+      if (!mounted) return;
+      _navigateByRole();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,15 +63,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _navigateByRole() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context, true);
+      return;
+    }
+
     final user = ref.read(authProvider);
     if (user?.isVendor == true) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.vendorDashboard, (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.vendorDashboard, (route) => false);
     } else {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.main, (route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
     }
   }
 
@@ -87,10 +92,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Container(
                 width: double.infinity,
                 color: const Color(0xFF1E293B),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
-                    const Icon(Icons.code_rounded, color: Color(0xFFF59E0B), size: 14),
+                    const Icon(
+                      Icons.code_rounded,
+                      color: Color(0xFFF59E0B),
+                      size: 14,
+                    ),
                     const SizedBox(width: 8),
                     const Text(
                       'DEV MODE —',
@@ -164,7 +176,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: TextButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Forgot Password coming soon!')),
+                              const SnackBar(
+                                content: Text('Forgot Password coming soon!'),
+                              ),
                             );
                           },
                           style: TextButton.styleFrom(
@@ -226,7 +240,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               label: 'Google',
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Google Sign-In coming soon!')),
+                                  const SnackBar(
+                                    content: Text(
+                                      'Google Sign-In coming soon!',
+                                    ),
+                                  ),
                                 );
                               },
                             ),
@@ -238,7 +256,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               label: 'Facebook',
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Facebook Sign-In coming soon!')),
+                                  const SnackBar(
+                                    content: Text(
+                                      'Facebook Sign-In coming soon!',
+                                    ),
+                                  ),
                                 );
                               },
                             ),
@@ -395,13 +417,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const Icon(Icons.login, size: 20, color: Color(0xFF64748B)),
             ),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF334155),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF334155),
+                ),
               ),
             ),
           ],

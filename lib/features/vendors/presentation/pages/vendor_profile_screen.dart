@@ -12,6 +12,7 @@ import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/vendor_profile_components.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/block_vendor_dialog.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/flag_vendor_bottom_sheet.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_reviews_screen.dart';
 class VendorProfileScreen extends ConsumerStatefulWidget {
   final String vendorId;
   final String? filterCategory;
@@ -253,24 +254,39 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                              itemCount: displayedProducts.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 14,
-                                mainAxisSpacing: 15,
-                                childAspectRatio: 0.85,
-                              ),
-                              itemBuilder: (context, index) {
-                                return VendorProfileProductCard(
-                                  product: displayedProducts[index],
-                                  vendorName: profile.name,
-                                );
-                              },
-                            );
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 16,
+                                  crossAxisSpacing: 16,
+                                  childAspectRatio: 0.75,
+                                ),
+                                itemCount: displayedProducts.length,
+                                itemBuilder: (context, index) {
+                                  return VendorProfileProductCard(
+                                    product: displayedProducts[index],
+                                    vendorName: profile.name,
+                                  );
+                                },
+                              );
                             },
                           ),
                         ),
+                        const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16, 20, 16, 0),
+                          child: Text(
+                            'Customer Reviews',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0B372B),
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                        VendorReviewsSection(vendorId: widget.vendorId),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),

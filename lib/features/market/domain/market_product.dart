@@ -11,6 +11,7 @@ class MarketProduct {
     required this.category,
     required this.imageUrl,
     this.stockQuantity = 0,
+    this.discountPercentage,
   });
 
   final String id;
@@ -24,6 +25,10 @@ class MarketProduct {
   final String category;
   final String imageUrl;
   final int stockQuantity;
+  final double? discountPercentage;
+
+  bool get hasDiscount => discountPercentage != null && discountPercentage! > 0;
+  double get discountedPrice => hasDiscount ? price * (1 - (discountPercentage! / 100)) : price;
 
   factory MarketProduct.fromMap(Map<String, dynamic> map) {
     return MarketProduct(
@@ -38,6 +43,7 @@ class MarketProduct {
       category: map['category'] as String? ?? '',
       imageUrl: map['imageUrl'] as String? ?? '',
       stockQuantity: map['stockQuantity'] as int? ?? 10,
+      discountPercentage: (map['discountPercentage'] as num?)?.toDouble(),
     );
   }
 
@@ -54,6 +60,7 @@ class MarketProduct {
       'category': category,
       'imageUrl': imageUrl,
       'stockQuantity': stockQuantity,
+      'discountPercentage': discountPercentage,
     };
   }
 }

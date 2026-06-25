@@ -6,6 +6,8 @@ import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/services/cart_service.dart';
 import 'package:palengkego/core/services/order_service.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
@@ -57,6 +59,7 @@ void main() {
           overrides: [
             cartServiceProvider.overrideWithValue(cart),
             orderServiceProvider.overrideWithValue(orders),
+            authProvider.overrideWith(() => _TestAuthNotifier()),
           ],
           child: MaterialApp(
             initialRoute: AppRoutes.checkout,
@@ -87,6 +90,11 @@ void main() {
       final placeOrderButton = find.text('Place Order');
       expect(placeOrderButton, findsOneWidget);
       await tester.tap(placeOrderButton);
+      await tester.pumpAndSettle();
+
+      final confirmButton = find.text('Confirm');
+      expect(confirmButton, findsOneWidget);
+      await tester.tap(confirmButton);
 
       // Wait for route transition animations to complete
       await pumpUntilFound(tester, find.text('Orders Placed\nSuccessfully!'));
@@ -109,4 +117,11 @@ void main() {
       await tester.pump();
     },
   );
+}
+
+class _TestAuthNotifier extends AuthNotifier {
+  @override
+  AppUser? build() {
+    return MockUsers.customer;
+  }
 }

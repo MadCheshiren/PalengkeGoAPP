@@ -9,22 +9,31 @@ class SearchQueryNotifier extends Notifier<String> {
   String build() => '';
 
   void update(String query) => state = query;
-  void clear() => state = '';
+  void clear() {
+    if (!ref.mounted) return;
+    state = '';
+  }
 }
 
-final searchQueryProvider =
-    NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
+final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
+  SearchQueryNotifier.new,
+);
 
 /// Filtered vendor list based on the current search query + selected category.
 /// When query is empty, returns the full category-filtered list, excluding blocked vendors.
-final filteredVendorsProvider =
-    Provider.family<List<MarketVendor>, String>((ref, category) {
+final filteredVendorsProvider = Provider.family<List<MarketVendor>, String>((
+  ref,
+  category,
+) {
   final query = ref.watch(searchQueryProvider).toLowerCase().trim();
   final blockedIds = ref.watch(blockedVendorsProvider);
   final repo = ref.watch(marketRepositoryProvider);
-  
+
   // Get all vendors for category and filter out blocked ones
-  final vendors = repo.getVendorsByCategory(category).where((v) => !blockedIds.contains(v.id)).toList();
+  final vendors = repo
+      .getVendorsByCategory(category)
+      .where((v) => !blockedIds.contains(v.id))
+      .toList();
 
   if (query.isEmpty) return vendors;
 

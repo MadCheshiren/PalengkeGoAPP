@@ -19,10 +19,10 @@ class OrderLineItem {
 
   String get quantityLabel {
     if (weight == '1kg') {
-      return '$quantity KG/s';
+      return '$quantity kg';
     }
     if (weight == '1pc' || weight == '1 pc') {
-      return '$quantity PC/s';
+      return '$quantity kg';
     }
     return '$quantity x $weight';
   }

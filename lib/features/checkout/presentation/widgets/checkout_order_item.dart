@@ -8,8 +8,8 @@ class CheckoutOrderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPiece = item.weight.contains('pc') || item.pricePerKg.contains('PC/s') || item.pricePerKg.contains('pc');
-    final unit = isPiece ? 'PC/s' : 'KG/s';
+
+    final unit = 'kg';
     final priceLabel = item.pricePerKg.replaceFirst('PHP ', '');
     final quantityLabel = (item.weight != '1kg' && item.weight != '1pc' && item.weight != '1 pc' && item.weight.isNotEmpty)
         ? '${item.quantity} x ${item.weight}'

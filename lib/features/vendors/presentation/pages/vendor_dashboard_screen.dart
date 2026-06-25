@@ -339,8 +339,8 @@ class _DashboardHome extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: DashboardRecentOrderCard(
-                      orderId: 'Order #${order.id}',
-                      customer: 'Customer',
+                      orderId: 'Order ${order.id}',
+                      customer: order.customerName,
                       items: itemsStr,
                       total: totalStr,
                       time: 'Just now',

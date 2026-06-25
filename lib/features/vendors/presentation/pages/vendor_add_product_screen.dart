@@ -30,8 +30,18 @@ class _VendorAddProductScreenState
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _discountController = TextEditingController();
 
   bool get _isEditMode => widget.existingProduct != null;
+
+  double? get _calculatedDiscountedPrice {
+    final double? price = double.tryParse(_priceController.text.trim());
+    final double? discount = double.tryParse(_discountController.text.trim());
+    if (price != null && discount != null && discount > 0) {
+      return price * (1 - (discount / 100));
+    }
+    return null;
+  }
 
   bool get _isPieceUnit {
     return _selectedCategory == 'Vegetables' ||
@@ -59,6 +69,9 @@ class _VendorAddProductScreenState
       _nameController.text = p.name;
       _priceController.text = p.price.toStringAsFixed(0);
       _stockController.text = p.stockQuantity.toString();
+      if (p.discountPercentage != null && p.discountPercentage! > 0) {
+        _discountController.text = p.discountPercentage.toString();
+      }
       _selectedCategory = p.category;
       _imageUrl = p.imageUrl;
       _inStock = p.isActive;
@@ -70,6 +83,7 @@ class _VendorAddProductScreenState
     _nameController.dispose();
     _priceController.dispose();
     _stockController.dispose();
+    _discountController.dispose();
     super.dispose();
   }
 
@@ -103,6 +117,7 @@ class _VendorAddProductScreenState
     try {
       final double price = double.tryParse(_priceController.text.trim()) ?? 0.0;
       final int stock = int.tryParse(_stockController.text.trim()) ?? 0;
+      final double? discount = double.tryParse(_discountController.text.trim());
       // Read ref synchronously BEFORE any await — safe even if widget unmounts later.
       final vendorId = ref.read(currentVendorIdProvider);
       final manager = ref.read(vendorProductsManagerProvider(vendorId));
@@ -123,6 +138,7 @@ class _VendorAddProductScreenState
         imageUrl: _imageUrl,
         isActive: _inStock,
         stockQuantity: stock,
+        discountPercentage: discount,
       );
 
       if (_isEditMode) {
@@ -498,16 +514,83 @@ class _VendorAddProductScreenState
                     const SizedBox(height: 20),
 
                     // Price field
-                    _buildLabel(_isPieceUnit ? 'Price / pc' : 'Price / kg'),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      hint: '0.00',
-                      controller: _priceController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      prefixText: 'PHP  ',
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel(_isPieceUnit ? 'Price / pc' : 'Price / kg'),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                hint: '0.00',
+                                controller: _priceController,
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                                prefixText: 'PHP  ',
+                                onChanged: (_) => setState(() {}),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel('Discount %'),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                hint: 'e.g. 15',
+                                controller: _discountController,
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                                suffixText: '%',
+                                onChanged: (_) => setState(() {}),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                    if (_calculatedDiscountedPrice != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFBBF7D0)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.local_offer_rounded, color: Color(0xFF16A34A), size: 16),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Discounted Price:',
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 13,
+                                  color: Color(0xFF166534),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                'PHP ${_calculatedDiscountedPrice!.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF15803D),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 20),
 
                     // Stock Quantity
@@ -660,10 +743,12 @@ class _VendorAddProductScreenState
     TextInputType keyboardType = TextInputType.text,
     String? prefixText,
     String? suffixText,
+    void Function(String)? onChanged,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      onChanged: onChanged,
       style: const TextStyle(
         fontFamily: 'PlusJakartaSans',
         fontSize: 14,

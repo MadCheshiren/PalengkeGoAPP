@@ -25,7 +25,8 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orderService = ref.watch(orderServiceProvider);
+    // ref.read only — ListenableBuilder below is the sole reactive mechanism.
+    final orderService = ref.read(orderServiceProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,

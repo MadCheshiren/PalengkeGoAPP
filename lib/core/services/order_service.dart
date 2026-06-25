@@ -6,6 +6,11 @@ import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/payment_status.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/mock/mock_data.dart';
+import 'package:palengkego/features/vendors/application/vendor_provider.dart';
+import 'package:palengkego/features/profile/application/profile_provider.dart';
+
 /// Callback fired after an order status changes.
 /// Provides the orderId, vendorName, and the new status so the
 /// notification layer can react without coupling to Riverpod.
@@ -13,6 +18,8 @@ typedef OrderStatusChangedCallback =
     void Function(String orderId, String vendorName, OrderStatus newStatus);
 
 class OrderService extends ChangeNotifier {
+  final Ref? ref;
+  OrderService({this.ref});
   static const cancelWindow = Duration(minutes: 5);
 
   /// Optional callback wired by [orderServiceProvider] to route
@@ -179,7 +186,8 @@ class OrderService extends ChangeNotifier {
     ),
   ];
 
-  int _nextOrderNumber = 89000;
+  int _dailySequence = 1;
+  String _lastDateString = '';
 
   List<MarketOrder> get orders {
     final sorted = List<MarketOrder>.from(_orders);
@@ -190,7 +198,7 @@ class OrderService extends ChangeNotifier {
   List<MarketOrder> placeOrders({
     required List<CartItem> items,
     required bool isPickup,
-    String? notes,
+    Map<String, String>? vendorNotes,
   }) {
     if (items.isEmpty) {
       return [];
@@ -203,6 +211,23 @@ class OrderService extends ChangeNotifier {
     }
 
     final createdOrders = <MarketOrder>[];
+    
+    String customerName = 'Customer';
+    if (ref != null) {
+      final profile = ref!.read(currentProfileProvider).value;
+      if (profile != null && profile.displayName.isNotEmpty) {
+        customerName = profile.displayName;
+      }
+    }
+
+    final now = DateTime.now();
+    final dateString = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    if (dateString != _lastDateString) {
+      _lastDateString = dateString;
+      _dailySequence = 1;
+    }
+
+    final Set<String> affectedVendors = {};
 
     for (final entry in grouped.entries) {
       final orderItems = entry.value
@@ -219,9 +244,10 @@ class OrderService extends ChangeNotifier {
           .toList();
 
       final order = MarketOrder(
-        id: '#${_nextOrderNumber++}',
+        id: '#$dateString${_dailySequence++}',
         vendorName: entry.key,
         vendorImage: entry.value.first.image,
+        customerName: customerName,
         status: OrderStatus.pending,
         paymentStatus: PaymentStatus.pending,
         fulfillmentMethod: isPickup
@@ -232,11 +258,26 @@ class OrderService extends ChangeNotifier {
         serviceFee: 15.0,
         placedAt: DateTime.now(),
         items: orderItems,
-        notes: notes,
+        notes: vendorNotes?[entry.key],
       );
 
       _orders.add(order);
       createdOrders.add(order);
+      
+      // Decrease stock
+      for (final item in entry.value) {
+        MockDataService.decreaseProductStockByName(item.productName, entry.key, item.quantity);
+        affectedVendors.add(entry.key);
+      }
+    }
+
+    if (ref != null) {
+      for (final vendorName in affectedVendors) {
+        final vendorId = MockDataService.featuredVendors.firstWhere((v) => v['name'] == vendorName, orElse: () => {'id': ''})['id'] as String;
+        if (vendorId.isNotEmpty) {
+          ref!.invalidate(vendorProductsProvider(vendorId));
+        }
+      }
     }
 
     notifyListeners();

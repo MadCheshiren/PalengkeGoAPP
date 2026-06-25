@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
@@ -59,8 +61,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     super.dispose();
   }
 
-  String get _statusDescription {
-    final order = _currentOrder;
+  String _getStatusDescription(MarketOrder order) {
     if (order.status == OrderStatus.completed) {
       return 'Delivered and completed successfully';
     } else if (order.status == OrderStatus.cancelled) {
@@ -76,22 +77,20 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     }
   }
 
-  MarketOrder get _currentOrder {
-    final orderService = ref.read(orderServiceProvider);
-    return orderService.orders.firstWhere(
-      (order) => order.id == _order.id,
-      orElse: () => _order,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final orderService = ref.watch(orderServiceProvider);
+    // Use ref.read — ListenableBuilder below is the sole reactive mechanism.
+    // ref.watch here would create a DOUBLE subscription that triggers
+    // concurrent rebuilds and the "deactivated widget ancestor" crash.
+    final orderService = ref.read(orderServiceProvider);
 
     return ListenableBuilder(
       listenable: orderService,
       builder: (context, _) {
-        final order = _currentOrder;
+        final order = orderService.orders.firstWhere(
+          (o) => o.id == _order.id,
+          orElse: () => _order,
+        );
         final subtotalAmount = order.subtotal;
         final deliveryFeeAmount = order.deliveryFee;
         final serviceFeeAmount = order.serviceFee;
@@ -109,7 +108,13 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.maybePop(context),
+                          onTap: () {
+                            if (Navigator.canPop(this.context)) {
+                              Navigator.pop(this.context);
+                            } else {
+                              Navigator.of(this.context).pushReplacementNamed(AppRoutes.main);
+                            }
+                          },
                           child: Container(
                             width: 40,
                             height: 40,
@@ -148,7 +153,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                 SliverToBoxAdapter(
                   child: OrderDetailsStatusCard(
                     order: order,
-                    statusDescription: _statusDescription,
+                    statusDescription: _getStatusDescription(order),
                   ),
                 ),
 
@@ -261,7 +266,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () {
-                            _showCancelDialog(context);
+                            _showCancelDialog();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0B372B),
@@ -292,72 +297,272 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     );
   }
 
-  void _showCancelDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Cancel Order?',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: const Text(
-          'Are you sure you want to cancel this order? This action cannot be undone.',
-          style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'No, Keep It',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                color: Color(0xFF6B7280),
-              ),
+  void _showCancelDialog() async {
+    final activeOrders = ref.read(orderServiceProvider).orders.where(
+      (o) =>
+          o.status != OrderStatus.completed &&
+          o.status != OrderStatus.cancelled &&
+          o.placedAt.add(const Duration(minutes: 5)).isAfter(DateTime.now()),
+    ).toList();
+
+    if (activeOrders.isEmpty) return;
+
+    List<String>? idsToCancel;
+
+    if (activeOrders.length == 1) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Cancel Order?',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontWeight: FontWeight.w700,
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              final cancelled = ref
-                  .read(orderServiceProvider)
-                  .cancelOrder(widget.order.id);
-              if (cancelled) {
-                _cancelTimer?.cancel();
-                setState(() {
-                  _order = _order.copyWith(status: OrderStatus.cancelled);
-                  _timeRemaining = Duration.zero;
-                });
-              }
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    cancelled
-                        ? 'Order cancelled successfully.'
-                        : 'Order can no longer be cancelled.',
-                    style: const TextStyle(fontFamily: 'PlusJakartaSans'),
-                  ),
-                  behavior: SnackBarBehavior.floating,
+          content: const Text(
+            'Are you sure you want to cancel this order? This action cannot be undone.',
+            style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text(
+                'No, Keep It',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  color: Color(0xFF6B7280),
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text(
-              'Yes, Cancel',
-              style: TextStyle(fontFamily: 'PlusJakartaSans'),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Yes, Cancel',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        idsToCancel = [widget.order.id];
+      }
+    } else {
+      idsToCancel = await showDialog<List<String>>(
+        context: context,
+        builder: (dialogContext) => _CancelOrdersDialog(
+          activeOrders: activeOrders,
+          currentOrderId: widget.order.id,
+        ),
+      );
+    }
+
+    if (idsToCancel != null && idsToCancel.isNotEmpty) {
+      if (!mounted) return;
+
+      int successCount = 0;
+      for (final id in idsToCancel) {
+        final cancelled = ref.read(orderServiceProvider).cancelOrder(id);
+        if (cancelled) {
+          successCount++;
+          if (id == widget.order.id) {
+            _cancelTimer?.cancel();
+          }
+        }
+      }
+
+      if (!mounted) return;
+
+      if (successCount > 0) {
+        AppServices.showSnackBar('$successCount order(s) cancelled successfully.');
+      }
+
+      final currentOrderCancelled = idsToCancel.contains(widget.order.id);
+      
+      if (currentOrderCancelled) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).popUntil((route) {
+            return route.settings.name != null &&
+                route.settings.name != AppRoutes.orderDetails &&
+                route.settings.name != AppRoutes.trackOrder;
+          });
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRoutes.main,
+            (route) => false,
+          );
+        }
+      }
+    }
+  }
+}
+
+class _CancelOrdersDialog extends StatefulWidget {
+  final List<MarketOrder> activeOrders;
+  final String currentOrderId;
+
+  const _CancelOrdersDialog({
+    required this.activeOrders,
+    required this.currentOrderId,
+  });
+
+  @override
+  State<_CancelOrdersDialog> createState() => _CancelOrdersDialogState();
+}
+
+class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
+  final Set<String> _selectedIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds.add(widget.currentOrderId);
+  }
+
+  void _toggleAll() {
+    setState(() {
+      if (_selectedIds.length == widget.activeOrders.length) {
+        _selectedIds.clear();
+      } else {
+        _selectedIds.addAll(widget.activeOrders.map((o) => o.id));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allSelected = _selectedIds.length == widget.activeOrders.length;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text(
+        'Cancel Orders',
+        style: TextStyle(
+          fontFamily: 'PlusJakartaSans',
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select the active orders you wish to cancel. This action cannot be undone.',
+              style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Select All',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                Checkbox(
+                  value: allSelected,
+                  activeColor: const Color(0xFF0B372B),
+                  onChanged: (_) => _toggleAll(),
+                ),
+              ],
+            ),
+            const Divider(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.activeOrders.length,
+                itemBuilder: (context, index) {
+                  final order = widget.activeOrders[index];
+                  final isSelected = _selectedIds.contains(order.id);
+                  return CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    activeColor: const Color(0xFF0B372B),
+                    title: Text(
+                      order.vendorName,
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      'Order ${order.id} • ₱${order.total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 12,
+                      ),
+                    ),
+                    value: isSelected,
+                    onChanged: (val) {
+                      setState(() {
+                        if (val == true) {
+                          _selectedIds.add(order.id);
+                        } else {
+                          _selectedIds.remove(order.id);
+                        }
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              color: Color(0xFF6B7280),
             ),
           ),
-        ],
-      ),
+        ),
+        ElevatedButton(
+          onPressed: _selectedIds.isEmpty
+              ? null
+              : () => Navigator.pop(context, _selectedIds.toList()),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFDC2626),
+            disabledBackgroundColor: const Color(0xFFDC2626).withValues(alpha: 0.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Text(
+            'Confirm',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

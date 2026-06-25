@@ -42,5 +42,18 @@ void main() {
       expect(products.every((product) => product.vendorId == 'v1'), isTrue);
       expect(products.first.name, 'Sweet Mangoes');
     });
+
+    test('returns only products with active discounts', () {
+      final repository = MockMarketRepository();
+
+      final products = repository.getDiscountedProducts();
+
+      expect(products, isNotEmpty);
+      expect(products.every((product) => product.hasDiscount), isTrue);
+      expect(
+        products.every((product) => product.discountedPrice < product.price),
+        isTrue,
+      );
+    });
   });
 }

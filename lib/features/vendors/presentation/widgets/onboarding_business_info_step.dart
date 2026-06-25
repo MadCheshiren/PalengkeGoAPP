@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 class OnboardingBusinessInfoStep extends StatelessWidget {
   final TextEditingController registeredNameController;
-  final TextEditingController phoneController;
   final String? mayorsPermitFile;
   final String? sanitaryPermitFile;
   final String? fireCertificationFile;
@@ -11,13 +10,10 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
   final VoidCallback onUploadSanitaryPermit;
   final VoidCallback onUploadFireCertification;
   final VoidCallback onUploadMarketClearance;
-  final VoidCallback onTapRegisteredName;
-  final VoidCallback onTapPhone;
 
   const OnboardingBusinessInfoStep({
     super.key,
     required this.registeredNameController,
-    required this.phoneController,
     required this.mayorsPermitFile,
     required this.sanitaryPermitFile,
     required this.fireCertificationFile,
@@ -26,63 +22,61 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
     required this.onUploadSanitaryPermit,
     required this.onUploadFireCertification,
     required this.onUploadMarketClearance,
-    required this.onTapRegisteredName,
-    required this.onTapPhone,
   });
 
-  Widget _buildNavigationField({
+  Widget _buildTextField({
+    required TextEditingController controller,
     required String label,
     required String hint,
-    required String? value,
-    required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          style: const TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontSize: 14,
+            color: Color(0xFF111827),
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
               fontFamily: 'PlusJakartaSans',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
+              fontSize: 14,
+              color: Color(0xFF9CA3AF),
             ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
+            filled: true,
+            fillColor: const Color(0xFFF3F4F6),
+            border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+              borderSide: BorderSide.none,
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    value ?? hint,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      color: value != null
-                          ? const Color(0xFF111827)
-                          : const Color(0xFF9CA3AF),
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: Color(0xFF9CA3AF),
-                ),
-              ],
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -159,15 +153,11 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Registered Name field (navigates to step 1)
-          _buildNavigationField(
-            label: 'Registered Name',
-            hint:
-                'Enter your full legal name as written on your government-issued ID',
-            value: registeredNameController.text.isNotEmpty
-                ? registeredNameController.text
-                : null,
-            onTap: onTapRegisteredName,
+          // Registered Name of the Stall
+          _buildTextField(
+            controller: registeredNameController,
+            label: 'Registered Name of the Stall *',
+            hint: 'Enter your stall name',
           ),
           const SizedBox(height: 20),
 
@@ -205,17 +195,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             fileName: marketClearanceFile,
             onTap: onUploadMarketClearance,
           ),
-          const SizedBox(height: 20),
 
-          // Phone Number (navigates to step 3)
-          _buildNavigationField(
-            label: 'Phone Number *',
-            hint: '09XX XXX XXXX',
-            value: phoneController.text.isNotEmpty
-                ? phoneController.text
-                : null,
-            onTap: onTapPhone,
-          ),
         ],
       ),
     );

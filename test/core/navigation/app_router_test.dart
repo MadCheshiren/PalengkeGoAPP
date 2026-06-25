@@ -3,19 +3,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/services/preferences_provider.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
+import 'package:palengkego/features/cart/presentation/pages/shopping_cart_screen.dart';
+import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.dart';
+import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/payment_status.dart';
 import 'package:palengkego/features/orders/presentation/pages/order_details_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  Widget buildRoutedApp(String routeName, {Object? arguments}) {
+  late SharedPreferences prefs;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+  });
+
+  Widget buildRoutedApp(
+    String routeName, {
+    Object? arguments,
+    AppUser? user = MockUsers.customer,
+  }) {
     return ProviderScope(
-      overrides: [authProvider.overrideWith(() => _TestAuthNotifier())],
+      overrides: [
+        authProvider.overrideWith(() => _TestAuthNotifier(user)),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
       child: MaterialApp(
         onGenerateRoute: AppRouter.onGenerateRoute,
         initialRoute: routeName,
@@ -106,11 +127,87 @@ void main() {
       expect(find.text('Current Status'), findsOneWidget);
     });
   });
+
+  group('AppRouter guest browsing access', () {
+    testWidgets('main route is browsable without login', (tester) async {
+      final previousOnError = FlutterError.onError;
+      FlutterError.onError = (details) {
+        if (details.exception is NetworkImageLoadException) return;
+        previousOnError?.call(details);
+      };
+      addTearDown(() => FlutterError.onError = previousOnError);
+
+      await tester.pumpWidget(buildRoutedApp(AppRoutes.main, user: null));
+      await tester.pump();
+
+      expect(find.byType(MainScreen), findsOneWidget);
+      expect(find.text('Account Required'), findsNothing);
+
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('cart route is browsable without login', (tester) async {
+      await tester.pumpWidget(buildRoutedApp(AppRoutes.cart, user: null));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ShoppingCartScreen), findsOneWidget);
+      expect(find.text('Shopping Cart'), findsOneWidget);
+      expect(find.text('Account Required'), findsNothing);
+    });
+
+    testWidgets('checkout route still requires login', (tester) async {
+      await tester.pumpWidget(buildRoutedApp(AppRoutes.checkout, user: null));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AuthGuard), findsOneWidget);
+      expect(find.byType(CheckoutScreen), findsNothing);
+      expect(find.text('Account Required'), findsOneWidget);
+    });
+  });
+
+  group('AppRouter vendor route protection', () {
+    testWidgets('vendor dashboard requires login', (tester) async {
+      await tester.pumpWidget(
+        buildRoutedApp(AppRoutes.vendorDashboard, user: null),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AuthGuard), findsOneWidget);
+      expect(find.text('Account Required'), findsOneWidget);
+      expect(find.byType(VendorDashboardScreen), findsNothing);
+    });
+
+    testWidgets('vendor dashboard rejects customer users', (tester) async {
+      await tester.pumpWidget(
+        buildRoutedApp(AppRoutes.vendorDashboard, user: MockUsers.customer),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AuthGuard), findsOneWidget);
+      expect(find.text('Access Restricted'), findsOneWidget);
+      expect(find.byType(VendorDashboardScreen), findsNothing);
+    });
+
+    testWidgets('vendor dashboard opens for vendor users', (tester) async {
+      await tester.pumpWidget(
+        buildRoutedApp(AppRoutes.vendorDashboard, user: MockUsers.vendor),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(VendorDashboardScreen), findsOneWidget);
+      expect(find.text('Account Required'), findsNothing);
+      expect(find.text('Access Restricted'), findsNothing);
+    });
+  });
 }
 
 class _TestAuthNotifier extends AuthNotifier {
+  _TestAuthNotifier(this.initialUser);
+
+  final AppUser? initialUser;
+
   @override
   AppUser? build() {
-    return MockUsers.customer;
+    return initialUser;
   }
 }

@@ -196,8 +196,8 @@ class _VendorOrdersTab extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Customer', // We don't have customer name in MarketOrder yet
+              Text(
+                order.customerName,
                 style: TextStyle(
                   fontFamily: 'PlusJakartaSans',
                   fontSize: 13,

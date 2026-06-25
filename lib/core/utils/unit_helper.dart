@@ -40,6 +40,6 @@ class UnitHelper {
   }
 
   static String getUnitString(bool isPiece) {
-    return isPiece ? 'PC/s' : 'KG/s';
+    return 'kg';
   }
 }

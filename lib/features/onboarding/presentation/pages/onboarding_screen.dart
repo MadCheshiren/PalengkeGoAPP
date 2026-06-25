@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/services/preferences_provider.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.of(context).size.width;
     final isSmall = width < 360;
 
@@ -76,8 +78,12 @@ class OnboardingScreen extends StatelessWidget {
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(AppRoutes.registration);
+                      onPressed: () async {
+                        final prefs = ref.read(sharedPreferencesProvider);
+                        await prefs.setBool('hasSeenOnboarding', true);
+                        if (context.mounted) {
+                          Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0B372B),

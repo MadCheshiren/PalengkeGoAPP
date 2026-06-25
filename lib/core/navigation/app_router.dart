@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
 import 'package:palengkego/features/auth/presentation/pages/registration_screen.dart';
@@ -71,15 +72,9 @@ class AppRouter {
       case AppRoutes.main:
         final args = settings.arguments;
         final initialIndex = args is MainRouteArgs ? args.initialIndex : 0;
-        return _materialRoute(
-          settings,
-          AuthGuard(child: MainScreen(initialIndex: initialIndex)),
-        );
+        return _materialRoute(settings, MainScreen(initialIndex: initialIndex));
       case AppRoutes.cart:
-        return _slideRoute(
-          settings,
-          const AuthGuard(child: ShoppingCartScreen()),
-        );
+        return _slideRoute(settings, const ShoppingCartScreen());
       case AppRoutes.checkout:
         return _slideRoute(settings, const AuthGuard(child: CheckoutScreen()));
       case AppRoutes.paymentMethods:
@@ -126,7 +121,7 @@ class AppRouter {
           const AuthGuard(child: SetDeliveryAddressScreen()),
         );
       case AppRoutes.cookbook:
-        return _slideRoute(settings, const AuthGuard(child: CookbookScreen()));
+        return _slideRoute(settings, const CookbookScreen());
       case AppRoutes.orderDetails:
         final args = settings.arguments;
         if (args is! OrderDetailsRouteArgs) {
@@ -139,12 +134,18 @@ class AppRouter {
       case AppRoutes.vendorAddProduct:
         return _slideRoute(
           settings,
-          const AuthGuard(child: VendorAddProductScreen()),
+          const AuthGuard(
+            allowedRoles: {UserRole.vendor},
+            child: VendorAddProductScreen(),
+          ),
         );
       case AppRoutes.vendorDashboard:
         return _materialRoute(
           settings,
-          const AuthGuard(child: VendorDashboardScreen()),
+          const AuthGuard(
+            allowedRoles: {UserRole.vendor},
+            child: VendorDashboardScreen(),
+          ),
         );
       default:
         return _errorRoute(settings);

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:palengkego/features/auth/data/auth_repository.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 
@@ -9,9 +8,9 @@ class MockAuthRepository implements AuthRepository {
 
   MockAuthRepository() {
     // In debug mode, auto-login as customer so the app is explorable immediately.
-    if (kDebugMode) {
-      _currentUser = MockUsers.customer;
-    }
+    // if (kDebugMode) {
+    //   _currentUser = MockUsers.customer;
+    // }
   }
 
   @override
