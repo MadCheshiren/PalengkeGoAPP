@@ -123,7 +123,6 @@ class MockDataService {
       'description': 'Sweet and ripe',
       'imageUrl':
           'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300&h=300&fit=crop',
-      'discountPercentage': 20,
     },
     {
       'id': 'p2',
@@ -404,9 +403,12 @@ class MockDataService {
   static List<Map<String, dynamic>> getDiscountedProducts() {
     return products
         .where(
-          (p) =>
-              p.containsKey('discountPercentage') &&
-              (p['discountPercentage'] as num) > 0,
+          (p) {
+            final discount = p['discountPercentage'];
+            // Guard: skip products where discountPercentage is null or not a number
+            if (discount == null) return false;
+            return (discount as num) > 0;
+          },
         )
         .map((p) {
           final vendor = featuredVendors.firstWhere(

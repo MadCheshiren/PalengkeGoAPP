@@ -41,4 +41,12 @@ class MockMarketRepository implements MarketRepository {
         .map(MarketProduct.fromMap)
         .toList(growable: false);
   }
+
+  @override
+  List<MarketProduct> getAllProducts() {
+    final vendors = getFeaturedVendors();
+    return vendors
+        .expand((v) => getProductsForVendor(v.id))
+        .toList(growable: false);
+  }
 }

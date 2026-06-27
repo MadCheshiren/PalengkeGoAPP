@@ -32,7 +32,7 @@ class HomeScreen extends ConsumerWidget {
             Container(
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
-              child: const SearchField(),
+              child: SearchField(),
             ),
             Expanded(
               child: SingleChildScrollView(
