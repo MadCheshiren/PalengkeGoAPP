@@ -9,4 +9,6 @@ abstract class MarketRepository {
   List<MarketProduct> getProductsForVendor(String vendorId);
 
   List<MarketProduct> getDiscountedProducts();
+
+  List<MarketProduct> getAllProducts();
 }

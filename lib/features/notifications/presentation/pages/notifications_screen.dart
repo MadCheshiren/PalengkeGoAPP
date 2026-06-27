@@ -203,41 +203,43 @@ class _NotificationCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: isRead
-              ? null
-              : const Border(
-                  left: BorderSide(color: Color(0xFFFFB902), width: 4)),
-          boxShadow: const [
+          // Unread: very light brand-tinted bg. Read: plain white.
+          color: isRead ? Colors.white : const Color(0xFFC8E6D4),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x08000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
+              color: const Color(0xFF0B372B).withValues(alpha: isRead ? 0.04 : 0.12),
+              blurRadius: isRead ? 6 : 16,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Icon circle
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: config.bgColor,
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
               ),
-              child: Icon(config.icon, size: 24, color: config.iconColor),
+              child: Icon(config.icon, size: 20, color: config.iconColor),
             ),
             const SizedBox(width: 12),
+            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
@@ -245,43 +247,65 @@ class _NotificationCard extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            // Unread: heavy. Read: medium — weight carries the state.
+                            fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
                             color: isRead
-                                ? const Color(0xFF475569)
-                                : const Color(0xFF1F2937),
+                                ? const Color(0xFF6B7280)
+                                : const Color(0xFF0B372B),
+                            height: 1.3,
                           ),
                         ),
                       ),
-                      if (!isRead)
+                      if (!isRead) ...[
+                        const SizedBox(width: 8),
                         Container(
                           width: 8,
                           height: 8,
+                          margin: const EdgeInsets.only(top: 3),
                           decoration: const BoxDecoration(
-                            color: Color(0xFFFFB902),
+                            color: Color(0xFFF59E0B),
                             shape: BoxShape.circle,
                           ),
                         ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     notification.body,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF6B7280),
-                      height: 1.4,
+                      color: isRead
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF1A5C45),
+                      height: 1.45,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _relativeTime(notification.createdAt),
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF9CA3AF),
+                  // Timestamp chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isRead
+                          ? const Color(0xFFF3F4F6)
+                          : const Color(0xFF9DD4B5),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      _relativeTime(notification.createdAt),
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: isRead
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF0B7A50),
+                      ),
                     ),
                   ),
                 ],
@@ -298,7 +322,7 @@ class _NotificationCard extends StatelessWidget {
   ) {
     return switch (type) {
       NotificationType.order => (
-          icon: Icons.inventory_2_outlined,
+          icon: Icons.shopping_bag_outlined,
           iconColor: Colors.white,
           bgColor: const Color(0xFF0B372B),
         ),
@@ -308,17 +332,17 @@ class _NotificationCard extends StatelessWidget {
           bgColor: const Color(0xFFECFDF5),
         ),
       NotificationType.review => (
-          icon: Icons.star_rate_rounded,
+          icon: Icons.star_outline_rounded,
           iconColor: const Color(0xFFF59E0B),
           bgColor: const Color(0xFFFEF3C7),
         ),
       NotificationType.stock => (
-          icon: Icons.inventory_2_outlined,
+          icon: Icons.inbox_outlined,
           iconColor: const Color(0xFFEF4444),
           bgColor: const Color(0xFFFEF2F2),
         ),
       NotificationType.admin => (
-          icon: Icons.campaign_rounded,
+          icon: Icons.campaign_outlined,
           iconColor: const Color(0xFF3B82F6),
           bgColor: const Color(0xFFEFF6FF),
         ),

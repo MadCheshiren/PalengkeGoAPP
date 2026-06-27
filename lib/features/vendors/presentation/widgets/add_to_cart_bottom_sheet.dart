@@ -46,14 +46,26 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
   @override
   void initState() {
     super.initState();
-    final isPiece = UnitHelper.isPieceUnit(
-      widget.product.name,
-      widget.product.description,
-    );
+    // Read unit directly from pricePerKg (e.g. '₱150/kg' or '₱10/pc').
+    // Only fall back to name-heuristic if pricePerKg is absent/empty.
+    final isPiece = _isPieceProduct();
     _weights = isPiece
         ? ['1 pc', '3 pcs', '6 pcs', '12 pcs']
         : ['1kg', '1/2kg', '1/4kg', '1/8kg'];
     _selectedWeight = _weights.first;
+  }
+
+  /// Returns true when the product is sold per-piece.
+  /// Checks pricePerKg string first (most reliable), then falls back to name.
+  bool _isPieceProduct() {
+    final pkgLower = widget.product.pricePerKg.toLowerCase();
+    if (pkgLower.contains('/kg')) return false;
+    if (pkgLower.contains('/pc') || pkgLower.contains('/piece')) return true;
+    // fallback: name-based heuristic
+    return UnitHelper.isPieceUnit(
+      widget.product.name,
+      widget.product.description,
+    );
   }
 
   @override
@@ -299,12 +311,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                         Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: Text(
-                            UnitHelper.isPieceUnit(
-                                  widget.product.name,
-                                  widget.product.description,
-                                )
-                                ? 'pc'
-                                : 'kg',
+                            _isPieceProduct() ? 'pc' : 'kg',
                             style: TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
@@ -486,10 +493,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
   }
 
   String _priceLabel(double basePrice) {
-    final unit =
-        UnitHelper.isPieceUnit(widget.product.name, widget.product.description)
-        ? 'pc'
-        : 'kg';
+    final unit = _isPieceProduct() ? 'pc' : 'kg';
     return 'PHP ${basePrice.toInt()}/$unit';
   }
 }

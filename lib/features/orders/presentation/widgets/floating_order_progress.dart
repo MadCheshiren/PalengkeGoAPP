@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:palengkego/features/orders/application/order_provider.dart';
-
-import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/services/order_service.dart';
+import 'package:palengkego/features/orders/application/order_provider.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class FloatingOrderProgress extends ConsumerWidget {
   const FloatingOrderProgress({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use ref.read — the ListenableBuilder below handles all reactivity.
-    // Using ref.watch here would create a DOUBLE subscription (Riverpod +
-    // ListenableBuilder) that causes concurrent rebuild races and the
-    // "deactivated widget ancestor" crash.
     final orderService = ref.read(orderServiceProvider);
 
     return Positioned(
@@ -24,87 +21,576 @@ class FloatingOrderProgress extends ConsumerWidget {
       child: ListenableBuilder(
         listenable: orderService,
         builder: (context, _) {
-          final activeOrders = orderService.orders.where(
-            (o) =>
-                o.status != OrderStatus.completed &&
-                o.status != OrderStatus.cancelled,
-          );
+          final activeOrders = orderService.orders
+              .where(
+                (o) =>
+                    o.status != OrderStatus.completed &&
+                    o.status != OrderStatus.cancelled,
+              )
+              .toList();
 
-          if (activeOrders.isEmpty) {
-            return const SizedBox.shrink();
+          if (activeOrders.isEmpty) return const SizedBox.shrink();
+
+          if (activeOrders.length == 1) {
+            return _SingleOrderPill(
+              order: activeOrders.first,
+              onTap: () => Navigator.of(context).pushNamed(
+                AppRoutes.orderDetails,
+                arguments: OrderDetailsRouteArgs(order: activeOrders.first),
+              ),
+            );
           }
 
-          final order = activeOrders.first;
-
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                AppRoutes.orderDetails,
-                arguments: OrderDetailsRouteArgs(order: order),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0B372B),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: Colors.white24,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.receipt_long_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Order ${order.id}',
-                          style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          order.statusLabel,
-                          style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded, color: Colors.white),
-                ],
-              ),
-            ),
+          // Multiple active orders → multi-order tray
+          return _MultiOrderPill(
+            orders: activeOrders,
+            orderService: orderService,
           );
         },
       ),
     );
+  }
+}
+
+// ── Single order pill (unchanged visual) ─────────────────────────────────────
+
+class _SingleOrderPill extends StatelessWidget {
+  final MarketOrder order;
+  final VoidCallback onTap;
+
+  const _SingleOrderPill({required this.order, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0B372B),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Colors.white24,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.receipt_long_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    order.vendorName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    order.statusLabel,
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Multi-order pill ──────────────────────────────────────────────────────────
+
+class _MultiOrderPill extends StatelessWidget {
+  final List<MarketOrder> orders;
+  final OrderService orderService;
+
+  const _MultiOrderPill({required this.orders, required this.orderService});
+
+  @override
+  Widget build(BuildContext context) {
+    // Show up to 3 stacked initials circles
+    final shown = orders.take(3).toList();
+
+    return GestureDetector(
+      onTap: () => _showOrderTray(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0B372B),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Stacked initials
+            SizedBox(
+              width: 20.0 + (shown.length - 1) * 18.0,
+              height: 36,
+              child: Stack(
+                children: [
+                  for (int i = shown.length - 1; i >= 0; i--)
+                    Positioned(
+                      left: i * 18.0,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _avatarColor(i),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF0B372B),
+                            width: 2,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          shown[i].vendorName.isNotEmpty
+                              ? shown[i].vendorName[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${orders.length} active orders',
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    orders.map((o) => o.statusLabel).toSet().join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_up_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _avatarColor(int index) {
+    const colors = [
+      Color(0xFF2E7D57),
+      Color(0xFF1A5C45),
+      Color(0xFF3A9467),
+    ];
+    return colors[index % colors.length];
+  }
+
+  void _showOrderTray(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _OrderTraySheet(
+        orders: orders,
+        orderService: orderService,
+      ),
+    );
+  }
+}
+
+// ── Order tray bottom sheet ───────────────────────────────────────────────────
+
+class _OrderTraySheet extends StatefulWidget {
+  final List<MarketOrder> orders;
+  final OrderService orderService;
+
+  const _OrderTraySheet({required this.orders, required this.orderService});
+
+  @override
+  State<_OrderTraySheet> createState() => _OrderTraySheetState();
+}
+
+class _OrderTraySheetState extends State<_OrderTraySheet> {
+  late List<MarketOrder> _orders;
+
+  @override
+  void initState() {
+    super.initState();
+    _orders = List.from(widget.orders);
+    widget.orderService.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (!mounted) return;
+    setState(() {
+      _orders = widget.orderService.orders
+          .where(
+            (o) =>
+                o.status != OrderStatus.completed &&
+                o.status != OrderStatus.cancelled,
+          )
+          .toList();
+    });
+    // Auto-close if all orders are done
+    if (_orders.isEmpty && mounted) Navigator.of(context).maybePop();
+  }
+
+  @override
+  void dispose() {
+    widget.orderService.removeListener(_refresh);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.5,
+      minChildSize: 0.35,
+      maxChildSize: 0.85,
+      snap: true,
+      snapSizes: const [0.5, 0.85],
+      builder: (context, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Drag handle
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 4),
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Active Orders',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC8E6D4),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text(
+                        '${_orders.length}',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0B372B),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).maybePop(),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF3F4F6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Order list
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                  itemCount: _orders.isEmpty ? 1 : _orders.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    if (_orders.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 48),
+                        child: Center(
+                          child: Text(
+                            'All orders completed.',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 14,
+                              color: Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return _OrderTrayRow(
+                      order: _orders[index],
+                      onView: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.orderDetails,
+                          arguments: OrderDetailsRouteArgs(
+                            order: _orders[index],
+                          ),
+                        );
+                      },
+                      onCancel: _canCancel(_orders[index])
+                          ? () => _cancelOrder(_orders[index])
+                          : null,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  bool _canCancel(MarketOrder order) {
+    if (order.status == OrderStatus.completed ||
+        order.status == OrderStatus.cancelled) {
+      return false;
+    }
+    final cancelUntil = order.placedAt.add(OrderService.cancelWindow);
+    return DateTime.now().isBefore(cancelUntil);
+  }
+
+  void _cancelOrder(MarketOrder order) {
+    final cancelled = widget.orderService.cancelOrder(order.id);
+    if (cancelled && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Order from ${order.vendorName} cancelled.',
+            style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+          ),
+          backgroundColor: const Color(0xFF0B372B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+  }
+}
+
+// ── Individual order row ──────────────────────────────────────────────────────
+
+class _OrderTrayRow extends StatelessWidget {
+  final MarketOrder order;
+  final VoidCallback onView;
+  final VoidCallback? onCancel;
+
+  const _OrderTrayRow({
+    required this.order,
+    required this.onView,
+    this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = _statusColor(order.status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Status dot
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  order.vendorName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${order.items.length} item${order.items.length == 1 ? '' : 's'} · ${order.statusLabel}',
+                  style: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 12,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (onCancel != null) ...[
+                GestureDetector(
+                  onTap: onCancel,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFEF4444),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              GestureDetector(
+                onTap: onView,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0B372B),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'View',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(OrderStatus status) {
+    return switch (status) {
+      OrderStatus.pending => const Color(0xFFF59E0B),
+      OrderStatus.confirmed => const Color(0xFF3B82F6),
+      OrderStatus.preparing => const Color(0xFF8B5CF6),
+      OrderStatus.ready => const Color(0xFF059669),
+      OrderStatus.completed => const Color(0xFF6B7280),
+      OrderStatus.cancelled => const Color(0xFFEF4444),
+    };
   }
 }

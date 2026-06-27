@@ -109,6 +109,52 @@ void main() {
       expect(cart.items.single.pricePerKg, 'PHP 10/pc');
     });
 
+    testWidgets(
+      'uses kg divisions when a piece-like product is priced per kg',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final cart = CartService();
+        addTearDown(cart.dispose);
+
+        const product = VendorProduct(
+          id: 'p2',
+          vendorId: 'v1',
+          name: 'Sweet Mangoes',
+          description: 'Sweet and ripe fruit',
+          category: 'Fruits',
+          price: 150,
+          pricePerKg: 'PHP 150/kg',
+          weight: '1kg',
+          imageUrl: '',
+          stockQuantity: 12,
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [cartServiceProvider.overrideWithValue(cart)],
+            child: const MaterialApp(
+              home: Scaffold(
+                body: AddToCartBottomSheet(
+                  vendorName: 'Diosa Fruit Stand',
+                  product: product,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('1kg'), findsOneWidget);
+        expect(find.text('1/2kg'), findsOneWidget);
+        expect(find.text('1/4kg'), findsOneWidget);
+        expect(find.text('1/8kg'), findsOneWidget);
+        expect(find.text('1 pc'), findsNothing);
+      },
+    );
+
     testWidgets('preserves image, stock, and discounted price in cart item', (
       tester,
     ) async {

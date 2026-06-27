@@ -208,141 +208,143 @@ class _VendorNotificationCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
+          color: isRead ? Colors.white : const Color(0xFFC8E6D4),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x05000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
+              color: const Color(0xFF0B372B).withValues(alpha: isRead ? 0.04 : 0.12),
+              blurRadius: isRead ? 6 : 16,
+              offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(
-            color: isRead
-                ? const Color(0xFFE2E8F0)
-                : config.accent.withValues(alpha: 0.3),
-            width: 1,
-          ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(
-                  color: isRead ? const Color(0xFFCBD5E1) : config.accent,
-                  width: 4,
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon circle
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: config.bg,
+                shape: BoxShape.circle,
               ),
+              alignment: Alignment.center,
+              child: Icon(config.icon, color: config.accent, size: 20),
             ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: config.bg,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(config.icon, color: config.accent, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  notification.title,
-                                  style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: isRead
-                                        ? const Color(0xFF475569)
-                                        : const Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ),
-                              if (!isRead)
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: config.accent,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            notification.body,
-                            style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF64748B),
-                              height: 1.35,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _relativeTime(notification.createdAt),
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    if (!isRead)
-                      GestureDetector(
-                        onTap: onTap,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: config.accent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'Mark Read',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: config.accent,
-                            ),
+            const SizedBox(width: 12),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 14,
+                            fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                            color: isRead
+                                ? const Color(0xFF6B7280)
+                                : const Color(0xFF0B372B),
+                            height: 1.3,
                           ),
                         ),
                       ),
-                  ],
-                ),
-              ],
+                      if (!isRead) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(top: 3),
+                          decoration: BoxDecoration(
+                            color: config.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification.body,
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: isRead
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF1A5C45),
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Timestamp chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isRead
+                              ? const Color(0xFFF3F4F6)
+                              : const Color(0xFF9DD4B5),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Text(
+                          _relativeTime(notification.createdAt),
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: isRead
+                                ? const Color(0xFF9CA3AF)
+                                : const Color(0xFF0B7A50),
+                          ),
+                        ),
+                      ),
+                      // Mark Read action (vendor-specific: explicit is helpful)
+                      if (!isRead)
+                        GestureDetector(
+                          onTap: onTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: config.accent.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: Text(
+                              'Mark read',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: config.accent,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -351,22 +353,22 @@ class _VendorNotificationCard extends StatelessWidget {
   ({IconData icon, Color accent, Color bg}) _typeConfig(NotificationType type) {
     return switch (type) {
       NotificationType.order => (
-          icon: Icons.receipt_long_rounded,
-          accent: const Color(0xFF22C55E),
+          icon: Icons.shopping_bag_outlined,
+          accent: const Color(0xFF059669),
           bg: const Color(0xFFF0FDF4),
         ),
       NotificationType.stock => (
-          icon: Icons.inventory_2_outlined,
+          icon: Icons.inbox_outlined,
           accent: const Color(0xFFEF4444),
           bg: const Color(0xFFFEF2F2),
         ),
       NotificationType.review => (
-          icon: Icons.star_rate_rounded,
+          icon: Icons.star_outline_rounded,
           accent: const Color(0xFFF59E0B),
           bg: const Color(0xFFFEF3C7),
         ),
       NotificationType.admin => (
-          icon: Icons.campaign_rounded,
+          icon: Icons.campaign_outlined,
           accent: const Color(0xFF3B82F6),
           bg: const Color(0xFFEFF6FF),
         ),
