@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Provider for the Supabase Client.
 ///
@@ -12,13 +11,14 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 
 /// Service class to handle Supabase initialization.
 class SupabaseService {
-  /// Initializes the Supabase client using credentials from the .env file.
-  static Future<void> initialize() async {
-    final url = dotenv.env['SUPABASE_URL'];
-    final anonKey = dotenv.env['SUPABASE_ANON_KEY'];
-
-    if (url == null || anonKey == null) {
-      throw Exception('Missing Supabase credentials in .env file');
+  /// Initializes the Supabase client using credentials from [AppConfig]
+  /// (passed as [url] and [anonKey] from `--dart-define` values).
+  static Future<void> initialize({
+    required String url,
+    required String anonKey,
+  }) async {
+    if (url.isEmpty || anonKey.isEmpty) {
+      throw ArgumentError('Supabase url and anon key must be provided');
     }
 
     await Supabase.initialize(url: url, publishableKey: anonKey);

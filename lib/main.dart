@@ -4,46 +4,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
+import 'core/config/app_config.dart';
+import 'core/config/app_environment.dart';
 import 'core/navigation/app_router.dart';
 import 'core/navigation/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/responsive_wrapper.dart';
 import 'core/services/app_services.dart';
 import 'core/services/preferences_provider.dart';
-
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'core/presentation/pages/startup_error_screen.dart';
 import 'core/infrastructure/firebase_service.dart';
 import 'core/infrastructure/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables (contains Supabase keys).
-  // Optional: a fresh checkout has no .env, and the app must still boot.
-  final envLoad = dotenv.load(fileName: ".env", isOptional: true);
-
-  // Initialize Backend Services
-  // Prevent unconfigured Firebase from crashing release build for now
-  final firebaseInit = kReleaseMode
-      ? Future.value()
-      : FirebaseService.initialize();
-  final prefsFuture = SharedPreferences.getInstance();
-
-  await envLoad; // env must finish before Supabase reads keys
-  final supabaseInit = () async {
-    try {
-      await SupabaseService.initialize();
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint(
-          'Supabase init skipped/failed (Ensure .env is populated): $e',
-        );
-      }
-    }
-  }();
-
-  final results = await Future.wait([prefsFuture, firebaseInit, supabaseInit]);
-  final prefs = results[0] as SharedPreferences;
+  final config = AppConfig.load();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -95,6 +71,48 @@ Future<void> main() async {
       ),
     );
   };
+
+  // Production builds must be explicitly configured — never silently fall
+  // back to mock repositories when the backend is required.
+  final configError = config.validate();
+  if (config.environment == AppEnvironment.production && configError != null) {
+    runApp(StartupErrorScreen(message: configError));
+    return;
+  }
+
+  final prefs = await SharedPreferences.getInstance();
+
+  Object? startupError;
+  if (config.firebaseEnabled) {
+    try {
+      await FirebaseService.initialize();
+    } catch (e) {
+      startupError = e;
+      if (kDebugMode) {
+        debugPrint('[Startup] Firebase init failed: $e');
+      }
+    }
+  }
+  if (startupError == null &&
+      config.supabaseUrl.isNotEmpty &&
+      config.supabaseAnonKey.isNotEmpty) {
+    try {
+      await SupabaseService.initialize(
+        url: config.supabaseUrl,
+        anonKey: config.supabaseAnonKey,
+      );
+    } catch (e) {
+      startupError = e;
+      if (kDebugMode) {
+        debugPrint('[Startup] Supabase init failed: $e');
+      }
+    }
+  }
+
+  if (config.environment == AppEnvironment.production && startupError != null) {
+    runApp(StartupErrorScreen(message: 'Backend failed to start: $startupError'));
+    return;
+  }
 
   await SharedOrderStore.load(prefs);
 
