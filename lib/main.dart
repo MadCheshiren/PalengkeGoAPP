@@ -18,8 +18,9 @@ import 'core/infrastructure/supabase_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables (contains Supabase keys)
-  final envLoad = dotenv.load(fileName: ".env");
+  // Load environment variables (contains Supabase keys).
+  // Optional: a fresh checkout has no .env, and the app must still boot.
+  final envLoad = dotenv.load(fileName: ".env", isOptional: true);
 
   // Initialize Backend Services
   // Prevent unconfigured Firebase from crashing release build for now
