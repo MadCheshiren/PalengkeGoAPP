@@ -7,6 +7,8 @@ import 'recipe_details_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
+import 'package:palengkego/features/orders/application/order_provider.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class RecipesScreen extends ConsumerStatefulWidget {
   const RecipesScreen({super.key});
@@ -23,15 +25,56 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
     final repository = ref.watch(recipeRepositoryProvider);
     final allRecipes = repository.getRecipes();
     final savedRecipes = ref.watch(savedRecipesProvider);
+    final ordersAsync = ref.watch(orderServiceProvider);
 
-    final categories = ['All', ...allRecipes.map((r) => r.category).toSet()];
-    
-    final filteredRecipes = _selectedCategory == 'All' 
-        ? allRecipes 
-        : allRecipes.where((r) => r.category == _selectedCategory).toList();
-        
-    final featuredRecipe = filteredRecipes.isNotEmpty ? filteredRecipes.first : null;
-    final moreRecipes = filteredRecipes.length > 1 ? filteredRecipes.skip(1).toList() : <Recipe>[];
+    final purchasedProductNames = <String>{};
+    ordersAsync.whenData((orders) {
+      purchasedProductNames.addAll(
+        orders
+            .where((order) => order.status == OrderStatus.completed)
+            .expand((order) => order.items)
+            .map((item) => item.productName.toLowerCase()),
+      );
+    });
+
+    // Recipes unlock when their title or ingredients match any purchased item
+    final unlockedRecipes = allRecipes.where((recipe) {
+      final titleLower = recipe.title.toLowerCase();
+      if (purchasedProductNames.any(
+        (p) => titleLower.contains(p) || p.contains(titleLower),
+      )) {
+        return true;
+      }
+      if (recipe.ingredients != null) {
+        for (final ing in recipe.ingredients!) {
+          final ingName = ing.name.toLowerCase();
+          if (purchasedProductNames.any(
+            (p) => ingName.contains(p) || p.contains(ingName),
+          )) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }).toList();
+
+    final categories = [
+      'All',
+      ...unlockedRecipes.map((r) => r.category).toSet(),
+    ];
+
+    final filteredRecipes = _selectedCategory == 'All'
+        ? unlockedRecipes
+        : unlockedRecipes
+              .where((r) => r.category == _selectedCategory)
+              .toList();
+
+    final featuredRecipe = filteredRecipes.isNotEmpty
+        ? filteredRecipes.first
+        : null;
+    final moreRecipes = filteredRecipes.length > 1
+        ? filteredRecipes.skip(1).toList()
+        : <Recipe>[];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -101,112 +144,173 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        children: categories.map((cat) {
-                          final isSelected = cat == _selectedCategory;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () => setState(() => _selectedCategory = cat),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeOutQuart,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                child: Text(
-                                  cat,
-                                  style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
-                                    fontSize: 13,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                    if (unlockedRecipes.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 48,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFF0FDF4),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.lock_outline_rounded,
+                                size: 48,
+                                color: Color(0xFF0B372B),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Locked Recipes',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Purchase fresh ingredients like Mango, Chicken, Pork, or Vegetables from Diosa Fruit Stand or other stalls to unlock delicious local recipes!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 14,
+                                color: Color(0xFF64748B),
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else ...[
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          children: categories.map((cat) {
+                            final isSelected = cat == _selectedCategory;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () =>
+                                    setState(() => _selectedCategory = cat),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeOutQuart,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFF0B372B)
+                                        : const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                  child: Text(
+                                    cat,
+                                    style: TextStyle(
+                                      fontFamily: 'PlusJakartaSans',
+                                      fontSize: 13,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w600,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF64748B),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    if (featuredRecipe != null) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          'Featured Recipe',
-                          style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildFeaturedRecipe(
-                          context,
-                          ref,
-                          featuredRecipe,
-                          savedRecipes,
+                            );
+                          }).toList(),
                         ),
                       ),
                       const SizedBox(height: 24),
-                    ],
-                    if (moreRecipes.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          'More Recipes',
-                          style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: moreRecipes.length,
-                        itemBuilder: (cellContext, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _buildRecipeCard(
-                              context,
-                              ref,
-                              moreRecipes[index],
-                              savedRecipes,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    if (filteredRecipes.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                        child: Center(
+                      if (featuredRecipe != null) ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
-                            'No recipes found in this category.',
+                            'Featured Recipe',
                             style: TextStyle(
                               fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1F2937),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildFeaturedRecipe(
+                            context,
+                            ref,
+                            featuredRecipe,
+                            savedRecipes,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                      if (moreRecipes.isNotEmpty) ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            'More Recipes',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: moreRecipes.length,
+                          itemBuilder: (cellContext, index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildRecipeCard(
+                                context,
+                                ref,
+                                moreRecipes[index],
+                                savedRecipes,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (filteredRecipes.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 40,
+                          ),
+                          child: Center(
+                            child: Text(
+                              'No recipes found in this category.',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 14,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ],
                 ),
               ),
