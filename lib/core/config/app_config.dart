@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/config/app_environment.dart';
 
 class AppConfig {
-  const AppConfig._({
-    required this.environment,
-    required this.firebaseEnabled,
-    required this.supabaseUrl,
-    required this.supabaseAnonKey,
-    required this.paymongoPublicKey,
+  const AppConfig({
+    this.environment = AppEnvironment.development,
+    this.firebaseEnabled = false,
+    this.supabaseUrl = '',
+    this.supabaseAnonKey = '',
+    this.paymongoPublicKey = 'pk_test_placeholder',
   });
 
   final AppEnvironment environment;
@@ -17,9 +17,10 @@ class AppConfig {
   final String paymongoPublicKey;
 
   /// Loads configuration from compile-time arguments using `--dart-define`.
-  /// Defaults are provided for local development if no flags are passed.
+  /// Defaults are provided for local development if no flags are passed
+  /// (mock repositories, no backend calls).
   factory AppConfig.load() {
-    return AppConfig._(
+    return AppConfig(
       environment: AppEnvironment.fromString(
         const String.fromEnvironment('APP_ENV', defaultValue: 'development'),
       ),
@@ -40,6 +41,34 @@ class AppConfig {
         defaultValue: 'pk_test_placeholder', // Placeholder
       ),
     );
+  }
+
+  /// Returns an error message when the configuration cannot support the
+  /// requested environment, or `null` when it is valid.
+  ///
+  /// Local mock mode (no dart-defines) is always valid — only production
+  /// (and staging, for the Firebase path) builds demand real credentials.
+  /// Production never silently falls back to mock repositories.
+  String? validate() {
+    if (environment == AppEnvironment.development) {
+      return null;
+    }
+
+    if (!firebaseEnabled) {
+      return 'This ${environment.name} build requires '
+          '--dart-define=FIREBASE_ENABLED=true';
+    }
+    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+      return 'This ${environment.name} build requires SUPABASE_URL and '
+          'SUPABASE_ANON_KEY dart-defines';
+    }
+    if (environment == AppEnvironment.production &&
+        (paymongoPublicKey.isEmpty ||
+            paymongoPublicKey == 'pk_test_placeholder')) {
+      return 'Production builds require a PayMongo public key via '
+          '--dart-define=PAYMONGO_PUBLIC_KEY=...';
+    }
+    return null;
   }
 }
 
