@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
-import 'package:palengkego/core/services/cart_service.dart';
+import 'package:palengkego/core/services/preferences_provider.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/login_screen.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/cart/data/mock_cart_repository.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/cart/presentation/pages/shopping_cart_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   void usePhoneViewport(WidgetTester tester) {
@@ -17,22 +20,32 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
-  CartService cartWithSelectedItem() {
-    return CartService()..addToCart(
-      vendorName: 'Diosa Fruit Stand',
-      productName: 'Sweet Mangoes',
-      price: 150,
-      weight: '1kg',
-      pricePerKg: 'PHP 150/kg',
-      image: 'https://example.com/mango.jpg',
-    );
-  }
+  late MockCartRepository repository;
+  late SharedPreferences prefs;
 
-  Widget buildCartApp({required CartService cart, required AppUser? user}) {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+    MockCartRepository.clearTestState();
+    repository = MockCartRepository()
+      ..addToCart(
+        CartItem(
+          productId: 'm1',
+          vendorName: 'Diosa Fruit Stand',
+          productName: 'Sweet Mangoes',
+          price: 150,
+          unit: 'kg',
+          image: 'https://example.com/mango.jpg',
+        ),
+      );
+  });
+
+  Widget buildCartApp({required AppUser? user}) {
     return ProviderScope(
       overrides: [
-        cartServiceProvider.overrideWithValue(cart),
+        cartRepositoryProvider.overrideWithValue(repository),
         authProvider.overrideWith(() => _TestAuthNotifier(user)),
+        sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: MaterialApp(
         onGenerateRoute: AppRouter.onGenerateRoute,
@@ -44,26 +57,22 @@ void main() {
   group('ShoppingCartScreen auth checkout flow', () {
     testWidgets('guest can view cart items before logging in', (tester) async {
       usePhoneViewport(tester);
-      final cart = cartWithSelectedItem();
-      addTearDown(cart.dispose);
 
-      await tester.pumpWidget(buildCartApp(cart: cart, user: null));
+      await tester.pumpWidget(buildCartApp(user: null));
       await tester.pumpAndSettle();
 
       expect(find.text('Shopping Cart'), findsOneWidget);
       expect(find.text('Sweet Mangoes'), findsOneWidget);
       expect(find.text('Login Required'), findsNothing);
-      expect(cart.items, hasLength(1));
+      expect(repository.items, hasLength(1));
     });
 
     testWidgets('guest checkout prompts login and keeps cart contents', (
       tester,
     ) async {
       usePhoneViewport(tester);
-      final cart = cartWithSelectedItem();
-      addTearDown(cart.dispose);
 
-      await tester.pumpWidget(buildCartApp(cart: cart, user: null));
+      await tester.pumpWidget(buildCartApp(user: null));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Checkout'));
@@ -81,18 +90,16 @@ void main() {
       );
       expect(find.text('Log In'), findsOneWidget);
       expect(find.text('Register'), findsOneWidget);
-      expect(cart.items, hasLength(1));
-      expect(cart.items.single.productName, 'Sweet Mangoes');
+      expect(repository.items, hasLength(1));
+      expect(repository.items.single.productName, 'Sweet Mangoes');
     });
 
     testWidgets('guest can back out of login without losing cart contents', (
       tester,
     ) async {
       usePhoneViewport(tester);
-      final cart = cartWithSelectedItem();
-      addTearDown(cart.dispose);
 
-      await tester.pumpWidget(buildCartApp(cart: cart, user: null));
+      await tester.pumpWidget(buildCartApp(user: null));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Checkout'));
@@ -110,18 +117,14 @@ void main() {
       expect(find.text('Shopping Cart'), findsOneWidget);
       expect(find.text('Sweet Mangoes'), findsOneWidget);
       expect(find.text('Login Required'), findsNothing);
-      expect(cart.items, hasLength(1));
-      expect(cart.items.single.productName, 'Sweet Mangoes');
+      expect(repository.items, hasLength(1));
+      expect(repository.items.single.productName, 'Sweet Mangoes');
     });
 
     testWidgets('authenticated checkout skips login prompt', (tester) async {
       usePhoneViewport(tester);
-      final cart = cartWithSelectedItem();
-      addTearDown(cart.dispose);
 
-      await tester.pumpWidget(
-        buildCartApp(cart: cart, user: MockUsers.customer),
-      );
+      await tester.pumpWidget(buildCartApp(user: MockUsers.customer));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Checkout'));

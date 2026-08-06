@@ -10,8 +10,6 @@ void main() {
       description: 'Fresh pork belly',
       category: 'Meat',
       price: 200,
-      pricePerKg: 'PHP 200/kg',
-      weight: '1kg',
       imageUrl: 'pork.png',
       discountPercentage: discountPercentage,
     );

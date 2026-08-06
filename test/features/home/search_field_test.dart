@@ -33,5 +33,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
 
     expect(find.text('Sweet Mangoes'), findsNothing);
+
+    // Flush any pending focus/unfocus debounce timers.
+    await tester.pump(const Duration(milliseconds: 300));
   });
 }

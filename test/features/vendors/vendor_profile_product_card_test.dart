@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:palengkego/core/services/cart_service.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/cart/data/mock_cart_repository.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/add_to_cart_bottom_sheet.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/vendor_profile_components.dart';
 
 void main() {
+  late MockCartRepository cartRepository;
+
+  setUp(() {
+    cartRepository = MockCartRepository();
+    MockCartRepository.clearTestState();
+  });
+
   Widget buildCard({
     required VendorProduct product,
-    required CartService cart,
   }) {
     return ProviderScope(
-      overrides: [cartServiceProvider.overrideWithValue(cart)],
+      overrides: [cartRepositoryProvider.overrideWithValue(cartRepository)],
       child: MaterialApp(
         home: Scaffold(
           body: SizedBox(
@@ -29,7 +35,7 @@ void main() {
     );
   }
 
-  VendorProduct product({required int stockQuantity}) {
+  VendorProduct product({required double stockQuantity}) {
     return VendorProduct(
       id: 'p1',
       vendorId: 'v1',
@@ -37,8 +43,6 @@ void main() {
       description: 'Fresh mangoes',
       category: 'Fruits',
       price: 150,
-      pricePerKg: 'PHP 150/kg',
-      weight: '1kg',
       imageUrl: '',
       stockQuantity: stockQuantity,
     );
@@ -48,11 +52,8 @@ void main() {
     testWidgets(
       'out-of-stock product shows disabled state and does not open cart sheet',
       (tester) async {
-        final cart = CartService();
-        addTearDown(cart.dispose);
-
         await tester.pumpWidget(
-          buildCard(product: product(stockQuantity: 0), cart: cart),
+          buildCard(product: product(stockQuantity: 0)),
         );
 
         expect(find.text('Out of stock'), findsOneWidget);
@@ -61,18 +62,15 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(AddToCartBottomSheet), findsNothing);
-        expect(cart.items, isEmpty);
+        expect(cartRepository.items, isEmpty);
       },
     );
 
     testWidgets(
       'low-stock product shows remaining stock and opens add-to-cart sheet',
       (tester) async {
-        final cart = CartService();
-        addTearDown(cart.dispose);
-
         await tester.pumpWidget(
-          buildCard(product: product(stockQuantity: 3), cart: cart),
+          buildCard(product: product(stockQuantity: 3)),
         );
 
         expect(find.text('Only 3 left'), findsOneWidget);

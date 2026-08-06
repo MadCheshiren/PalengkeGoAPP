@@ -5,8 +5,18 @@ import 'package:palengkego/core/services/notification_service.dart';
 
 void main() {
   group('notificationServiceProvider', () {
+    ProviderContainer buildContainer() {
+      return ProviderContainer(
+        overrides: [
+          notificationServiceProvider.overrideWith(
+            (ref) => NotificationService(isTest: true),
+          ),
+        ],
+      );
+    }
+
     test('provides a NotificationService instance', () {
-      final container = ProviderContainer();
+      final container = buildContainer();
       addTearDown(container.dispose);
 
       final service = container.read(notificationServiceProvider);
@@ -14,7 +24,7 @@ void main() {
     });
 
     test('same instance is returned on subsequent reads', () {
-      final container = ProviderContainer();
+      final container = buildContainer();
       addTearDown(container.dispose);
 
       final a = container.read(notificationServiceProvider);
@@ -24,7 +34,7 @@ void main() {
 
     test('service is disposed when container is disposed', () {
       var disposed = false;
-      final container = ProviderContainer();
+      final container = buildContainer();
 
       final service = container.read(notificationServiceProvider);
       service.addListener(() {});

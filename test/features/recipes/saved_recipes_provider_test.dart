@@ -3,8 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
+
   group('SavedRecipesNotifier Tests', () {
     const testRecipe = Recipe(
       title: 'Sinigang na Hipon',

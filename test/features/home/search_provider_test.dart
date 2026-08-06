@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/preferences_provider.dart';
 import 'package:palengkego/features/home/application/search_provider.dart';
+import 'package:palengkego/features/market/application/market_provider.dart';
+import 'package:palengkego/features/market/domain/market_vendor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -15,6 +17,15 @@ void main() {
     );
     addTearDown(container.dispose);
     return container;
+  }
+
+  Future<List<MarketVendor>> readVendors(
+    ProviderContainer container,
+    String category,
+  ) async {
+    // Ensure the underlying async vendor data is resolved first.
+    await container.read(vendorsByCategoryProvider(category).future);
+    return container.read(filteredVendorsProvider(category)).value ?? [];
   }
 
   group('SearchQueryNotifier', () {
@@ -50,7 +61,7 @@ void main() {
     test('returns all vendors in category when query is empty', () async {
       final container = await buildContainer();
 
-      final all = container.read(filteredVendorsProvider('All'));
+      final all = await readVendors(container, 'All');
       expect(all, isNotEmpty);
     });
 
@@ -60,7 +71,7 @@ void main() {
       // Seed a query that matches a known vendor name fragment in mock data
       container.read(searchQueryProvider.notifier).update('diosa');
 
-      final results = container.read(filteredVendorsProvider('All'));
+      final results = await readVendors(container, 'All');
       // All results should contain 'diosa' in name or category
       for (final v in results) {
         expect(
@@ -77,7 +88,7 @@ void main() {
       // Query that should match nothing in the Fish category
       container.read(searchQueryProvider.notifier).update('zzznomatch_xyz');
 
-      final results = container.read(filteredVendorsProvider('Fish'));
+      final results = await readVendors(container, 'Fish');
       expect(results, isEmpty);
     });
 
@@ -88,14 +99,14 @@ void main() {
           .read(searchQueryProvider.notifier)
           .update('qqqqq_no_vendor_ever');
 
-      final results = container.read(filteredVendorsProvider('All'));
+      final results = await readVendors(container, 'All');
       expect(results, isEmpty);
     });
 
     test('excludes blocked vendors from filtered results', () async {
       final container = await buildContainer(blockedIds: ['v1']);
 
-      final results = container.read(filteredVendorsProvider('All'));
+      final results = await readVendors(container, 'All');
 
       expect(results.map((vendor) => vendor.id), isNot(contains('v1')));
     });
@@ -106,15 +117,15 @@ void main() {
       final notifier = container.read(searchQueryProvider.notifier);
 
       // Initially all vendors
-      final allCount = container.read(filteredVendorsProvider('All')).length;
+      final allCount = (await readVendors(container, 'All')).length;
 
       // Apply a non-matching query
       notifier.update('zzznomatch');
-      expect(container.read(filteredVendorsProvider('All')), isEmpty);
+      expect(await readVendors(container, 'All'), isEmpty);
 
       // Clear query — should restore all
       notifier.clear();
-      expect(container.read(filteredVendorsProvider('All')).length, allCount);
+      expect((await readVendors(container, 'All')).length, allCount);
     });
   });
 }

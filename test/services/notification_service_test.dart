@@ -7,7 +7,7 @@ void main() {
     late NotificationService service;
 
     setUp(() {
-      service = NotificationService();
+      service = NotificationService(isTest: true);
     });
 
     tearDown(() {

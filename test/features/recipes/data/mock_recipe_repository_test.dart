@@ -20,9 +20,9 @@ void main() {
 
       final recipes = repository.getRecipes();
 
-      expect(recipes, hasLength(5));
+      expect(recipes, hasLength(7));
       expect(recipes.first.title, 'Sinigang na Hipon');
-      expect(recipes.last.title, 'Fresh Lumpia');
+      expect(recipes.last.title, 'Turon (Banana Spring Rolls)');
     });
 
     test('returns more recipes without the featured recipe', () {
@@ -30,7 +30,7 @@ void main() {
 
       final recipes = repository.getMoreRecipes();
 
-      expect(recipes, hasLength(4));
+      expect(recipes, hasLength(6));
       expect(
         recipes.any((recipe) => recipe.title == 'Sinigang na Hipon'),
         isFalse,

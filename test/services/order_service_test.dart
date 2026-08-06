@@ -1,70 +1,95 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:palengkego/features/cart/domain/cart_item.dart';
-import 'package:palengkego/core/services/order_service.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/orders/application/order_provider.dart';
+import 'package:palengkego/features/orders/data/mock_order_repository.dart';
+import 'package:palengkego/features/orders/data/shared_order_store.dart';
+import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  CartItem cartItem({
-    required String vendorName,
+  late MockOrderRepository repository;
+
+  setUpAll(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  setUp(() {
+    SharedOrderStore.orders.clear();
+    SharedOrderStore.history.clear();
+    repository = MockOrderRepository();
+  });
+
+  ProviderContainer buildContainer() {
+    final container = ProviderContainer(
+      overrides: [
+        orderRepositoryProvider.overrideWithValue(repository),
+        authProvider.overrideWith(_TestAuthNotifier.new),
+      ],
+    );
+    addTearDown(container.dispose);
+    return container;
+  }
+
+  OrderLineItem lineItem({
     required String productName,
     required double price,
-    String weight = '1kg',
-    String pricePerKg = 'PHP 100/kg',
+    String unit = 'kg',
     String image = 'item.png',
-    int quantity = 1,
+    double quantity = 1,
   }) {
-    return CartItem(
-      vendorName: vendorName,
+    return OrderLineItem(
+      productId: 'p_$productName',
       productName: productName,
-      price: price,
-      weight: weight,
-      pricePerKg: pricePerKg,
-      image: image,
       quantity: quantity,
+      unitPrice: price,
+      unit: unit,
+      image: image,
     );
   }
 
-  group('OrderService', () {
-    test('returns no orders for an empty cart item list', () {
-      final service = OrderService();
+  Map<String, (String, List<OrderLineItem>)> grouped(
+    List<(String vendor, List<OrderLineItem> items)> entries,
+  ) {
+    return {
+      for (final entry in entries) entry.$1: ('', entry.$2),
+    };
+  }
 
-      final orders = service.placeOrders(items: const [], isPickup: false);
+  group('OrderRepository', () {
+    test('returns no orders for an empty grouped item list', () async {
+      final orders = await repository.placeOrders(
+        groupedItems: {},
+        isPickup: false,
+      );
 
       expect(orders, isEmpty);
     });
 
-    test('groups created orders by vendor', () {
-      final service = OrderService();
-
-      final orders = service.placeOrders(
+    test('groups created orders by vendor', () async {
+      final orders = await repository.placeOrders(
+        groupedItems: grouped([
+          (
+            'Aling Nena Vegetables',
+            [
+              lineItem(productName: 'Carrots', price: 120),
+              lineItem(productName: 'Baguio Beans', price: 140),
+            ],
+          ),
+          (
+            'Mang Pedro Seafood',
+            [lineItem(productName: 'Bangus', price: 90, unit: 'pc')],
+          ),
+        ]),
         isPickup: false,
-        items: [
-          cartItem(
-            vendorName: 'Aling Nena',
-            productName: 'Carrots',
-            price: 120,
-          ),
-          cartItem(
-            vendorName: 'Mang Juan',
-            productName: 'Bangus',
-            price: 90,
-            weight: '1pc',
-            pricePerKg: 'PHP 90/pc',
-          ),
-          cartItem(
-            vendorName: 'Aling Nena',
-            productName: 'Baguio Beans',
-            price: 140,
-            weight: '500g',
-            pricePerKg: 'PHP 140/500g',
-          ),
-        ],
       );
 
       expect(orders, hasLength(2));
       expect(orders.map((order) => order.vendorName), [
-        'Aling Nena',
-        'Mang Juan',
+        'Aling Nena Vegetables',
+        'Mang Pedro Seafood',
       ]);
       expect(orders.first.items.map((item) => item.productName), [
         'Carrots',
@@ -73,46 +98,41 @@ void main() {
       expect(orders.last.items.single.productName, 'Bangus');
     });
 
-    test('copies cart item details into order line items', () {
-      final service = OrderService();
-
-      final orders = service.placeOrders(
-        isPickup: false,
-        items: [
-          cartItem(
-            vendorName: 'Aling Nena',
-            productName: 'Carrots',
-            price: 120,
-            weight: '500g',
-            pricePerKg: 'PHP 120/500g',
-            image: 'carrots.png',
-            quantity: 3,
+    test('copies cart item details into order line items', () async {
+      final orders = await repository.placeOrders(
+        groupedItems: grouped([
+          (
+            'Aling Nena Vegetables',
+            [
+              lineItem(
+                productName: 'Carrots',
+                price: 120,
+                image: 'carrots.png',
+                quantity: 3,
+              ),
+            ],
           ),
-        ],
+        ]),
+        isPickup: false,
       );
 
-      final lineItem = orders.single.items.single;
-      expect(lineItem.productName, 'Carrots');
-      expect(lineItem.quantity, 3);
-      expect(lineItem.unitPrice, 120);
-      expect(lineItem.weight, '500g');
-      expect(lineItem.pricePerKg, 'PHP 120/500g');
-      expect(lineItem.image, 'carrots.png');
-      expect(lineItem.total, 360);
+      final lineItem2 = orders.single.items.single;
+      expect(lineItem2.productName, 'Carrots');
+      expect(lineItem2.quantity, 3);
+      expect(lineItem2.unitPrice, 120);
+      expect(lineItem2.image, 'carrots.png');
+      expect(lineItem2.total, 360);
     });
 
-    test('pickup orders start as pending', () {
-      final service = OrderService();
-
-      final orders = service.placeOrders(
-        isPickup: true,
-        items: [
-          cartItem(
-            vendorName: 'Aling Nena',
-            productName: 'Carrots',
-            price: 120,
+    test('pickup orders start as pending', () async {
+      final orders = await repository.placeOrders(
+        groupedItems: grouped([
+          (
+            'Aling Nena Vegetables',
+            [lineItem(productName: 'Carrots', price: 120)],
           ),
-        ],
+        ]),
+        isPickup: true,
       );
 
       expect(orders.single.status, OrderStatus.pending);
@@ -120,18 +140,15 @@ void main() {
       expect(orders.single.isPickup, isTrue);
     });
 
-    test('delivery orders start as pending until a vendor accepts them', () {
-      final service = OrderService();
-
-      final orders = service.placeOrders(
-        isPickup: false,
-        items: [
-          cartItem(
-            vendorName: 'Aling Nena',
-            productName: 'Carrots',
-            price: 120,
+    test('delivery orders start as pending until a vendor accepts them', () async {
+      final orders = await repository.placeOrders(
+        groupedItems: grouped([
+          (
+            'Aling Nena Vegetables',
+            [lineItem(productName: 'Carrots', price: 120)],
           ),
-        ],
+        ]),
+        isPickup: false,
       );
 
       expect(orders.single.status, OrderStatus.pending);
@@ -141,90 +158,100 @@ void main() {
 
     test(
       'cancelOrder moves a pending order to cancelled within the cancel window',
-      () {
-        final service = OrderService();
-        final orders = service.placeOrders(
-          isPickup: false,
-          items: [
-            cartItem(
-              vendorName: 'Aling Nena',
-              productName: 'Carrots',
-              price: 120,
+      () async {
+        await repository.placeOrders(
+          groupedItems: grouped([
+            (
+              'Aling Nena Vegetables',
+              [lineItem(productName: 'Carrots', price: 120)],
             ),
-          ],
+          ]),
+          isPickup: false,
         );
+        final container = buildContainer();
+        final orders = await container.read(orderServiceProvider.future);
+        final order = orders.first;
 
-        final cancelled = service.cancelOrder(
-          orders.single.id,
-          now: orders.single.placedAt.add(const Duration(minutes: 4)),
-        );
+        final cancelled = await container
+            .read(orderServiceProvider.notifier)
+            .cancelOrder(
+              order.id,
+              now: order.placedAt.add(const Duration(minutes: 4)),
+            );
 
         expect(cancelled, isTrue);
-        expect(
-          service.orders
-              .firstWhere((order) => order.id == orders.single.id)
-              .status,
-          OrderStatus.cancelled,
-        );
+        final updated = (await container.read(orderServiceProvider.future))
+            .firstWhere((entry) => entry.id == order.id);
+        expect(updated.status, OrderStatus.cancelled);
       },
     );
 
-    test('cancelOrder rejects cancellation after the cancel window', () {
-      final service = OrderService();
-      final orders = service.placeOrders(
-        isPickup: false,
-        items: [
-          cartItem(
-            vendorName: 'Aling Nena',
-            productName: 'Carrots',
-            price: 120,
+    test('cancelOrder rejects cancellation after the cancel window', () async {
+      await repository.placeOrders(
+        groupedItems: grouped([
+          (
+            'Aling Nena Vegetables',
+            [lineItem(productName: 'Carrots', price: 120)],
           ),
-        ],
+        ]),
+        isPickup: false,
       );
+      final container = buildContainer();
+      final orders = await container.read(orderServiceProvider.future);
+      final order = orders.first;
 
-      final cancelled = service.cancelOrder(
-        orders.single.id,
-        now: orders.single.placedAt.add(const Duration(minutes: 6)),
-      );
+      final cancelled = await container
+          .read(orderServiceProvider.notifier)
+          .cancelOrder(
+            order.id,
+            now: order.placedAt.add(const Duration(minutes: 6)),
+          );
 
       expect(cancelled, isFalse);
-      expect(
-        service.orders
-            .firstWhere((order) => order.id == orders.single.id)
-            .status,
-        OrderStatus.pending,
-      );
+      final updated = (await container.read(orderServiceProvider.future))
+          .firstWhere((entry) => entry.id == order.id);
+      expect(updated.status, OrderStatus.pending);
     });
 
     test(
       'cancelOrder rejects completed orders even within the cancel window',
-      () {
-        final service = OrderService();
-        final orders = service.placeOrders(
-          isPickup: false,
-          items: [
-            cartItem(
-              vendorName: 'Aling Nena',
-              productName: 'Carrots',
-              price: 120,
+      () async {
+        await repository.placeOrders(
+          groupedItems: grouped([
+            (
+              'Aling Nena Vegetables',
+              [lineItem(productName: 'Carrots', price: 120)],
             ),
-          ],
+          ]),
+          isPickup: false,
         );
-        service.updateOrderStatus(orders.single.id, OrderStatus.completed);
+        final container = buildContainer();
+        final orders = await container.read(orderServiceProvider.future);
+        final order = orders.first;
 
-        final cancelled = service.cancelOrder(
-          orders.single.id,
-          now: orders.single.placedAt.add(const Duration(minutes: 1)),
-        );
+        await container
+            .read(orderServiceProvider.notifier)
+            .updateOrderStatus(order.id, OrderStatus.completed);
+        // Let the invalidated provider rebuild before cancelOrder reads it.
+        await container.read(orderServiceProvider.future);
+
+        final cancelled = await container
+            .read(orderServiceProvider.notifier)
+            .cancelOrder(
+              order.id,
+              now: order.placedAt.add(const Duration(minutes: 1)),
+            );
 
         expect(cancelled, isFalse);
-        expect(
-          service.orders
-              .firstWhere((order) => order.id == orders.single.id)
-              .status,
-          OrderStatus.completed,
-        );
+        final updated = (await container.read(orderServiceProvider.future))
+            .firstWhere((entry) => entry.id == order.id);
+        expect(updated.status, OrderStatus.completed);
       },
     );
   });
+}
+
+class _TestAuthNotifier extends AuthNotifier {
+  @override
+  AppUser? build() => MockUsers.customer;
 }
