@@ -7,6 +7,7 @@ class AppBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
   final int? cartBadgeCount;
+  final int? recipeBadgeCount;
   final bool isCartAction;
 
   const AppBottomNavBar({
@@ -14,6 +15,7 @@ class AppBottomNavBar extends StatelessWidget {
     required this.selectedIndex,
     required this.onTap,
     this.cartBadgeCount,
+    this.recipeBadgeCount,
     this.isCartAction = false,
   });
 
@@ -112,6 +114,7 @@ class AppBottomNavBar extends StatelessWidget {
                       index: 3,
                       selectedIndex: selectedIndex,
                       onTap: onTap,
+                      badgeCount: recipeBadgeCount,
                       iconSpacing: itemSpacing,
                       activeFontSize: activeFontSize,
                       inactiveFontSize: inactiveFontSize,

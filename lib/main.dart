@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:palengkego/features/orders/data/shared_order_store.dart';
 import 'core/navigation/app_router.dart';
 import 'core/navigation/app_routes.dart';
 import 'core/theme/app_theme.dart';
@@ -9,11 +11,38 @@ import 'core/widgets/responsive_wrapper.dart';
 import 'core/services/app_services.dart';
 import 'core/services/preferences_provider.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'core/infrastructure/firebase_service.dart';
+import 'core/infrastructure/supabase_service.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Pre-initialize SharedPreferences so notifiers can read it synchronously.
-  final prefs = await SharedPreferences.getInstance();
+  // Load environment variables (contains Supabase keys)
+  final envLoad = dotenv.load(fileName: ".env");
+
+  // Initialize Backend Services
+  // Prevent unconfigured Firebase from crashing release build for now
+  final firebaseInit = kReleaseMode
+      ? Future.value()
+      : FirebaseService.initialize();
+  final prefsFuture = SharedPreferences.getInstance();
+
+  await envLoad; // env must finish before Supabase reads keys
+  final supabaseInit = () async {
+    try {
+      await SupabaseService.initialize();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          'Supabase init skipped/failed (Ensure .env is populated): $e',
+        );
+      }
+    }
+  }();
+
+  final results = await Future.wait([prefsFuture, firebaseInit, supabaseInit]);
+  final prefs = results[0] as SharedPreferences;
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -65,6 +94,8 @@ Future<void> main() async {
       ),
     );
   };
+
+  await SharedOrderStore.load(prefs);
 
   runApp(
     ProviderScope(

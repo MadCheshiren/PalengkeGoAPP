@@ -21,10 +21,7 @@ class AppConfig {
   factory AppConfig.load() {
     return AppConfig._(
       environment: AppEnvironment.fromString(
-        const String.fromEnvironment(
-          'APP_ENV',
-          defaultValue: 'development',
-        ),
+        const String.fromEnvironment('APP_ENV', defaultValue: 'development'),
       ),
       firebaseEnabled: const bool.fromEnvironment(
         'FIREBASE_ENABLED',

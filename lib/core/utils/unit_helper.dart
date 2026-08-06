@@ -39,7 +39,13 @@ class UnitHelper {
         description.contains('pc');
   }
 
+  static bool isPieceProduct(dynamic product) {
+    if (product.unit == 'pc') return true;
+    if (product.unit == 'kg') return false;
+    return isPieceUnit(product.name, product.description);
+  }
+
   static String getUnitString(bool isPiece) {
-    return 'kg';
+    return isPiece ? 'pc' : 'kg';
   }
 }
