@@ -1,19 +1,22 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:palengkego/features/market/application/market_provider.dart';
 import 'package:palengkego/features/market/domain/market_product.dart';
+import 'package:palengkego/features/market/domain/market_vendor.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
-import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
+import 'package:palengkego/features/home/application/search_provider.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/navigation/app_router.dart';
 
-class SearchField extends StatefulWidget {
-  const SearchField({super.key});
+class SearchField extends ConsumerStatefulWidget {
+  final bool isInline;
+  const SearchField({super.key, this.isInline = false});
 
   @override
-  State<SearchField> createState() => _SearchFieldState();
+  ConsumerState<SearchField> createState() => _SearchFieldState();
 }
 
-class _SearchFieldState extends State<SearchField> {
+class _SearchFieldState extends ConsumerState<SearchField> {
   final TextEditingController _ctrl = TextEditingController();
   final FocusNode _focus = FocusNode();
   final LayerLink _layerLink = LayerLink();
@@ -31,11 +34,16 @@ class _SearchFieldState extends State<SearchField> {
     final text = _ctrl.text;
     if (text != _query) {
       setState(() => _query = text);
-      _overlay?.markNeedsBuild();
+      // Keep searchQueryProvider in sync so other screens (market) can react
+      ref.read(searchQueryProvider.notifier).update(text);
+      if (!widget.isInline) {
+        _overlay?.markNeedsBuild();
+      }
     }
   }
 
   void _onFocusChanged() {
+    if (widget.isInline) return;
     if (_focus.hasFocus) {
       _showOverlay();
     } else {
@@ -60,6 +68,18 @@ class _SearchFieldState extends State<SearchField> {
     _overlay = null;
   }
 
+  void _handleSubmit(String value) {
+    final text = value.trim();
+    if (text.isEmpty) return;
+    _focus.unfocus();
+    _hideOverlay();
+    Navigator.pushNamed(
+      context,
+      AppRoutes.recommendedIngredientStores,
+      arguments: RecommendedIngredientStoresRouteArgs(ingredientName: text),
+    );
+  }
+
   void _clear() {
     _ctrl.clear();
     setState(() => _query = '');
@@ -71,17 +91,22 @@ class _SearchFieldState extends State<SearchField> {
       builder: (ctx) => _SearchDropdown(
         layerLink: _layerLink,
         query: _ctrl.text,
-        onSelect: (product) {
+        onSelect: (result) {
           _ctrl.clear();
           setState(() => _query = '');
           _focus.unfocus();
           _hideOverlay();
-          Navigator.push(
+          final vendorId = result.isProduct
+              ? result.product!.vendorId
+              : result.vendor!.id;
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (_) => VendorProfileScreen(vendorId: product.vendorId),
-            ),
+            AppRoutes.vendorProfile,
+            arguments: VendorProfileRouteArgs(vendorId: vendorId),
           );
+        },
+        onSeeAll: () {
+          _handleSubmit(_ctrl.text);
         },
         onQueryChanged: () => _query,
       ),
@@ -95,6 +120,10 @@ class _SearchFieldState extends State<SearchField> {
     _hideOverlay();
     _ctrl.dispose();
     _focus.dispose();
+    // Clear the global query so other screens don't show stale results
+    Future.microtask(() {
+      if (mounted) ref.read(searchQueryProvider.notifier).clear();
+    });
     super.dispose();
   }
 
@@ -127,15 +156,18 @@ class _SearchFieldState extends State<SearchField> {
         child: Row(
           children: [
             const SizedBox(width: 14),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: Icon(
-                _focus.hasFocus ? Icons.search_rounded : Icons.search_rounded,
-                key: ValueKey(_focus.hasFocus),
-                size: 18,
-                color: _focus.hasFocus
-                    ? const Color(0xFF0B372B)
-                    : const Color(0xFF6D9773),
+            GestureDetector(
+              onTap: () => _handleSubmit(_ctrl.text),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: Icon(
+                  Icons.search_rounded,
+                  key: ValueKey(_focus.hasFocus),
+                  size: 18,
+                  color: _focus.hasFocus
+                      ? const Color(0xFF0B372B)
+                      : const Color(0xFF6D9773),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -143,6 +175,8 @@ class _SearchFieldState extends State<SearchField> {
               child: TextField(
                 controller: _ctrl,
                 focusNode: _focus,
+                textInputAction: TextInputAction.search,
+                onSubmitted: _handleSubmit,
                 textAlignVertical: TextAlignVertical.center,
                 style: const TextStyle(
                   fontFamily: 'PlusJakartaSans',
@@ -202,36 +236,37 @@ class _SearchFieldState extends State<SearchField> {
 class _SearchDropdown extends ConsumerWidget {
   final LayerLink layerLink;
   final String query;
-  final ValueChanged<MarketProduct> onSelect;
+  final ValueChanged<AppSearchResult> onSelect;
+  final VoidCallback onSeeAll;
   final String Function() onQueryChanged;
 
   const _SearchDropdown({
     required this.layerLink,
     required this.query,
     required this.onSelect,
+    required this.onSeeAll,
     required this.onQueryChanged,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final results = ref.watch(searchProductsProvider(query));
-    final showEmpty = query.trim().isNotEmpty && results.isEmpty;
-
-    // Only show if there's a query
     if (query.trim().isEmpty) return const SizedBox.shrink();
-
+    final resultsAsync = ref.watch(appSearchProvider(query));
     return Positioned(
       width: MediaQuery.of(context).size.width,
       child: CompositedTransformFollower(
         link: layerLink,
         showWhenUnlinked: false,
-        offset: const Offset(0, 52), // sits just below the search bar
+        offset: const Offset(
+          -20,
+          52,
+        ), // sits just below the search bar, perfectly aligned
         child: Material(
           color: Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
-              constraints: const BoxConstraints(maxHeight: 380),
+              constraints: const BoxConstraints(maxHeight: 400),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -245,23 +280,95 @@ class _SearchDropdown extends ConsumerWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: showEmpty
-                    ? _emptyState(query)
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        shrinkWrap: true,
-                        itemCount: results.length,
-                        separatorBuilder: (_, index) => const Divider(
-                          height: 1,
-                          indent: 72,
-                          endIndent: 16,
-                          color: Color(0xFFF1F5F4),
+                child: resultsAsync.when(
+                  loading: () => const SizedBox(
+                    height: 100,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (err, stack) => _emptyState('Error: $err'),
+                  data: (results) {
+                    if (results.isEmpty) {
+                      return _emptyState(query);
+                    }
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shrinkWrap: true,
+                            itemCount: results.length,
+                            separatorBuilder: (_, index) => const Divider(
+                              height: 1,
+                              indent: 72,
+                              endIndent: 16,
+                              color: Color(0xFFF1F5F4),
+                            ),
+                            itemBuilder: (_, i) {
+                              final result = results[i];
+                              if (result.isProduct) {
+                                return _ProductResultTile(
+                                  product: result.product!,
+                                  onTap: () => onSelect(result),
+                                );
+                              } else {
+                                return _VendorResultTile(
+                                  vendor: result.vendor!,
+                                  onTap: () => onSelect(result),
+                                );
+                              }
+                            },
+                          ),
                         ),
-                        itemBuilder: (_, i) => _ProductResultTile(
-                          product: results[i],
-                          onTap: () => onSelect(results[i]),
+                        InkWell(
+                          onTap: onSeeAll,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF8FAFC),
+                              border: Border(
+                                top: BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.grid_view_rounded,
+                                  size: 14,
+                                  color: Color(0xFF0B372B),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'See full 2-column results for "$query"',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontFamily: 'PlusJakartaSans',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF0B372B),
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 14,
+                                  color: Color(0xFF0B372B),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -275,8 +382,11 @@ class _SearchDropdown extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       child: Row(
         children: [
-          const Icon(Icons.search_off_rounded,
-              size: 20, color: Color(0xFFCBD5E1)),
+          const Icon(
+            Icons.search_off_rounded,
+            size: 20,
+            color: Color(0xFFCBD5E1),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -318,12 +428,12 @@ class _ProductResultTile extends ConsumerWidget {
             // Thumbnail
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: product.imageUrl,
+              child: AdaptiveImage(
+                product.imageUrl,
                 width: 44,
                 height: 44,
                 fit: BoxFit.cover,
-                errorWidget: (_, _, _) => Container(
+                placeholder: Container(
                   width: 44,
                   height: 44,
                   color: const Color(0xFFF3F4F6),
@@ -379,7 +489,7 @@ class _ProductResultTile extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  product.pricePerKg,
+                  '₱${product.discountedPrice.toStringAsFixed(0)}/${product.unit}',
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
@@ -390,6 +500,103 @@ class _ProductResultTile extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   product.category,
+                  style: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 11,
+                    color: Color(0xFF9CA3AF),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 12,
+              color: Color(0xFFCBD5E1),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VendorResultTile extends StatelessWidget {
+  final MarketVendor vendor;
+  final VoidCallback onTap;
+
+  const _VendorResultTile({required this.vendor, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      splashColor: const Color(0xFF0B372B).withValues(alpha: 0.06),
+      highlightColor: const Color(0xFF0B372B).withValues(alpha: 0.03),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            // Thumbnail
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: AdaptiveImage(
+                vendor.imageUrl,
+                width: 44,
+                height: 44,
+                fit: BoxFit.cover,
+                placeholder: Container(
+                  width: 44,
+                  height: 44,
+                  color: const Color(0xFFF3F4F6),
+                  child: const Icon(
+                    Icons.storefront_rounded,
+                    size: 18,
+                    color: Color(0xFFCBD5E1),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Name + category
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    vendor.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Stall Holder',
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Category + chevron
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  vendor.category,
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 11,

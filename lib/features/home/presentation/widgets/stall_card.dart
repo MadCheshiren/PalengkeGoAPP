@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/market/domain/market_vendor.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
@@ -19,8 +20,8 @@ class _StallCardState extends State<StallCard> {
     final rating = widget.vendor.rating.toStringAsFixed(1);
     final category = widget.vendor.category;
     final stallLocation = _stallLabelFor(widget.vendor.id);
-    final status = _statusFor(widget.vendor.id);
-    final isOpen = status == 'OPEN';
+    final isOpen = widget.vendor.isOpen;
+    final status = isOpen ? 'OPEN' : 'CLOSED';
 
     return GestureDetector(
       onTap: () {
@@ -28,7 +29,9 @@ class _StallCardState extends State<StallCard> {
         if (!isOpen) {
           ScaffoldMessenger.maybeOf(context)?.showSnackBar(
             const SnackBar(
-              content: Text('This stall is currently closed and will open soon.'),
+              content: Text(
+                'This stall is currently closed and will open soon.',
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -36,7 +39,10 @@ class _StallCardState extends State<StallCard> {
         }
         Navigator.of(context).push(
           PageTransitions.slideFromRight(
-            VendorProfileScreen(vendorId: widget.vendor.id, filterCategory: widget.selectedCategory),
+            VendorProfileScreen(
+              vendorId: widget.vendor.id,
+              filterCategory: widget.selectedCategory,
+            ),
           ),
         );
       },
@@ -64,38 +70,19 @@ class _StallCardState extends State<StallCard> {
                       top: Radius.circular(16),
                     ),
                     child: SizedBox.expand(
-                      child: Image.network(
+                      child: AdaptiveImage(
                         widget.vendor.imageUrl,
                         fit: BoxFit.cover,
-                        gaplessPlayback: true,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: const Color(0xFFE2E8F0),
-                            child: const Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF0B372B),
-                                ),
-                              ),
+                        placeholder: Container(
+                          color: const Color(0xFFF3F4F6),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_rounded,
+                              color: Color(0xFF94A3B8),
+                              size: 30,
                             ),
-                          );
-                        },
-                        errorBuilder: (_, _, _) {
-                          return Container(
-                            color: const Color(0xFFF3F4F6),
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_rounded,
-                                color: Color(0xFF94A3B8),
-                                size: 30,
-                              ),
-                            ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -309,15 +296,6 @@ class _StallCardState extends State<StallCard> {
         return 'Block 7 | Stall 1';
       default:
         return 'Market Stall';
-    }
-  }
-
-  String _statusFor(String? vendorId) {
-    switch (vendorId) {
-      case 'v3':
-        return 'CLOSED';
-      default:
-        return 'OPEN';
     }
   }
 }
