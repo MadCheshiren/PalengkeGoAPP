@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
 class PickupVerificationCard extends StatelessWidget {
   const PickupVerificationCard({super.key});
@@ -83,12 +84,12 @@ class RiderInfoCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+            child: AdaptiveImage(
+              '', // No real rider data yet
               width: 56,
               height: 56,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
+              placeholder: Container(
                 width: 56,
                 height: 56,
                 color: const Color(0xFF1a4d3e),

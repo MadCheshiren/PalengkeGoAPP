@@ -101,7 +101,7 @@ class OrderDetailsTimeline extends StatelessWidget {
   List<_TimelineStep> _stepsFor(OrderStatus status, {required bool isPickup}) {
     final travelLabel = isPickup ? 'Ready for Pick-Up' : 'Out for Delivery';
     final travelSubtitle = isPickup
-        ? 'Head to the vendor stall'
+        ? 'Head to the stall holder stall'
         : 'Rider is heading your way';
 
     if (status == OrderStatus.cancelled) {
@@ -116,15 +116,15 @@ class OrderDetailsTimeline extends StatelessWidget {
     return [
       _TimelineStep.completed('Order Placed', 'Order was submitted'),
       _TimelineStep(
-        label: 'Vendor Confirmation',
-        subtitle: 'Waiting for vendor confirmation',
+        label: 'Stall Holder Confirmation',
+        subtitle: 'Waiting for stall holder confirmation',
         state: status == OrderStatus.pending
             ? _TimelineStepState.active
             : _TimelineStepState.completed,
       ),
       _TimelineStep(
         label: 'Preparing',
-        subtitle: 'Vendor is preparing your items',
+        subtitle: 'Stall Holder is preparing your items',
         state: _stateFor(status, active: OrderStatus.preparing),
       ),
       _TimelineStep(

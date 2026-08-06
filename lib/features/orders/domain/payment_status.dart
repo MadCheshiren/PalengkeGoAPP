@@ -1,3 +1,6 @@
+import 'package:json_annotation/json_annotation.dart';
+
+@JsonEnum(valueField: 'label')
 enum PaymentStatus {
   pending('Pending'),
   paid('Paid'),

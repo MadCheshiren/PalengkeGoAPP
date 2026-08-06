@@ -1,74 +1,46 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'order_line_item.dart';
 import 'order_status.dart';
-
 import 'fulfillment_method.dart';
 import 'payment_status.dart';
 
-class MarketOrder {
-  final String id;
-  final String vendorName;
-  final String vendorImage;
-  final String customerName;
-  final OrderStatus status;
-  final PaymentStatus paymentStatus;
-  final FulfillmentMethod fulfillmentMethod;
-  final DateTime placedAt;
-  final List<OrderLineItem> items;
-  final String? deliveryAddress;
-  final double deliveryFee;
-  final double serviceFee;
-  final String? notes;
+part 'market_order.freezed.dart';
+part 'market_order.g.dart';
 
-  const MarketOrder({
-    required this.id,
-    required this.vendorName,
-    required this.vendorImage,
-    this.customerName = 'Customer',
-    required this.status,
-    required this.paymentStatus,
-    required this.fulfillmentMethod,
-    required this.placedAt,
-    required this.items,
-    this.deliveryAddress,
-    required this.deliveryFee,
-    required this.serviceFee,
-    this.notes,
-  });
+@freezed
+abstract class MarketOrder with _$MarketOrder {
+  const MarketOrder._(); // allows custom methods/getters
 
-  MarketOrder copyWith({
-    String? id,
-    String? vendorName,
-    String? vendorImage,
-    String? customerName,
-    OrderStatus? status,
-    PaymentStatus? paymentStatus,
-    FulfillmentMethod? fulfillmentMethod,
-    DateTime? placedAt,
-    List<OrderLineItem>? items,
+  const factory MarketOrder({
+    required String id,
+    String? customerUid,
+    String? stallId,
+    required String vendorName,
+    required String vendorImage,
+    @Default('Customer') String customerName,
+    required OrderStatus status,
+    required PaymentStatus paymentStatus,
+    required FulfillmentMethod fulfillmentMethod,
+    required DateTime placedAt,
+    required List<OrderLineItem> items,
     String? deliveryAddress,
-    double? deliveryFee,
-    double? serviceFee,
+    required double deliveryFee,
+    required double serviceFee,
+    @Default(false) bool isPriority,
+    @Default(0.0) double priorityFee,
     String? notes,
-  }) {
-    return MarketOrder(
-      id: id ?? this.id,
-      vendorName: vendorName ?? this.vendorName,
-      vendorImage: vendorImage ?? this.vendorImage,
-      customerName: customerName ?? this.customerName,
-      status: status ?? this.status,
-      paymentStatus: paymentStatus ?? this.paymentStatus,
-      fulfillmentMethod: fulfillmentMethod ?? this.fulfillmentMethod,
-      placedAt: placedAt ?? this.placedAt,
-      items: items ?? this.items,
-      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
-      deliveryFee: deliveryFee ?? this.deliveryFee,
-      serviceFee: serviceFee ?? this.serviceFee,
-      notes: notes ?? this.notes,
-    );
-  }
+    DateTime? estimatedReadyTime,
+
+    /// Populated when status is cancelled or rejected.
+    /// Set by the vendor or system explaining why the order was not fulfilled.
+    String? cancellationReason,
+  }) = _MarketOrder;
+
+  factory MarketOrder.fromJson(Map<String, dynamic> json) =>
+      _$MarketOrderFromJson(json);
 
   double get subtotal => items.fold<double>(0, (sum, item) => sum + item.total);
-  double get total => subtotal + deliveryFee + serviceFee;
+  double get total => subtotal + deliveryFee + priorityFee + serviceFee;
 
   String get statusLabel => status.label;
   bool get isPickup => fulfillmentMethod == FulfillmentMethod.pickup;

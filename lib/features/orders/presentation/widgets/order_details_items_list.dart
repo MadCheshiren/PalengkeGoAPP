@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 
 class OrderDetailsItemsList extends StatelessWidget {
@@ -16,12 +17,12 @@ class OrderDetailsItemsList extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  item.image,
+                child: AdaptiveImage(
+                  item.image.isNotEmpty ? item.image : null,
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
+                  placeholder: Container(
                     width: 56,
                     height: 56,
                     color: const Color(0xFFF3F4F6),
@@ -73,7 +74,7 @@ class OrderDetailsItemsList extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    item.pricePerKg.replaceAll('PHP', '₱'),
+                    '₱${item.unitPrice.toStringAsFixed(0)}/${item.unit}',
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 10,

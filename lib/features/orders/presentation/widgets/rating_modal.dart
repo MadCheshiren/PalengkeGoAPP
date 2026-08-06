@@ -1,7 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/vendors/application/vendor_provider.dart';
+import 'package:palengkego/features/vendors/domain/vendor_review.dart';
+import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/features/notifications/application/notification_provider.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/vendors/application/vendor_reviews_provider.dart'
+    as vr;
+import 'package:palengkego/core/widgets/login_required_sheet.dart';
+import 'package:palengkego/features/profile/application/profile_provider.dart';
 
-class RatingModal extends StatefulWidget {
+class RatingModal extends ConsumerStatefulWidget {
   final MarketOrder order;
 
   const RatingModal({super.key, required this.order});
@@ -18,10 +30,10 @@ class RatingModal extends StatefulWidget {
   }
 
   @override
-  State<RatingModal> createState() => _RatingModalState();
+  ConsumerState<RatingModal> createState() => _RatingModalState();
 }
 
-class _RatingModalState extends State<RatingModal> {
+class _RatingModalState extends ConsumerState<RatingModal> {
   int _rating = 5;
   final TextEditingController _commentController = TextEditingController();
 
@@ -61,15 +73,12 @@ class _RatingModalState extends State<RatingModal> {
                   ),
                 ),
               ),
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: NetworkImage(widget.order.vendorImage),
-                    fit: BoxFit.cover,
-                  ),
+              ClipOval(
+                child: AdaptiveImage(
+                  widget.order.vendorImage,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
                 ),
               ),
               const SizedBox(height: 12),
@@ -150,17 +159,109 @@ class _RatingModalState extends State<RatingModal> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Dispatch rating to mock/real backend
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Thank you for your rating!',
-                          style: TextStyle(fontFamily: 'PlusJakartaSans'),
-                        ),
-                      ),
-                    );
+                  onPressed: () async {
+                    if (kDebugMode) {
+                      debugPrint('RatingModal: Submit Rating Button tapped!');
+                    }
+                    try {
+                      final customer = ref.read(authProvider);
+                      if (kDebugMode) {
+                        debugPrint('RatingModal: Customer is $customer');
+                      }
+                      if (customer == null) {
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close rating modal
+                          LoginRequiredSheet.show(
+                            context,
+                            message: 'You must be logged in to leave a review.',
+                          );
+                        }
+                        return;
+                      }
+
+                      final vendorId = vr.stallNameToId(
+                        widget.order.vendorName,
+                      );
+                      if (kDebugMode) {
+                        debugPrint('RatingModal: Resolved vendorId: $vendorId');
+                      }
+
+                      final review = VendorReview(
+                        id: 'rev-${DateTime.now().millisecondsSinceEpoch}',
+                        vendorId: vendorId,
+                        customerId: customer.uid,
+                        customerName:
+                            ref
+                                .read(currentProfileProvider)
+                                .value
+                                ?.displayName ??
+                            customer.displayName ??
+                            'Customer',
+                        rating: _rating.toDouble(),
+                        comment: _commentController.text.trim(),
+                        date: DateTime.now(),
+                        orderId: widget.order.id,
+                        reviewType:
+                            ReviewType.vendor, // Assuming overall stall rating
+                      );
+
+                      // Add review to repository
+                      if (kDebugMode) {
+                        debugPrint(
+                          'RatingModal: Adding review to repository...',
+                        );
+                      }
+                      await ref
+                          .read(vendorRepositoryProvider)
+                          .addReview(review);
+                      if (kDebugMode) {
+                        debugPrint('RatingModal: Review added successfully.');
+                      }
+
+                      // Invalidate review-related providers to update UI in real-time
+                      ref.invalidate(vr.vendorReviewsProvider);
+                      ref.invalidate(vr.vendorReviewsFamilyProvider(vendorId));
+                      ref.invalidate(vendorProfileProvider(vendorId));
+
+                      // If it is 5 stars, we trigger a notification for the stall holder
+                      if (_rating == 5) {
+                        ref
+                            .read(notificationServiceProvider)
+                            .addNotification(
+                              AppNotification(
+                                id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
+                                type: NotificationType.review,
+                                target: NotificationTarget.vendor,
+                                title: 'New 5-Star Rating!',
+                                body:
+                                    '${customer.displayName ?? "A customer"} left a 5-star review for your stall!',
+                                createdAt: DateTime.now(),
+                              ),
+                            );
+                      }
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Thank you for your rating!',
+                              style: TextStyle(fontFamily: 'PlusJakartaSans'),
+                            ),
+                          ),
+                        );
+                      }
+                    } catch (e, stack) {
+                      if (kDebugMode) debugPrint('RatingModal Error: $e');
+                      if (kDebugMode) debugPrint(stack.toString());
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error submitting rating: $e'),
+                          ),
+                        );
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0B372B),

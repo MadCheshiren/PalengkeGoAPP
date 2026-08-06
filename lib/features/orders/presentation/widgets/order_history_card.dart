@@ -21,7 +21,9 @@ class OrderHistoryCard extends StatelessWidget {
     final statusStyle = _statusStyle(order.status);
     final secondaryAction = _secondaryActionLabel(order.status);
     final primaryAction = _primaryActionLabel(order.status);
-    final tertiaryAction = order.status == OrderStatus.completed ? 'Rate' : null;
+    final tertiaryAction = order.status == OrderStatus.completed
+        ? 'Rate'
+        : null;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -40,82 +42,86 @@ class OrderHistoryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  order.vendorImage,
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
+          GestureDetector(
+            onTap: onPrimaryAction,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    order.vendorImage,
                     width: 40,
                     height: 40,
-                    color: const Color(0xFFE7ECE9),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.storefront_rounded,
-                      size: 18,
-                      color: Color(0xFF8A9A95),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      width: 40,
+                      height: 40,
+                      color: const Color(0xFFE7ECE9),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.storefront_rounded,
+                        size: 18,
+                        color: Color(0xFF8A9A95),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order.vendorName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF23342F),
-                          height: 1.1,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          order.vendorName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF23342F),
+                            height: 1.1,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Order ${order.id}',
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF8EB0A3),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Order ${order.id}',
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF8EB0A3),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: statusStyle.background,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  order.statusLabel,
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: statusStyle.foreground,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusStyle.background,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    order.statusLabel,
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: statusStyle.foreground,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           const Divider(height: 1, color: Color(0xFFEDEFEA)),
@@ -258,6 +264,7 @@ class OrderHistoryCard extends StatelessWidget {
       case OrderStatus.confirmed:
       case OrderStatus.preparing:
       case OrderStatus.ready:
+      case OrderStatus.outForDelivery:
         return const _StatusStyle(
           background: Color(0xFFE8F6E8),
           foreground: Color(0xFF6DA566),
@@ -268,6 +275,7 @@ class OrderHistoryCard extends StatelessWidget {
           foreground: Color(0xFF6DA566),
         );
       case OrderStatus.cancelled:
+      case OrderStatus.rejected:
         return const _StatusStyle(
           background: Color(0xFFFFE5E5),
           foreground: Color(0xFFEA7171),
@@ -286,10 +294,12 @@ class OrderHistoryCard extends StatelessWidget {
       case OrderStatus.confirmed:
       case OrderStatus.preparing:
       case OrderStatus.ready:
+      case OrderStatus.outForDelivery:
       case OrderStatus.pending:
         return 'Track Order';
       case OrderStatus.completed:
       case OrderStatus.cancelled:
+      case OrderStatus.rejected:
         return 'View Details';
     }
   }
@@ -302,7 +312,9 @@ class OrderHistoryCard extends StatelessWidget {
       case OrderStatus.confirmed:
       case OrderStatus.preparing:
       case OrderStatus.ready:
+      case OrderStatus.outForDelivery:
       case OrderStatus.cancelled:
+      case OrderStatus.rejected:
         return null;
     }
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
-import 'package:palengkego/core/services/order_service.dart';
+
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
@@ -12,20 +12,20 @@ class FloatingOrderProgress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderService = ref.read(orderServiceProvider);
+    final asyncOrders = ref.watch(orderServiceProvider);
 
     return Positioned(
       bottom: 16,
       left: 16,
       right: 16,
-      child: ListenableBuilder(
-        listenable: orderService,
-        builder: (context, _) {
-          final activeOrders = orderService.orders
+      child: asyncOrders.when(
+        data: (orders) {
+          final activeOrders = orders
               .where(
                 (o) =>
                     o.status != OrderStatus.completed &&
-                    o.status != OrderStatus.cancelled,
+                    o.status != OrderStatus.cancelled &&
+                    o.status != OrderStatus.rejected,
               )
               .toList();
 
@@ -42,11 +42,10 @@ class FloatingOrderProgress extends ConsumerWidget {
           }
 
           // Multiple active orders → multi-order tray
-          return _MultiOrderPill(
-            orders: activeOrders,
-            orderService: orderService,
-          );
+          return _MultiOrderPill(orders: activeOrders);
         },
+        loading: () => const SizedBox.shrink(),
+        error: (err, stack) => const SizedBox.shrink(),
       ),
     );
   }
@@ -133,9 +132,8 @@ class _SingleOrderPill extends StatelessWidget {
 
 class _MultiOrderPill extends StatelessWidget {
   final List<MarketOrder> orders;
-  final OrderService orderService;
 
-  const _MultiOrderPill({required this.orders, required this.orderService});
+  const _MultiOrderPill({required this.orders});
 
   @override
   Widget build(BuildContext context) {
@@ -237,11 +235,7 @@ class _MultiOrderPill extends StatelessWidget {
   }
 
   Color _avatarColor(int index) {
-    const colors = [
-      Color(0xFF2E7D57),
-      Color(0xFF1A5C45),
-      Color(0xFF3A9467),
-    ];
+    const colors = [Color(0xFF2E7D57), Color(0xFF1A5C45), Color(0xFF3A9467)];
     return colors[index % colors.length];
   }
 
@@ -250,59 +244,54 @@ class _MultiOrderPill extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _OrderTraySheet(
-        orders: orders,
-        orderService: orderService,
-      ),
+      builder: (_) => _OrderTraySheet(orders: orders),
     );
   }
 }
 
 // ── Order tray bottom sheet ───────────────────────────────────────────────────
 
-class _OrderTraySheet extends StatefulWidget {
+class _OrderTraySheet extends ConsumerStatefulWidget {
   final List<MarketOrder> orders;
-  final OrderService orderService;
 
-  const _OrderTraySheet({required this.orders, required this.orderService});
+  const _OrderTraySheet({required this.orders});
 
   @override
-  State<_OrderTraySheet> createState() => _OrderTraySheetState();
+  ConsumerState<_OrderTraySheet> createState() => _OrderTraySheetState();
 }
 
-class _OrderTraySheetState extends State<_OrderTraySheet> {
+class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
   late List<MarketOrder> _orders;
 
   @override
   void initState() {
     super.initState();
     _orders = List.from(widget.orders);
-    widget.orderService.addListener(_refresh);
-  }
-
-  void _refresh() {
-    if (!mounted) return;
-    setState(() {
-      _orders = widget.orderService.orders
-          .where(
-            (o) =>
-                o.status != OrderStatus.completed &&
-                o.status != OrderStatus.cancelled,
-          )
-          .toList();
-    });
-    // Auto-close if all orders are done
-    if (_orders.isEmpty && mounted) Navigator.of(context).maybePop();
-  }
-
-  @override
-  void dispose() {
-    widget.orderService.removeListener(_refresh);
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(orderServiceProvider, (previous, next) {
+      if (next is AsyncData) {
+        final updatedOrders = next.value!
+            .where(
+              (o) =>
+                  o.status != OrderStatus.completed &&
+                  o.status != OrderStatus.cancelled &&
+                  o.status != OrderStatus.rejected,
+            )
+            .toList();
+
+        if (mounted) {
+          setState(() {
+            _orders = updatedOrders;
+          });
+          if (_orders.isEmpty) {
+            Navigator.of(context).maybePop();
+          }
+        }
+      }
+    });
     return DraggableScrollableSheet(
       initialChildSize: 0.5,
       minChildSize: 0.35,
@@ -432,16 +421,18 @@ class _OrderTraySheetState extends State<_OrderTraySheet> {
   }
 
   bool _canCancel(MarketOrder order) {
-    if (order.status == OrderStatus.completed ||
-        order.status == OrderStatus.cancelled) {
+    if (order.status != OrderStatus.pending) {
       return false;
     }
-    final cancelUntil = order.placedAt.add(OrderService.cancelWindow);
+    // Cancel window is 2 minutes
+    final cancelUntil = order.placedAt.add(const Duration(minutes: 2));
     return DateTime.now().isBefore(cancelUntil);
   }
 
-  void _cancelOrder(MarketOrder order) {
-    final cancelled = widget.orderService.cancelOrder(order.id);
+  Future<void> _cancelOrder(MarketOrder order) async {
+    final cancelled = await ref
+        .read(orderServiceProvider.notifier)
+        .cancelOrder(order.id);
     if (cancelled && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -589,8 +580,10 @@ class _OrderTrayRow extends StatelessWidget {
       OrderStatus.confirmed => const Color(0xFF3B82F6),
       OrderStatus.preparing => const Color(0xFF8B5CF6),
       OrderStatus.ready => const Color(0xFF059669),
+      OrderStatus.outForDelivery => const Color(0xFF059669),
       OrderStatus.completed => const Color(0xFF6B7280),
       OrderStatus.cancelled => const Color(0xFFEF4444),
+      OrderStatus.rejected => const Color(0xFFEF4444),
     };
   }
 }
