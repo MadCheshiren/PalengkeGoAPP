@@ -36,11 +36,13 @@ class StallInfoForm extends StatelessWidget {
     int maxLines = 1,
     bool readOnly = false,
     Widget? suffixIcon,
+    TextCapitalization textCapitalization = TextCapitalization.words,
   }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
       readOnly: readOnly,
+      textCapitalization: textCapitalization,
       style: TextStyle(
         fontFamily: 'PlusJakartaSans',
         fontSize: 14,
@@ -91,45 +93,47 @@ class StallInfoForm extends StatelessWidget {
       ),
       builder: (context) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'Select Category',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-              ),
-              ...categories.map((category) {
-                return ListTile(
-                  title: Text(
-                    category,
-                    style: const TextStyle(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Select Category',
+                    style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      color: Color(0xFF1E293B),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
                     ),
                   ),
-                  trailing: selectedCategory == category
-                      ? const Icon(
-                          Icons.check_rounded,
-                          color: Color(0xFF0B372B),
-                        )
-                      : null,
-                  onTap: () {
-                    onCategoryChanged(category);
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-              const SizedBox(height: 20),
-            ],
+                ),
+                ...categories.map((category) {
+                  return ListTile(
+                    title: Text(
+                      category,
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 14,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    trailing: selectedCategory == category
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Color(0xFF0B372B),
+                          )
+                        : null,
+                    onTap: () {
+                      onCategoryChanged(category);
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       },
@@ -155,7 +159,11 @@ class StallInfoForm extends StatelessWidget {
         // Stall Name
         _buildLabel('Stall Name'),
         const SizedBox(height: 8),
-        _buildTextField(controller: nameController, hint: 'Enter stall name'),
+        _buildTextField(
+          controller: nameController,
+          hint: 'Enter stall name',
+          textCapitalization: TextCapitalization.words,
+        ),
         const SizedBox(height: 20),
 
         // Stall Description
@@ -165,6 +173,7 @@ class StallInfoForm extends StatelessWidget {
           controller: descriptionController,
           hint: 'Enter stall description',
           maxLines: 3,
+          textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 20),
 
@@ -202,18 +211,14 @@ class StallInfoForm extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // Location (Read Only)
-        _buildLabel('Location (Permanent)'),
+        // Stall & Block Location
+        _buildLabel('Stall & Block Number (Location)'),
         const SizedBox(height: 8),
         _buildTextField(
           controller: locationController,
-          hint: 'Location',
-          readOnly: true,
-          suffixIcon: const Icon(
-            Icons.lock_outline_rounded,
-            size: 16,
-            color: Color(0xFF94A3B8),
-          ),
+          hint: 'e.g. Block 3 | Stall 4',
+          readOnly: false,
+          textCapitalization: TextCapitalization.words,
         ),
       ],
     );

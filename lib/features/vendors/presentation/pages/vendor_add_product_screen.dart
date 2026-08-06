@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/config/categories.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
+import 'package:palengkego/features/notifications/application/notification_provider.dart';
+import 'package:palengkego/core/services/notification_service.dart';
 import 'package:palengkego/core/utils/image_picker_helper.dart';
-import 'dart:io';
+import 'package:palengkego/core/utils/unit_helper.dart';
 import '../widgets/vendor_screen_header.dart';
+import '../widgets/vendor_product_form_fields.dart';
 
 /// Vendor Add / Edit Product Screen
 /// Pass [existingProduct] to enter edit mode.
@@ -25,6 +29,7 @@ class _VendorAddProductScreenState
   bool _inStock = true;
   bool _isSaving = false;
   String _selectedCategory = '';
+  String _selectedSubCategory = '';
   String _imageUrl = '';
 
   final TextEditingController _nameController = TextEditingController();
@@ -43,23 +48,9 @@ class _VendorAddProductScreenState
     return null;
   }
 
-  bool get _isPieceUnit {
-    return _selectedCategory == 'Vegetables' ||
-        _selectedCategory == 'Fruits' ||
-        _selectedCategory == 'Maritatas' ||
-        _selectedCategory == 'Sari-Sari';
-  }
+  bool? _isPieceUnit;
 
-  final List<String> _categories = [
-    'Fish & Seafood',
-    'Meat & Poultry',
-    'Vegetables',
-    'Fruits',
-    'Rice & Grains',
-    'Spices & Condiments',
-    'Maritatas',
-    'Sari-Sari',
-  ];
+  final List<String> _categories = AppCategories.product;
 
   @override
   void initState() {
@@ -68,13 +59,21 @@ class _VendorAddProductScreenState
     if (p != null) {
       _nameController.text = p.name;
       _priceController.text = p.price.toStringAsFixed(0);
-      _stockController.text = p.stockQuantity.toString();
+      _stockController.text = p.stockQuantity % 1 == 0
+          ? p.stockQuantity.toInt().toString()
+          : p.stockQuantity.toString();
       if (p.discountPercentage != null && p.discountPercentage! > 0) {
         _discountController.text = p.discountPercentage.toString();
       }
-      _selectedCategory = p.category;
+      if (p.category == 'Beef' || p.category == 'Pork') {
+        _selectedCategory = 'Meat';
+        _selectedSubCategory = p.category;
+      } else {
+        _selectedCategory = p.category;
+      }
       _imageUrl = p.imageUrl;
       _inStock = p.isActive;
+      _isPieceUnit = UnitHelper.isPieceProduct(p);
     }
   }
 
@@ -103,7 +102,13 @@ class _VendorAddProductScreenState
       AppServices.showError('Please enter a product name.');
       return;
     }
-    if (_selectedCategory.isEmpty) {
+
+    if (_selectedCategory == 'Meat' && _selectedSubCategory.isEmpty) {
+      AppServices.showSnackBar('Please select a meat subcategory');
+      return;
+    }
+
+    if (_imageUrl.isEmpty) {
       AppServices.showError('Please select a category.');
       return;
     }
@@ -111,12 +116,16 @@ class _VendorAddProductScreenState
       AppServices.showError('Please enter a price.');
       return;
     }
+    if (_isPieceUnit == null) {
+      AppServices.showError('Please select a Selling Unit.');
+      return;
+    }
 
     setState(() => _isSaving = true);
 
     try {
       final double price = double.tryParse(_priceController.text.trim()) ?? 0.0;
-      final int stock = int.tryParse(_stockController.text.trim()) ?? 0;
+      final double stock = double.tryParse(_stockController.text.trim()) ?? 0.0;
       final double? discount = double.tryParse(_discountController.text.trim());
       // Read ref synchronously BEFORE any await — safe even if widget unmounts later.
       final vendorId = ref.read(currentVendorIdProvider);
@@ -128,13 +137,12 @@ class _VendorAddProductScreenState
             : 'p${DateTime.now().millisecondsSinceEpoch}',
         vendorId: vendorId,
         name: name,
-        description: '',
-        category: _selectedCategory,
+        description: 'Fresh product from vendor',
+        category: _selectedCategory == 'Meat'
+            ? _selectedSubCategory
+            : _selectedCategory,
         price: price,
-        pricePerKg: _isPieceUnit
-            ? 'PHP ${price.toInt()}/pc'
-            : 'PHP ${price.toInt()}/kg',
-        weight: _isPieceUnit ? '1 pc' : '1kg',
+        unit: _isPieceUnit! ? 'pc' : 'kg',
         imageUrl: _imageUrl,
         isActive: _inStock,
         stockQuantity: stock,
@@ -145,6 +153,32 @@ class _VendorAddProductScreenState
         await manager.updateProduct(product);
       } else {
         await manager.addProduct(product);
+      }
+
+      // Trigger Flash Sale notification if discount is present
+      if (discount != null && discount > 0) {
+        final notifService = ref.read(notificationServiceProvider);
+        final title = 'Flash Sale on ${product.name}!';
+        final body =
+            '${discount.toInt()}% off on ${product.name}. Limited time only!';
+
+        notifService.addNotification(
+          AppNotification(
+            id: 'flash_${product.id}_${DateTime.now().millisecondsSinceEpoch}',
+            type: NotificationType.promo,
+            target: NotificationTarget.customer,
+            title: title,
+            body: body,
+            createdAt: DateTime.now(),
+          ),
+        );
+
+        // outside app notification
+        notifService.showLocalNotification(
+          id: product.id.hashCode,
+          title: title,
+          body: body,
+        );
       }
 
       if (!mounted) return;
@@ -364,7 +398,8 @@ class _VendorAddProductScreenState
                     const SizedBox(height: 16),
 
                     // Upload Photo Area
-                    GestureDetector(
+                    VendorProductImagePicker(
+                      imageUrl: _imageUrl,
                       onTap: () async {
                         FocusScope.of(context).unfocus();
                         final file = await ImagePickerHelper.pickImage(context);
@@ -375,141 +410,42 @@ class _VendorAddProductScreenState
                           });
                         }
                       },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Column(
-                          children: [
-                            if (_imageUrl.isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: _imageUrl.startsWith('http')
-                                    ? Image.network(
-                                        _imageUrl,
-                                        width: 120,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                const Icon(
-                                                  Icons.broken_image_outlined,
-                                                  size: 48,
-                                                  color: Color(0xFF94A3B8),
-                                                ),
-                                      )
-                                    : Image.file(
-                                        File(_imageUrl),
-                                        width: 120,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                              )
-                            else ...[
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF3F4F6),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                  color: Color(0xFF0B372B),
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Upload Photo',
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0B372B),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Tap to select a photo of the product',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 12,
-                                  color: Color(0xFF9CA3AF),
-                                ),
-                              ),
-                            ],
-                            if (_imageUrl.isNotEmpty) ...[
-                              const SizedBox(height: 10),
-                              Text(
-                                'Tap to change image',
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 12,
-                                  color: const Color(
-                                    0xFF0B372B,
-                                  ).withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
                     ),
                     const SizedBox(height: 24),
 
                     // Product Name
-                    _buildLabel('Product Name'),
+                    const VendorProductLabel('Product Name'),
                     const SizedBox(height: 8),
-                    _buildTextField(
+                    VendorProductTextField(
                       hint: 'e.g. Organic Avocados',
                       controller: _nameController,
                     ),
                     const SizedBox(height: 20),
 
                     // Category
-                    _buildLabel('Category'),
+                    const VendorProductLabel('Category'),
                     const SizedBox(height: 8),
-                    GestureDetector(
+                    VendorProductCategorySelector(
+                      selectedCategory: _selectedCategory,
                       onTap: () => _showCategoryPicker(context),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _selectedCategory.isEmpty
-                                  ? 'Select Category'
-                                  : _selectedCategory,
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 14,
-                                color: _selectedCategory.isEmpty
-                                    ? const Color(0xFF9CA3AF)
-                                    : const Color(0xFF111827),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Color(0xFF9CA3AF),
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    if (_selectedCategory == 'Meat') ...[
+                      const VendorProductLabel('Subcategory'),
+                      const SizedBox(height: 8),
+                      VendorProductCategorySelector(
+                        selectedCategory: _selectedSubCategory,
+                        onTap: () => _showSubCategoryPicker(context),
                       ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    const VendorProductLabel('Selling Unit'),
+                    const SizedBox(height: 8),
+                    VendorProductUnitPicker(
+                      isPieceUnit: _isPieceUnit,
+                      onChanged: (val) => setState(() => _isPieceUnit = val),
                     ),
                     const SizedBox(height: 20),
 
@@ -520,15 +456,22 @@ class _VendorAddProductScreenState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel(_isPieceUnit ? 'Price / pc' : 'Price / kg'),
+                              VendorProductLabel(
+                                _isPieceUnit == null
+                                    ? 'Price'
+                                    : (_isPieceUnit!
+                                          ? 'Price / pc'
+                                          : 'Price / kg'),
+                              ),
                               const SizedBox(height: 8),
-                              _buildTextField(
+                              VendorProductTextField(
                                 hint: '0.00',
                                 controller: _priceController,
-                                keyboardType: const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                                prefixText: 'PHP  ',
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                prefixText: '₱ ',
                                 onChanged: (_) => setState(() {}),
                               ),
                             ],
@@ -539,14 +482,15 @@ class _VendorAddProductScreenState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel('Discount %'),
+                              const VendorProductLabel('Discount %'),
                               const SizedBox(height: 8),
-                              _buildTextField(
+                              VendorProductTextField(
                                 hint: 'e.g. 15',
                                 controller: _discountController,
-                                keyboardType: const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                                 suffixText: '%',
                                 onChanged: (_) => setState(() {}),
                               ),
@@ -567,7 +511,11 @@ class _VendorAddProductScreenState
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.local_offer_rounded, color: Color(0xFF16A34A), size: 16),
+                              const Icon(
+                                Icons.local_offer_rounded,
+                                color: Color(0xFF16A34A),
+                                size: 16,
+                              ),
                               const SizedBox(width: 8),
                               const Text(
                                 'Discounted Price:',
@@ -579,7 +527,7 @@ class _VendorAddProductScreenState
                               ),
                               const Spacer(),
                               Text(
-                                'PHP ${_calculatedDiscountedPrice!.toStringAsFixed(0)}',
+                                '₱${_calculatedDiscountedPrice!.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontFamily: 'PlusJakartaSans',
                                   fontSize: 14,
@@ -594,13 +542,16 @@ class _VendorAddProductScreenState
                     const SizedBox(height: 20),
 
                     // Stock Quantity
-                    _buildLabel('Stock Quantity'),
+                    const VendorProductLabel('Stock Quantity'),
                     const SizedBox(height: 8),
-                    _buildTextField(
+                    VendorProductTextField(
                       hint: '0',
                       controller: _stockController,
                       keyboardType: TextInputType.number,
-                      suffixText: _isPieceUnit ? 'pcs' : 'kg',
+                      suffixText: _isPieceUnit == null
+                          ? ''
+                          : (_isPieceUnit! ? 'pcs' : 'kg'),
+                      onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 24),
 
@@ -725,66 +676,6 @@ class _VendorAddProductScreenState
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF374151),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required String hint,
-    required TextEditingController controller,
-    TextInputType keyboardType = TextInputType.text,
-    String? prefixText,
-    String? suffixText,
-    void Function(String)? onChanged,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      onChanged: onChanged,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 14,
-        color: Color(0xFF111827),
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixText: prefixText,
-        suffixText: suffixText,
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF9CA3AF),
-        ),
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
-    );
-  }
-
   void _showCategoryPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -835,6 +726,70 @@ class _VendorAddProductScreenState
                     ),
                     onTap: () {
                       setState(() => _selectedCategory = category);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                }),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSubCategoryPicker(BuildContext context) {
+    final subCategories = ['Beef', 'Pork'];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Select Subcategory',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                ...subCategories.map((subCategory) {
+                  final isSelected = subCategory == _selectedSubCategory;
+                  return ListTile(
+                    trailing: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: Color(0xFF0B372B),
+                          )
+                        : null,
+                    title: Text(
+                      subCategory,
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 14,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isSelected
+                            ? const Color(0xFF0B372B)
+                            : const Color(0xFF374151),
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() => _selectedSubCategory = subCategory);
                       Navigator.pop(ctx);
                     },
                   );

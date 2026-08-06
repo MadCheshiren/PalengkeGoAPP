@@ -10,7 +10,8 @@ class FloatingNewOrderNotification extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pendingOrders = ref.watch(vendorOrdersProvider)
+    final ordersAsync = ref.watch(vendorOrdersProvider);
+    final pendingOrders = (ordersAsync.value ?? [])
         .where((o) => o.status == OrderStatus.pending)
         .toList();
 
@@ -78,10 +79,7 @@ class FloatingNewOrderNotification extends ConsumerWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white,
-              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white),
             ],
           ),
         ),

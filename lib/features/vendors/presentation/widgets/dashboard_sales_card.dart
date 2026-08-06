@@ -4,7 +4,7 @@ import 'package:palengkego/features/vendors/application/vendor_orders_provider.d
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/vendors/presentation/pages/sales_report_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_sales_report_screen.dart';
 
 class DashboardSalesCard extends ConsumerWidget {
   const DashboardSalesCard({super.key});
@@ -77,10 +77,15 @@ class DashboardSalesCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orders = ref.watch(vendorOrdersProvider);
+    final ordersAsync = ref.watch(vendorOrdersProvider);
+    final orders = ordersAsync.value ?? [];
 
     final pendingOrdersCount = orders
-        .where((o) => o.status == OrderStatus.pending || o.status == OrderStatus.preparing)
+        .where(
+          (o) =>
+              o.status == OrderStatus.pending ||
+              o.status == OrderStatus.preparing,
+        )
         .length;
 
     final completedOrdersCount = orders
@@ -91,7 +96,10 @@ class DashboardSalesCard extends ConsumerWidget {
         .where((o) => o.status == OrderStatus.completed)
         .fold<double>(0.0, (sum, o) => sum + o.total);
 
-    final currencyFormatter = NumberFormat.currency(symbol: 'PHP ', decimalDigits: 2);
+    final currencyFormatter = NumberFormat.currency(
+      symbol: '₱',
+      decimalDigits: 2,
+    );
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -117,7 +125,9 @@ class DashboardSalesCard extends ConsumerWidget {
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
-                    PageTransitions.slideFromRight(const SalesReportScreen()),
+                    PageTransitions.slideFromRight(
+                      const VendorSalesReportScreen(),
+                    ),
                   );
                 },
                 child: const Row(
@@ -158,7 +168,9 @@ class DashboardSalesCard extends ConsumerWidget {
               Expanded(
                 child: _buildStatBox(
                   label: 'Pending',
-                  value: pendingOrdersCount == 1 ? '1 Order' : '$pendingOrdersCount Orders',
+                  value: pendingOrdersCount == 1
+                      ? '1 Order'
+                      : '$pendingOrdersCount Orders',
                   color: const Color(0xFFFFF7ED),
                   textColor: const Color(0xFFB45309),
                   badge: pendingOrdersCount > 0 ? 'ACTION REQUIRED' : null,
@@ -168,7 +180,9 @@ class DashboardSalesCard extends ConsumerWidget {
               Expanded(
                 child: _buildStatBox(
                   label: 'Completed',
-                  value: completedOrdersCount == 1 ? '1 Order' : '$completedOrdersCount Orders',
+                  value: completedOrdersCount == 1
+                      ? '1 Order'
+                      : '$completedOrdersCount Orders',
                   color: const Color(0xFFF0FDF4),
                   textColor: const Color(0xFF166534),
                 ),

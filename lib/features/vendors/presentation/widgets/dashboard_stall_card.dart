@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 
 class DashboardStallCard extends ConsumerWidget {
   final ValueChanged<bool> onToggleStallOpen;
 
-  const DashboardStallCard({
-    super.key,
-    required this.onToggleStallOpen,
-  });
+  const DashboardStallCard({super.key, required this.onToggleStallOpen});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,19 +29,21 @@ class DashboardStallCard extends ConsumerWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
-              image: stall.bannerImage != null
+              image: stall.bannerImage != null && stall.bannerImage!.isNotEmpty
                   ? DecorationImage(
-                      image: NetworkImage(stall.bannerImage!),
+                      image: adaptiveImageProvider(stall.bannerImage)!,
                       fit: BoxFit.cover,
                     )
                   : null,
             ),
-            child: stall.bannerImage == null
-                ? const Center(
-                    child: Icon(
-                      Icons.storefront_outlined,
-                      size: 48,
-                      color: Color(0xFF0B372B),
+            child: stall.bannerImage == null || stall.bannerImage!.isEmpty
+                ? ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: AdaptiveImage(
+                      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800',
+                      fit: BoxFit.cover,
                     ),
                   )
                 : null,
@@ -60,7 +60,7 @@ class DashboardStallCard extends ConsumerWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       image: DecorationImage(
-                        image: NetworkImage(stall.avatarImage!),
+                        image: adaptiveImageProvider(stall.avatarImage)!,
                         fit: BoxFit.cover,
                       ),
                     ),

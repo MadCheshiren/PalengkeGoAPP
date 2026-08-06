@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'package:palengkego/features/vendors/application/sales_report_export_service.dart';
-import 'vendor_payouts_screen.dart';
 
-import 'package:file_saver/file_saver.dart';
-import 'package:flutter/foundation.dart';
-
+import 'package:palengkego/core/utils/file_export_util.dart';
 // ── Per-period mock data ──────────────────────────────────────────────────────
 
 class _PeriodData {
@@ -55,49 +53,21 @@ const _monthData = _PeriodData(
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
-class VendorEarningsScreen extends StatefulWidget {
+class VendorEarningsScreen extends ConsumerStatefulWidget {
   const VendorEarningsScreen({super.key});
 
   @override
-  State<VendorEarningsScreen> createState() => _VendorEarningsScreenState();
+  ConsumerState<VendorEarningsScreen> createState() =>
+      _VendorEarningsScreenState();
 }
 
-class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
+class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
   String _selectedTab = 'Today';
 
   _PeriodData get _currentData {
     if (_selectedTab == 'Week') return _weekData;
     if (_selectedTab == 'Month') return _monthData;
     return _todayData;
-  }
-
-  SalesReportData get _currentReport => SalesReportData(
-    period: _selectedTab,
-    total: _exportSafeCurrency(_currentData.total),
-    change: _exportSafeCurrency(_currentData.change),
-    payouts: const [
-      SalesReportPayout(
-        method: 'Bank Transfer',
-        amount: 'PHP 4,900.00',
-        date: 'May 21, 2024',
-      ),
-      SalesReportPayout(
-        method: 'Bank Transfer',
-        amount: 'PHP 5,850.00',
-        date: 'May 14, 2024',
-      ),
-      SalesReportPayout(
-        method: 'Bank Transfer',
-        amount: 'PHP 4,100.00',
-        date: 'Apr 29, 2024',
-      ),
-    ],
-  );
-  String _exportSafeCurrency(String value) {
-    return value
-        .replaceAll('\u20B1', 'PHP ')
-        .replaceAll('₱', 'PHP ')
-        .replaceAll('â‚±', 'PHP ');
   }
 
   @override
@@ -250,56 +220,6 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
                 highlightIndex: data.highlightIndex,
               ),
               const SizedBox(height: 24),
-
-              // ── Recent payouts ────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recent Payouts',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      PageTransitions.slideFromRight(
-                        const VendorPayoutsScreen(),
-                      ),
-                    ),
-                    child: const Text(
-                      'View All',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildPayoutCard(
-                method: 'Bank Transfer',
-                amount: '₱4,900.00',
-                date: 'May 21, 2024',
-              ),
-              const SizedBox(height: 12),
-              _buildPayoutCard(
-                method: 'Bank Transfer',
-                amount: '₱5,850.00',
-                date: 'May 14, 2024',
-              ),
-              const SizedBox(height: 12),
-              _buildPayoutCard(
-                method: 'Bank Transfer',
-                amount: '₱4,100.00',
-                date: 'Apr 29, 2024',
-              ),
             ],
           ),
         ),
@@ -351,7 +271,7 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
               ListTile(
                 leading: const Icon(
                   Icons.table_chart,
-                  color: Color(0xFF10B981),
+                  color: Color(0xFF0B372B),
                 ),
                 title: const Text(
                   'Export as Excel',
@@ -374,38 +294,28 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
 
   Future<void> _exportToPdf() async {
     try {
-      final report = _currentReport;
-      final bytes = await SalesReportExportService.buildPdf(report);
+      final stallName = ref.read(vendorStallProvider).name;
+      final bytes = await SalesReportExportService.buildPdf(
+        _selectedTab,
+        stallName,
+      );
       final filename = SalesReportExportService.buildFilename(
-        report,
+        _selectedTab,
         DateTime.now(),
+        stallName,
       );
 
-      // On mobile: open native Save As picker (no permissions needed).
-      // On web/desktop: save directly to Downloads.
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS)) {
-        await FileSaver.instance.saveAs(
-          name: filename,
-          bytes: bytes,
-          fileExtension: 'pdf',
-          mimeType: MimeType.pdf,
-        );
-      } else {
-        await FileSaver.instance.saveFile(
-          name: filename,
-          bytes: bytes,
-          fileExtension: 'pdf',
-          mimeType: MimeType.pdf,
-        );
-      }
+      final path = await FileExportUtil.saveFileToPublicDirectory(
+        filename: '$filename.pdf',
+        bytes: bytes,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('PDF saved as $filename.pdf'),
-          backgroundColor: const Color(0xFF10B981),
+          content: Text('PDF saved directly to: $path'),
+          backgroundColor: const Color(0xFF0B372B),
+          duration: const Duration(seconds: 4),
         ),
       );
     } catch (e) {
@@ -418,38 +328,28 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
 
   Future<void> _exportToExcel() async {
     try {
-      final report = _currentReport;
-      final fileBytes = SalesReportExportService.buildExcel(report);
+      final stallName = ref.read(vendorStallProvider).name;
+      final fileBytes = SalesReportExportService.buildExcel(
+        _selectedTab,
+        stallName,
+      );
       final filename = SalesReportExportService.buildFilename(
-        report,
+        _selectedTab,
         DateTime.now(),
+        stallName,
       );
 
-      // On mobile: open native Save As picker (no permissions needed).
-      // On web/desktop: save directly to Downloads.
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS)) {
-        await FileSaver.instance.saveAs(
-          name: filename,
-          bytes: fileBytes,
-          fileExtension: 'xlsx',
-          mimeType: MimeType.microsoftExcel,
-        );
-      } else {
-        await FileSaver.instance.saveFile(
-          name: filename,
-          bytes: fileBytes,
-          fileExtension: 'xlsx',
-          mimeType: MimeType.microsoftExcel,
-        );
-      }
+      final path = await FileExportUtil.saveFileToPublicDirectory(
+        filename: '$filename.xlsx',
+        bytes: fileBytes,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Excel saved as $filename.xlsx'),
-          backgroundColor: const Color(0xFF10B981),
+          content: Text('Excel saved directly to: $path'),
+          backgroundColor: const Color(0xFF0B372B),
+          duration: const Duration(seconds: 4),
         ),
       );
     } catch (e) {
@@ -481,72 +381,6 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
             color: isSelected ? Colors.white : const Color(0xFF6B7280),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPayoutCard({
-    required String method,
-    required String amount,
-    required String date,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.account_balance_rounded,
-              color: Color(0xFF166534),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  method,
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 12,
-                    color: Color(0xFF166534),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            amount,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
-            ),
-          ),
-        ],
       ),
     );
   }

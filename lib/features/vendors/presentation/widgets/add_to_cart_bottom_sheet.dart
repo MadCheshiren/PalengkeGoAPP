@@ -1,9 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:palengkego/core/utils/unit_helper.dart';
-import 'package:palengkego/features/cart/application/cart_provider.dart';
 
+import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 
 class AddToCartBottomSheet extends ConsumerStatefulWidget {
@@ -16,12 +17,12 @@ class AddToCartBottomSheet extends ConsumerStatefulWidget {
     required this.product,
   });
 
-  static Future<void> show(
+  static Future<bool?> show(
     BuildContext context, {
     required String vendorName,
     required VendorProduct product,
   }) {
-    return showModalBottomSheet(
+    return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -42,37 +43,39 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
   String? _selectedWeight;
   double _customWeightKg = 1.0;
   bool _isSubmitting = false;
+  late final TextEditingController _qtyController;
 
   @override
   void initState() {
     super.initState();
-    // Read unit directly from pricePerKg (e.g. '₱150/kg' or '₱10/pc').
-    // Only fall back to name-heuristic if pricePerKg is absent/empty.
     final isPiece = _isPieceProduct();
+    final u = widget.product.unit.trim();
+    final unitStr = u.isEmpty ? 'pc' : u;
     _weights = isPiece
-        ? ['1 pc', '3 pcs', '6 pcs', '12 pcs']
-        : ['1kg', '1/2kg', '1/4kg', '1/8kg'];
-    _selectedWeight = _weights.first;
+        ? ['1 $unitStr', '2 $unitStr', '3 $unitStr', '5 $unitStr']
+        : ['1/4 kg', '1/2 kg', '3/4 kg', '1 kg'];
+    _selectedWeight = null;
+    _customWeightKg = isPiece ? 1.0 : 0.25;
+    _qtyController = TextEditingController(
+      text: isPiece ? '1' : _formatCustomWeightNum(_customWeightKg),
+    );
   }
 
-  /// Returns true when the product is sold per-piece.
-  /// Checks pricePerKg string first (most reliable), then falls back to name.
+  @override
+  void dispose() {
+    _qtyController.dispose();
+    super.dispose();
+  }
+
+  /// Returns true when the product is sold per-piece/pack/item rather than weight.
   bool _isPieceProduct() {
-    final pkgLower = widget.product.pricePerKg.toLowerCase();
-    if (pkgLower.contains('/kg')) return false;
-    if (pkgLower.contains('/pc') || pkgLower.contains('/piece')) return true;
-    // fallback: name-based heuristic
-    return UnitHelper.isPieceUnit(
-      widget.product.name,
-      widget.product.description,
-    );
+    final unit = widget.product.unit.toLowerCase().trim();
+    return unit != 'kg' && unit != 'kilo' && unit != 'g' && unit != 'gram';
   }
 
   @override
   Widget build(BuildContext context) {
     final basePrice = widget.product.discountedPrice;
-    final selectedMultiplier = _customWeightKg;
-    final selectedUnitPrice = basePrice * selectedMultiplier;
 
     return Container(
       decoration: const BoxDecoration(
@@ -118,21 +121,22 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.product.imageUrl,
+                    child: SizedBox(
                       width: 107,
                       height: 99,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, _, _) => Container(
-                        width: 107,
-                        height: 99,
-                        color: const Color(0xFFF3F4F6),
-                        child: const Icon(
-                          Icons.image_rounded,
-                          size: 28,
-                          color: Color(0xFF94A3B8),
-                        ),
-                      ),
+                      child: widget.product.imageUrl.isNotEmpty
+                          ? AdaptiveImage(
+                              widget.product.imageUrl,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              color: const Color(0xFFF3F4F6),
+                              child: const Icon(
+                                Icons.image_rounded,
+                                size: 28,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -162,6 +166,43 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                               color: Color(0xFF6D9773),
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Stock: ${widget.product.stockQuantity % 1 == 0 ? widget.product.stockQuantity.toInt().toString() : widget.product.stockQuantity.toStringAsFixed(2)} ${widget.product.unit}',
+                            style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: widget.product.isLowStock
+                                  ? const Color(0xFFDC2626)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                          if (widget.product.isLowStock) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: const Color(0xFFFCA5A5),
+                                ),
+                              ),
+                              child: const Text(
+                                'Low Stock Warning',
+                                style: TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFDC2626),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -186,22 +227,27 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                     onTap: () {
                       setState(() {
                         _selectedWeight = weightLabel;
-                        if (weightLabel == '1kg') {
-                          _customWeightKg = 1.0;
-                        } else if (weightLabel == '1/2kg') {
-                          _customWeightKg = 0.5;
-                        } else if (weightLabel == '1/4kg') {
-                          _customWeightKg = 0.25;
-                        } else if (weightLabel == '1/8kg') {
-                          _customWeightKg = 0.125;
-                        } else if (weightLabel == '1 pc') {
-                          _customWeightKg = 1;
-                        } else if (weightLabel == '3 pcs') {
-                          _customWeightKg = 3;
-                        } else if (weightLabel == '6 pcs') {
-                          _customWeightKg = 6;
-                        } else if (weightLabel == '12 pcs') {
-                          _customWeightKg = 12;
+                        if (_isPieceProduct()) {
+                          final pieceCounts = [1.0, 2.0, 3.0, 5.0];
+                          _customWeightKg = index < pieceCounts.length
+                              ? pieceCounts[index]
+                              : 1.0;
+                          _qtyController.text = _customWeightKg
+                              .toInt()
+                              .toString();
+                        } else {
+                          if (weightLabel == '1 kg') {
+                            _customWeightKg = 1.0;
+                          } else if (weightLabel == '3/4 kg') {
+                            _customWeightKg = 0.75;
+                          } else if (weightLabel == '1/2 kg') {
+                            _customWeightKg = 0.5;
+                          } else if (weightLabel == '1/4 kg') {
+                            _customWeightKg = 0.25;
+                          }
+                          _qtyController.text = _formatCustomWeightNum(
+                            _customWeightKg,
+                          );
                         }
                       });
                     },
@@ -216,23 +262,15 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                               ? const Color(0xFF0C3A2D)
                               : const Color(0xFFF3F4F6),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isSelected
-                                ? const Color.fromRGBO(0, 0, 0, 0.25)
-                                : const Color.fromRGBO(0, 0, 0, 0.18),
-                            offset: const Offset(0, 4),
-                            blurRadius: 4,
-                          ),
-                        ],
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         weightLabel,
                         style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
                           color: isSelected
                               ? Colors.white
                               : const Color(0xFF0C3A2D),
@@ -268,43 +306,75 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                       children: [
                         _roundQuantityButton(
                           icon: Icons.remove_rounded,
-                          onTap:
-                              (_selectedWeight == '1kg' ||
-                                  _selectedWeight == null)
-                              ? () {
-                                  if (_customWeightKg > 1.0) {
-                                    setState(() {
-                                      _customWeightKg -= 0.5;
-                                      if (_customWeightKg == 1.0) {
-                                        _selectedWeight = '1kg';
-                                      }
-                                    });
-                                  }
-                                }
-                              : () {}, // Disabled if not custom
+                          onTap: () {
+                            if (_isPieceProduct()) {
+                              if (_customWeightKg > 1.0) {
+                                setState(() {
+                                  _customWeightKg -= 1.0;
+                                  _selectedWeight = null;
+                                  _qtyController.text = _customWeightKg
+                                      .toInt()
+                                      .toString();
+                                });
+                              }
+                            } else {
+                              if (_customWeightKg > 0.125) {
+                                setState(() {
+                                  _customWeightKg = _stepKgQuantity(
+                                    _customWeightKg,
+                                    false,
+                                    widget.product.stockQuantity,
+                                  );
+                                  _selectedWeight = null;
+                                  _qtyController.text = _formatCustomWeightNum(
+                                    _customWeightKg,
+                                  );
+                                });
+                              }
+                            }
+                          },
                           foreground:
-                              (_selectedWeight == '1kg' ||
-                                      _selectedWeight == null) &&
-                                  _customWeightKg > 1.0
+                              _customWeightKg >
+                                  (_isPieceProduct() ? 1.0 : 0.125)
                               ? const Color(0xFF6D9773)
-                              : const Color(0xFF94A3B8), // Greyed out
+                              : const Color(0xFF94A3B8),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            (_selectedWeight == '1kg' ||
-                                    _selectedWeight == null)
-                                ? _formatCustomWeightNum(_customWeightKg)
-                                : '1', // Fixed quantity for other weights
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color:
-                                  (_selectedWeight == '1kg' ||
-                                      _selectedWeight == null)
-                                  ? const Color(0xFF0B372B)
-                                  : const Color(0xFF94A3B8),
+                          child: SizedBox(
+                            width: 80,
+                            child: TextField(
+                              controller: _qtyController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9\./]'),
+                                ),
+                              ],
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0B372B),
+                              ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                isDense: true,
+                              ),
+                              onChanged: (val) {
+                                final parsed = _parseQuantityString(val);
+                                if (parsed != null && parsed > 0) {
+                                  setState(() {
+                                    _customWeightKg = parsed;
+                                    _selectedWeight = null;
+                                  });
+                                }
+                              },
                             ),
                           ),
                         ),
@@ -312,54 +382,48 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                           padding: const EdgeInsets.only(right: 12),
                           child: Text(
                             _isPieceProduct() ? 'pc' : 'kg',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color:
-                                  (_selectedWeight == '1kg' ||
-                                      _selectedWeight == null)
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFFCBD5E1),
+                              color: Color(0xFF94A3B8),
                             ),
                           ),
                         ),
                         _roundQuantityButton(
                           icon: Icons.add_rounded,
-                          onTap:
-                              (_selectedWeight == '1kg' ||
-                                  _selectedWeight == null)
-                              ? () {
-                                  if (_customWeightKg <
-                                      widget.product.stockQuantity) {
-                                    setState(() {
-                                      _customWeightKg += 0.5;
-                                      _selectedWeight = null;
-                                    });
-                                  } else {
-                                    if (!mounted) return;
-                                    ScaffoldMessenger.maybeOf(
-                                      context,
-                                    )?.showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Maximum stock reached'),
-                                      ),
-                                    );
-                                  }
+                          onTap: () {
+                            if (_customWeightKg <
+                                widget.product.stockQuantity) {
+                              setState(() {
+                                if (_isPieceProduct()) {
+                                  _customWeightKg += 1.0;
+                                  _qtyController.text = _customWeightKg
+                                      .toInt()
+                                      .toString();
+                                } else {
+                                  _customWeightKg = _stepKgQuantity(
+                                    _customWeightKg,
+                                    true,
+                                    widget.product.stockQuantity,
+                                  );
+                                  _qtyController.text = _formatCustomWeightNum(
+                                    _customWeightKg,
+                                  );
                                 }
-                              : () {}, // Disabled if not custom
-                          background:
-                              (_selectedWeight == '1kg' ||
-                                  _selectedWeight == null)
-                              ? const Color(0xFF0C3A2D)
-                              : const Color(
-                                  0xFFE2E8F0,
-                                ), // Greyed out background
-                          foreground:
-                              (_selectedWeight == '1kg' ||
-                                  _selectedWeight == null)
-                              ? Colors.white
-                              : const Color(0xFF94A3B8),
+                                _selectedWeight = null;
+                              });
+                            } else {
+                              if (!mounted) return;
+                              ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Maximum stock reached'),
+                                ),
+                              );
+                            }
+                          },
+                          background: const Color(0xFF0C3A2D),
+                          foreground: Colors.white,
                         ),
                       ],
                     ),
@@ -390,42 +454,25 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                           });
 
                           ref
-                              .read(cartServiceProvider)
+                              .read(cartItemsProvider.notifier)
                               .addToCart(
-                                vendorName: widget.vendorName,
-                                productName: widget.product.name,
-                                price: selectedUnitPrice,
-                                weight:
-                                    _selectedWeight ??
-                                    _formatCustomWeight(_customWeightKg),
-                                pricePerKg: _priceLabel(basePrice),
-                                image: widget.product.imageUrl.isNotEmpty
-                                    ? widget.product.imageUrl
-                                    : 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=300&fit=crop',
-                                quantity:
-                                    1, // Quantity is always 1, weight acts as the multiplier
-                                stockQuantity: widget.product.stockQuantity,
+                                CartItem(
+                                  productId: widget.product.id,
+                                  vendorName: widget.vendorName,
+                                  productName: widget.product.name,
+                                  price: basePrice,
+                                  unit: widget.product.unit,
+                                  image: widget.product.imageUrl.isNotEmpty
+                                      ? widget.product.imageUrl
+                                      : '',
+                                  quantity: _customWeightKg,
+                                  stockQuantity: widget.product.stockQuantity,
+                                ),
                               );
 
-                          // Look up messenger BEFORE popping
-                          final messenger = ScaffoldMessenger.of(context);
-
                           if (mounted) {
-                            Navigator.pop(context);
+                            Navigator.pop(context, true);
                           }
-
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${widget.product.name} added to cart',
-                                style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                ),
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0C3A2D),
@@ -471,29 +518,112 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
     );
   }
 
-  String _formatCustomWeightNum(double val) {
-    if (val == val.truncateToDouble()) {
-      return val.toInt().toString();
-    }
-    final intPart = val.toInt();
-    final fraction = val - intPart;
-    String fractionStr = '';
-    if (fraction == 0.5) {
-      fractionStr = '1/2';
-    } else {
-      fractionStr = fraction.toStringAsFixed(1);
-    }
+  double _stepKgQuantity(double current, bool isIncrement, double maxWeight) {
+    final double whole = current.floorToDouble();
+    final double fraction = current - whole;
 
-    if (intPart == 0) return fractionStr;
-    return '$intPart $fractionStr';
+    if (isIncrement) {
+      if (fraction < 0.124) {
+        return (whole + 0.125).clamp(0.125, maxWeight);
+      } else if (fraction < 0.249) {
+        return (whole + 0.25).clamp(0.125, maxWeight);
+      } else if (fraction < 0.499) {
+        return (whole + 0.5).clamp(0.125, maxWeight);
+      } else if (fraction < 0.749) {
+        return (whole + 0.75).clamp(0.125, maxWeight);
+      } else {
+        return (whole + 1.0).clamp(0.125, maxWeight);
+      }
+    } else {
+      if (fraction > 0.751) {
+        return (whole + 0.75).clamp(0.125, maxWeight);
+      } else if (fraction > 0.501) {
+        return (whole + 0.5).clamp(0.125, maxWeight);
+      } else if (fraction > 0.251) {
+        return (whole + 0.25).clamp(0.125, maxWeight);
+      } else if (fraction > 0.126) {
+        return (whole + 0.125).clamp(0.125, maxWeight);
+      } else if (fraction > 0.001) {
+        return whole.clamp(0.125, maxWeight);
+      } else {
+        if (whole >= 1.0) {
+          return (whole - 1.0 + 0.75).clamp(0.125, maxWeight);
+        } else {
+          return 0.125;
+        }
+      }
+    }
   }
 
-  String _formatCustomWeight(double val) {
-    return '${_formatCustomWeightNum(val)}kg';
+  double? _parseQuantityString(String val) {
+    val = val.trim();
+    if (val.isEmpty) return null;
+    final direct = double.tryParse(val);
+    if (direct != null) return direct;
+
+    if (val.contains(' ')) {
+      final parts = val.split(RegExp(r'\s+'));
+      if (parts.length == 2) {
+        final whole = double.tryParse(parts[0]);
+        final frac = _parseSimpleFraction(parts[1]);
+        if (whole != null && frac != null) {
+          return whole + frac;
+        }
+      }
+    }
+    return _parseSimpleFraction(val);
+  }
+
+  double? _parseSimpleFraction(String val) {
+    if (val.contains('/')) {
+      final parts = val.split('/');
+      if (parts.length == 2) {
+        final num = double.tryParse(parts[0]);
+        final den = double.tryParse(parts[1]);
+        if (num != null && den != null && den != 0) {
+          return num / den;
+        }
+      }
+    }
+    return null;
+  }
+
+  String _formatCustomWeightNum(double val) {
+    if (val <= 0) return '0';
+    final int whole = val.truncate();
+    final double fraction = (val - whole).abs();
+
+    String fracStr = '';
+    if ((fraction - 0.125).abs() < 0.005) {
+      fracStr = '1/8';
+    } else if ((fraction - 0.25).abs() < 0.005) {
+      fracStr = '1/4';
+    } else if ((fraction - 0.375).abs() < 0.005) {
+      fracStr = '3/8';
+    } else if ((fraction - 0.5).abs() < 0.005) {
+      fracStr = '1/2';
+    } else if ((fraction - 0.625).abs() < 0.005) {
+      fracStr = '5/8';
+    } else if ((fraction - 0.75).abs() < 0.005) {
+      fracStr = '3/4';
+    } else if ((fraction - 0.875).abs() < 0.005) {
+      fracStr = '7/8';
+    } else if (fraction > 0.01) {
+      fracStr = fraction
+          .toStringAsFixed(2)
+          .replaceAll(RegExp(r'0*$'), '')
+          .replaceAll(RegExp(r'\.$'), '');
+    }
+
+    if (whole == 0) {
+      return fracStr.isNotEmpty ? fracStr : '0';
+    } else {
+      return fracStr.isNotEmpty ? '$whole $fracStr' : whole.toString();
+    }
   }
 
   String _priceLabel(double basePrice) {
     final unit = _isPieceProduct() ? 'pc' : 'kg';
-    return 'PHP ${basePrice.toInt()}/$unit';
+    return '₱${basePrice.toStringAsFixed(2)}/$unit';
   }
 }

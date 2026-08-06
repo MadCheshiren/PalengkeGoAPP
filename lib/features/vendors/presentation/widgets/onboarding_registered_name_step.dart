@@ -37,6 +37,7 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          textCapitalization: TextCapitalization.words,
           keyboardType: keyboardType,
           maxLines: maxLines,
           style: const TextStyle(
@@ -102,7 +103,7 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
           const SizedBox(height: 16),
           _buildTextField(
             controller: suffixController,
-            label: 'Suffix *',
+            label: 'Suffix (Optional)',
             hint: 'Input',
           ),
           const SizedBox(height: 16),

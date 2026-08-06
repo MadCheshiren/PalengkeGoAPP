@@ -489,8 +489,9 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isProductReview = review.reviewType == ReviewType.product;
-    final initial =
-        review.customerName.isNotEmpty ? review.customerName[0].toUpperCase() : '?';
+    final initial = review.customerName.isNotEmpty
+        ? review.customerName[0].toUpperCase()
+        : '?';
     final avatarBg = _avatarColor(review.customerName);
 
     return Container(
@@ -663,8 +664,8 @@ class _StarRow extends StatelessWidget {
           filled
               ? Icons.star_rounded
               : half
-                  ? Icons.star_half_rounded
-                  : Icons.star_outline_rounded,
+              ? Icons.star_half_rounded
+              : Icons.star_outline_rounded,
           size: size,
           color: (filled || half)
               ? const Color(0xFFFACC15)

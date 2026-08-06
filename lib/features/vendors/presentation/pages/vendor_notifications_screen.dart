@@ -63,8 +63,9 @@ class VendorNotificationsScreen extends ConsumerWidget {
                         ),
                         if (unreadCount > 0)
                           GestureDetector(
-                            onTap: () => notifService
-                                .markAllRead(NotificationTarget.vendor),
+                            onTap: () => notifService.markAllRead(
+                              NotificationTarget.vendor,
+                            ),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -94,8 +95,9 @@ class VendorNotificationsScreen extends ConsumerWidget {
                 SliverPersistentHeader(
                   pinned: true,
                   floating: false,
-                  delegate:
-                      _VendorStatusBannerDelegate(unreadCount: unreadCount),
+                  delegate: _VendorStatusBannerDelegate(
+                    unreadCount: unreadCount,
+                  ),
                 ),
 
                 // Notifications list
@@ -108,19 +110,16 @@ class VendorNotificationsScreen extends ConsumerWidget {
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final notif = notifications[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _VendorNotificationCard(
-                              notification: notif,
-                              onTap: () => notifService.markRead(notif.id),
-                            ),
-                          );
-                        },
-                        childCount: notifications.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final notif = notifications[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _VendorNotificationCard(
+                            notification: notif,
+                            onTap: () => notifService.markRead(notif.id),
+                          ),
+                        );
+                      }, childCount: notifications.length),
                     ),
                   ),
 
@@ -217,7 +216,9 @@ class _VendorNotificationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0B372B).withValues(alpha: isRead ? 0.04 : 0.12),
+              color: const Color(
+                0xFF0B372B,
+              ).withValues(alpha: isRead ? 0.04 : 0.12),
               blurRadius: isRead ? 6 : 16,
               offset: const Offset(0, 2),
             ),
@@ -252,7 +253,9 @@ class _VendorNotificationCard extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
-                            fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                            fontWeight: isRead
+                                ? FontWeight.w500
+                                : FontWeight.w700,
                             color: isRead
                                 ? const Color(0xFF6B7280)
                                 : const Color(0xFF0B372B),
@@ -353,30 +356,35 @@ class _VendorNotificationCard extends StatelessWidget {
   ({IconData icon, Color accent, Color bg}) _typeConfig(NotificationType type) {
     return switch (type) {
       NotificationType.order => (
-          icon: Icons.shopping_bag_outlined,
-          accent: const Color(0xFF059669),
-          bg: const Color(0xFFF0FDF4),
-        ),
+        icon: Icons.shopping_bag_outlined,
+        accent: const Color(0xFF059669),
+        bg: const Color(0xFFF0FDF4),
+      ),
       NotificationType.stock => (
-          icon: Icons.inbox_outlined,
-          accent: const Color(0xFFEF4444),
-          bg: const Color(0xFFFEF2F2),
-        ),
+        icon: Icons.inbox_outlined,
+        accent: const Color(0xFFEF4444),
+        bg: const Color(0xFFFEF2F2),
+      ),
       NotificationType.review => (
-          icon: Icons.star_outline_rounded,
-          accent: const Color(0xFFF59E0B),
-          bg: const Color(0xFFFEF3C7),
-        ),
+        icon: Icons.star_outline_rounded,
+        accent: const Color(0xFFF59E0B),
+        bg: const Color(0xFFFEF3C7),
+      ),
       NotificationType.admin => (
-          icon: Icons.campaign_outlined,
-          accent: const Color(0xFF3B82F6),
-          bg: const Color(0xFFEFF6FF),
-        ),
+        icon: Icons.campaign_outlined,
+        accent: const Color(0xFF3B82F6),
+        bg: const Color(0xFFEFF6FF),
+      ),
       NotificationType.promo => (
-          icon: Icons.local_offer_outlined,
-          accent: const Color(0xFF059669),
-          bg: const Color(0xFFECFDF5),
-        ),
+        icon: Icons.local_offer_outlined,
+        accent: const Color(0xFF059669),
+        bg: const Color(0xFFECFDF5),
+      ),
+      NotificationType.recipe => (
+        icon: Icons.restaurant_menu_rounded,
+        accent: const Color(0xFFEA580C),
+        bg: const Color(0xFFFFF7ED),
+      ),
     };
   }
 }
@@ -410,7 +418,7 @@ class _VendorProTip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Vendor Pro-Tip',
+                  'Stall Holder Pro-Tip',
                   style: TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
@@ -468,8 +476,9 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
     final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
     final horizontalPadding = 16.0 * (1.0 - progress);
     final isAllCaughtUp = unreadCount == 0;
-    final bannerColor =
-        isAllCaughtUp ? const Color(0xFF6D9773) : const Color(0xFF0B372B);
+    final bannerColor = isAllCaughtUp
+        ? const Color(0xFF6D9773)
+        : const Color(0xFF0B372B);
 
     return SizedBox.expand(
       child: Container(

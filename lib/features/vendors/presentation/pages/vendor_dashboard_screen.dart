@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
@@ -7,8 +8,13 @@ import 'package:palengkego/features/vendors/application/vendor_stall_provider.da
 import 'package:palengkego/features/vendors/presentation/widgets/dashboard_sales_card.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/dashboard_stall_card.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/dashboard_recent_order_card.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
+import 'package:palengkego/features/home/application/announcement_provider.dart';
+import 'package:palengkego/features/home/domain/system_announcement.dart';
+import 'package:palengkego/features/vendors/application/license_renewal_provider.dart';
+import 'package:palengkego/features/vendors/domain/vendor_stall.dart';
 
 import 'vendor_orders_screen.dart';
 import 'vendor_products_screen.dart';
@@ -23,12 +29,12 @@ class VendorDashboardScreen extends ConsumerStatefulWidget {
   const VendorDashboardScreen({super.key});
 
   @override
-  ConsumerState<VendorDashboardScreen> createState() => _VendorDashboardScreenState();
+  ConsumerState<VendorDashboardScreen> createState() =>
+      _VendorDashboardScreenState();
 }
 
 class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
   int _selectedIndex = 0;
-
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +181,7 @@ class _DashboardHome extends ConsumerWidget {
                   border: Border.all(color: Colors.white, width: 2),
                   image: stall.avatarImage != null
                       ? DecorationImage(
-                          image: NetworkImage(stall.avatarImage!),
+                          image: adaptiveImageProvider(stall.avatarImage!)!,
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -194,7 +200,7 @@ class _DashboardHome extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'PalengkeGo Vendor',
+                      'PalengkeGo Stall Holder',
                       style: TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontSize: 11,
@@ -217,8 +223,7 @@ class _DashboardHome extends ConsumerWidget {
               ),
               Consumer(
                 builder: (context, ref, _) {
-                  final notifService =
-                      ref.read(notificationServiceProvider);
+                  final notifService = ref.read(notificationServiceProvider);
                   return ListenableBuilder(
                     listenable: notifService,
                     builder: (context, _) {
@@ -270,8 +275,106 @@ class _DashboardHome extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          const DashboardSalesCard(),
+          const SizedBox(height: 16),
+          Consumer(
+            builder: (context, ref, _) {
+              final licenseStatus = ref.watch(computedLicenseStatusProvider);
+              if (licenseStatus == LicenseStatus.active) {
+                return const SizedBox.shrink();
+              }
+
+              Color bgColor;
+              Color fgColor;
+              String title;
+              String message;
+              IconData icon;
+
+              if (licenseStatus == LicenseStatus.expiringSoon) {
+                bgColor = const Color(0xFFFFFBEB);
+                fgColor = const Color(0xFFF59E0B);
+                title = 'License Expiring Soon';
+                message = 'Please renew your stall license before it expires.';
+                icon = Icons.warning_rounded;
+              } else if (licenseStatus == LicenseStatus.expired) {
+                bgColor = const Color(0xFFFEF2F2);
+                fgColor = const Color(0xFFEF4444);
+                title = 'License Expired';
+                message =
+                    'Your stall license has expired. Renew immediately to avoid suspension.';
+                icon = Icons.error_rounded;
+              } else {
+                bgColor = const Color(0xFF7F1D1D);
+                fgColor = const Color(0xFFFECACA);
+                title = 'License Suspended';
+                message =
+                    'Your stall has been suspended. Please renew your license.';
+                icon = Icons.block_rounded;
+              }
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.vendorLicense);
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: licenseStatus == LicenseStatus.suspended
+                          ? bgColor
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        icon,
+                        color: licenseStatus == LicenseStatus.suspended
+                            ? Colors.white
+                            : fgColor,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: licenseStatus == LicenseStatus.suspended
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              message,
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 13,
+                                color: licenseStatus == LicenseStatus.suspended
+                                    ? fgColor
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          const _DashboardCarousel(),
           const SizedBox(height: 24),
           const Text(
             'Your Stall',
@@ -283,9 +386,7 @@ class _DashboardHome extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          DashboardStallCard(
-            onToggleStallOpen: onToggleStallOpen,
-          ),
+          DashboardStallCard(onToggleStallOpen: onToggleStallOpen),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -316,43 +417,353 @@ class _DashboardHome extends ConsumerWidget {
           const SizedBox(height: 16),
           Consumer(
             builder: (context, ref, _) {
-              final orders = ref.watch(vendorOrdersProvider)
-                  .where((o) => o.status == OrderStatus.pending || o.status == OrderStatus.preparing)
-                  .take(2)
-                  .toList();
-                  
-              if (orders.isEmpty) {
-                return const Text(
-                  'No recent orders.',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    color: Color(0xFF64748B),
-                  ),
-                );
-              }
-              
-              return Column(
-                children: orders.map((order) {
-                  final itemsStr = order.items.map((i) => '${i.quantity} ${i.weight} ${i.productName}').join(' | ');
-                  final totalStr = 'PHP ${order.total.toStringAsFixed(2)}';
-                  
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: DashboardRecentOrderCard(
-                      orderId: 'Order ${order.id}',
-                      customer: order.customerName,
-                      items: itemsStr,
-                      total: totalStr,
-                      time: 'Just now',
-                      primaryActionText: order.status == OrderStatus.pending ? 'Start Preparing' : 'View Order',
-                      onPrimaryAction: order.status == OrderStatus.pending ? onStartPreparing : onViewOrders,
-                    ),
+              final ordersAsync = ref.watch(vendorOrdersProvider);
+              return ordersAsync.maybeWhen(
+                data: (allOrders) {
+                  final orders = allOrders
+                      .where(
+                        (o) =>
+                            o.status == OrderStatus.pending ||
+                            o.status == OrderStatus.preparing,
+                      )
+                      .take(2)
+                      .toList();
+
+                  if (orders.isEmpty) {
+                    return const Text(
+                      'No recent orders.',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        color: Color(0xFF64748B),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: orders.map((order) {
+                      final itemsStr = order.items
+                          .map((i) => '${i.quantityLabel} ${i.productName}')
+                          .join(' | ');
+                      final totalStr = '₱${order.total.toStringAsFixed(2)}';
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: DashboardRecentOrderCard(
+                          orderId: 'Order ${order.id}',
+                          customer: order.customerName,
+                          items: itemsStr,
+                          total: totalStr,
+                          time: 'Just now',
+                          primaryActionText: order.status == OrderStatus.pending
+                              ? 'Start Preparing'
+                              : 'View Order',
+                          onPrimaryAction: order.status == OrderStatus.pending
+                              ? onStartPreparing
+                              : onViewOrders,
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
+                orElse: () => const Center(child: CircularProgressIndicator()),
               );
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DashboardCarousel extends ConsumerStatefulWidget {
+  const _DashboardCarousel();
+
+  @override
+  ConsumerState<_DashboardCarousel> createState() => _DashboardCarouselState();
+}
+
+class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
+  late final PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final announcementsAsync = ref.watch(activeAnnouncementsProvider);
+    final announcements = announcementsAsync.value ?? [];
+
+    final int totalPages = 1 + announcements.length;
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 195,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() => _currentPage = index);
+            },
+            itemCount: totalPages,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return const DashboardSalesCard();
+              }
+              final announcement = announcements[index - 1];
+              return _buildAnnouncementCard(announcement);
+            },
+          ),
+        ),
+        if (totalPages > 1) ...[
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              totalPages,
+              (index) => AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                height: 6,
+                width: _currentPage == index ? 20 : 6,
+                decoration: BoxDecoration(
+                  color: _currentPage == index
+                      ? const Color(0xFF0B372B)
+                      : const Color(0xFF0B372B).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAnnouncementCard(SystemAnnouncement announcement) {
+    final String image =
+        announcement.imageUrl ??
+        'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600';
+
+    return GestureDetector(
+      onTap: () => _showAnnouncementDialog(context, announcement, image),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0B372B).withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 120,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  bottomLeft: Radius.circular(15),
+                ),
+                image: DecorationImage(
+                  image: adaptiveImageProvider(image)!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'ANNOUNCEMENT',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFB45309),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      announcement.title,
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      announcement.body,
+                      style: const TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF64748B),
+                        height: 1.4,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAnnouncementDialog(
+    BuildContext context,
+    SystemAnnouncement announcement,
+    String image,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0B372B).withValues(alpha: 0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    child: AdaptiveImage(
+                      image,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 20,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'ANNOUNCEMENT',
+                          style: TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB45309),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        announcement.title,
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0B372B),
+                          height: 1.2,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        announcement.body,
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF475569),
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

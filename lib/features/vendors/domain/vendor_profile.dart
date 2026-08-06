@@ -9,6 +9,7 @@ class VendorProfile {
     required this.stallLocation,
     required this.imageUrl,
     required this.avatarUrl,
+    this.phoneNumber,
   });
 
   final String id;
@@ -20,4 +21,5 @@ class VendorProfile {
   final String stallLocation;
   final String imageUrl;
   final String avatarUrl;
+  final String? phoneNumber;
 }

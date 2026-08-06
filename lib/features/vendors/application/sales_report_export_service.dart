@@ -1,141 +1,145 @@
 import 'dart:typed_data';
-
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-
-class SalesReportData {
-  const SalesReportData({
-    required this.period,
-    required this.total,
-    required this.change,
-    required this.payouts,
-  });
-
-  final String period;
-  final String total;
-  final String change;
-  final List<SalesReportPayout> payouts;
-
-  SalesReportData copyWith({
-    String? period,
-    String? total,
-    String? change,
-    List<SalesReportPayout>? payouts,
-  }) {
-    return SalesReportData(
-      period: period ?? this.period,
-      total: total ?? this.total,
-      change: change ?? this.change,
-      payouts: payouts ?? this.payouts,
-    );
-  }
-}
-
-class SalesReportPayout {
-  const SalesReportPayout({
-    required this.method,
-    required this.amount,
-    required this.date,
-  });
-
-  final String method;
-  final String amount;
-  final String date;
-}
+import 'package:printing/printing.dart';
 
 class SalesReportExportService {
   const SalesReportExportService._();
 
-  static String buildFilename(SalesReportData report, DateTime timestamp) {
-    final period = report.period
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
+  static String buildFilename(
+    String period,
+    DateTime timestamp,
+    String stallName,
+  ) {
+    final cleanStall = stallName
+        .replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')
+        .toLowerCase();
+    final cleanPeriod = period.toLowerCase().trim();
     final formattedTimestamp = DateFormat(
       'yyyy-MM-dd_HHmmss',
     ).format(timestamp);
-    return 'sales_report_${period}_$formattedTimestamp';
+    return '${cleanStall}_earnings_report_${cleanPeriod}_$formattedTimestamp';
   }
 
-  static Future<Uint8List> buildPdf(SalesReportData report) async {
-    final pdf = pw.Document();
+  static Future<Uint8List> buildPdf(String period, String stallName) async {
+    final fontRegular = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
+    final theme = pw.ThemeData.withFont(base: fontRegular, bold: fontBold);
+
+    final pdf = pw.Document(theme: theme);
+    final isDaily = period.toLowerCase() == 'today';
+    final isWeekly = period.toLowerCase() == 'week';
+
+    final title = isDaily
+        ? 'Stall Earnings Summary Report'
+        : isWeekly
+        ? 'Weekly Stall Earnings Report'
+        : 'Monthly Stall Earnings Report';
+
+    final periodSub = isDaily
+        ? 'Period: July 01, 2026 - July 24, 2026'
+        : isWeekly
+        ? 'Week Period: July 18, 2026 - July 24, 2026 (Week 30)'
+        : 'Month: July 2026 (July 01 - July 24, MTD)';
+
+    final generatedTime = 'Generated: July 24, 2026 18:00 PST';
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        build: (context) {
+        margin: const pw.EdgeInsets.all(24),
+        header: (context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Container(
-                padding: const pw.EdgeInsets.all(16),
-                color: const PdfColor.fromInt(0xFF0B372B),
+                width: double.infinity,
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: pw.BoxDecoration(
+                  color: const PdfColor.fromInt(0xFF0B372B),
+                  borderRadius: pw.BorderRadius.circular(6),
+                ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(
-                      'PalengkeGo',
-                      style: pw.TextStyle(
-                        color: PdfColors.white,
-                        fontSize: 24,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'PalengkeGo',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 20,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          title,
+                          style: const pw.TextStyle(
+                            color: PdfColor.fromInt(0xFFA7F3D0),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
-                    pw.Text(
-                      'Sales Report',
-                      style: pw.TextStyle(color: PdfColors.white, fontSize: 18),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text(
+                          'Stall: $stallName',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          periodSub,
+                          style: const pw.TextStyle(
+                            color: PdfColor.fromInt(0xFFD1D5DB),
+                            fontSize: 8,
+                          ),
+                        ),
+                        pw.Text(
+                          generatedTime,
+                          style: const pw.TextStyle(
+                            color: PdfColor.fromInt(0xFFD1D5DB),
+                            fontSize: 8,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              pw.SizedBox(height: 20),
-              pw.Text(
-                'Period: ${report.period}',
-                style: const pw.TextStyle(fontSize: 14),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text(
-                'Total Earnings: ${report.total}',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.Text(
-                'Change: ${report.change}',
-                style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
-              ),
-              pw.SizedBox(height: 30),
-              pw.Text(
-                'Recent Payouts:',
-                style: pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.TableHelper.fromTextArray(
-                context: context,
-                headerStyle: pw.TextStyle(
-                  color: PdfColors.white,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                headerDecoration: const pw.BoxDecoration(
-                  color: PdfColor.fromInt(0xFF0B372B),
-                ),
-                cellAlignment: pw.Alignment.centerLeft,
-                data: <List<String>>[
-                  ['Method', 'Amount', 'Date'],
-                  ...report.payouts.map(
-                    (payout) => [payout.method, payout.amount, payout.date],
-                  ),
-                ],
-              ),
+              pw.SizedBox(height: 14),
             ],
           );
+        },
+        footer: (context) {
+          return pw.Container(
+            alignment: pw.Alignment.center,
+            margin: const pw.EdgeInsets.only(top: 14),
+            child: pw.Text(
+              'Official Earnings Report generated by PalengkeGo Vendor Portal | Page ${context.pageNumber} of ${context.pagesCount}',
+              style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 8),
+            ),
+          );
+        },
+        build: (context) {
+          if (isDaily) {
+            return _buildDailyPdfContent();
+          } else if (isWeekly) {
+            return _buildWeeklyPdfContent();
+          } else {
+            return _buildMonthlyPdfContent();
+          }
         },
       ),
     );
@@ -143,54 +147,446 @@ class SalesReportExportService {
     return pdf.save();
   }
 
-  static Uint8List buildExcel(SalesReportData report) {
+  static List<pw.Widget> _buildDailyPdfContent() {
+    return [
+      pw.Text(
+        'Earnings Highlights',
+        style: pw.TextStyle(
+          fontSize: 12,
+          fontWeight: pw.FontWeight.bold,
+          color: const PdfColor.fromInt(0xFF0B372B),
+        ),
+      ),
+      pw.SizedBox(height: 8),
+      pw.Row(
+        children: [
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'TOTAL EARNINGS (THIS MONTH)',
+              'P 48,250.00',
+              'Across 142 completed orders',
+            ),
+          ),
+          pw.SizedBox(width: 12),
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'TODAY\'S EARNINGS',
+              'P 5,400.00',
+              'Across 18 completed orders',
+            ),
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 16),
+      pw.Text(
+        'Daily Sales & Earnings Log',
+        style: pw.TextStyle(
+          fontSize: 12,
+          fontWeight: pw.FontWeight.bold,
+          color: const PdfColor.fromInt(0xFF0B372B),
+        ),
+      ),
+      pw.SizedBox(height: 8),
+      pw.TableHelper.fromTextArray(
+        headerStyle: pw.TextStyle(
+          color: PdfColors.white,
+          fontWeight: pw.FontWeight.bold,
+          fontSize: 9,
+        ),
+        headerDecoration: const pw.BoxDecoration(
+          color: PdfColor.fromInt(0xFF0B372B),
+        ),
+        cellStyle: const pw.TextStyle(fontSize: 9),
+        data: <List<String>>[
+          ['DATE', 'COMPLETED ORDERS', 'TOTAL EARNINGS'],
+          ['2026-07-24 (Today)', '18', 'P 5,400.00'],
+          ['2026-07-23', '22', 'P 6,850.00'],
+          ['2026-07-22', '15', 'P 4,200.00'],
+          ['2026-07-21', '20', 'P 7,100.00'],
+          ['2026-07-20', '19', 'P 6,300.00'],
+        ],
+      ),
+      pw.SizedBox(height: 16),
+      _buildTotalsBox([
+        ['Total Orders Processed:', '142 Orders'],
+        ['Total Stall Earnings:', 'P 48,250.00'],
+      ]),
+    ];
+  }
+
+  static List<pw.Widget> _buildWeeklyPdfContent() {
+    return [
+      pw.Text(
+        'Weekly Performance Highlights',
+        style: pw.TextStyle(
+          fontSize: 12,
+          fontWeight: pw.FontWeight.bold,
+          color: const PdfColor.fromInt(0xFF0B372B),
+        ),
+      ),
+      pw.SizedBox(height: 8),
+      pw.Row(
+        children: [
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'WEEKLY TOTAL EARNINGS',
+              'P 41,700.00',
+              'Across 124 orders',
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'DAILY AVERAGE',
+              'P 5,957.14',
+              '~18 orders / day',
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'PEAK SALES DAY',
+              'Saturday',
+              'P 7,800.00 (July 18)',
+            ),
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 16),
+      pw.Text(
+        'Daily Breakdown (Current Week)',
+        style: pw.TextStyle(
+          fontSize: 12,
+          fontWeight: pw.FontWeight.bold,
+          color: const PdfColor.fromInt(0xFF0B372B),
+        ),
+      ),
+      pw.SizedBox(height: 8),
+      pw.TableHelper.fromTextArray(
+        headerStyle: pw.TextStyle(
+          color: PdfColors.white,
+          fontWeight: pw.FontWeight.bold,
+          fontSize: 9,
+        ),
+        headerDecoration: const pw.BoxDecoration(
+          color: PdfColor.fromInt(0xFF0B372B),
+        ),
+        cellStyle: const pw.TextStyle(fontSize: 9),
+        data: <List<String>>[
+          ['DAY & DATE', 'COMPLETED ORDERS', 'TOTAL EARNINGS'],
+          ['Saturday (2026-07-18)', '23', 'P 7,800.00'],
+          ['Sunday (2026-07-19)', '21', 'P 7,050.00'],
+          ['Monday (2026-07-20)', '19', 'P 6,300.00'],
+          ['Tuesday (2026-07-21)', '20', 'P 7,100.00'],
+          ['Wednesday (2026-07-22)', '15', 'P 4,200.00'],
+          ['Thursday (2026-07-23)', '22', 'P 6,850.00'],
+          ['Friday (2026-07-24 - Today)', '18', 'P 5,400.00'],
+        ],
+      ),
+      pw.SizedBox(height: 16),
+      _buildTotalsBox([
+        ['Total Weekly Orders:', '124 Orders'],
+        ['Average Order Value (AOV):', 'P 336.29 / order'],
+        ['Total Weekly Stall Earnings:', 'P 41,700.00'],
+      ]),
+    ];
+  }
+
+  static List<pw.Widget> _buildMonthlyPdfContent() {
+    return [
+      pw.Text(
+        'Monthly Performance Highlights',
+        style: pw.TextStyle(
+          fontSize: 12,
+          fontWeight: pw.FontWeight.bold,
+          color: const PdfColor.fromInt(0xFF0B372B),
+        ),
+      ),
+      pw.SizedBox(height: 8),
+      pw.Row(
+        children: [
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'MONTH-TO-DATE EARNINGS',
+              'P 145,200.00',
+              'Across 438 orders',
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'WEEKLY AVERAGE',
+              'P 42,350.00',
+              '~128 orders / week',
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: _buildHighlightCard(
+              'PROJECTED MONTH END',
+              'P 187,500.00',
+              'Based on 24-day run rate',
+            ),
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 16),
+      pw.Text(
+        'Weekly Breakdown (July 2026)',
+        style: pw.TextStyle(
+          fontSize: 12,
+          fontWeight: pw.FontWeight.bold,
+          color: const PdfColor.fromInt(0xFF0B372B),
+        ),
+      ),
+      pw.SizedBox(height: 8),
+      pw.TableHelper.fromTextArray(
+        headerStyle: pw.TextStyle(
+          color: PdfColors.white,
+          fontWeight: pw.FontWeight.bold,
+          fontSize: 9,
+        ),
+        headerDecoration: const pw.BoxDecoration(
+          color: PdfColor.fromInt(0xFF0B372B),
+        ),
+        cellStyle: const pw.TextStyle(fontSize: 9),
+        data: <List<String>>[
+          ['WEEK RANGE', 'TOTAL ORDERS', 'WEEKLY EARNINGS'],
+          ['Week 1 (July 01 - July 05)', '88', 'P 28,500.00'],
+          ['Week 2 (July 06 - July 12)', '112', 'P 37,200.00'],
+          ['Week 3 (July 13 - July 19)', '126', 'P 42,800.00'],
+          ['Week 4 (July 20 - July 24 - Partial)', '112', 'P 36,700.00'],
+        ],
+      ),
+      pw.SizedBox(height: 16),
+      _buildTotalsBox([
+        ['Total Orders Processed (MTD):', '438 Orders'],
+        ['Average Daily Revenue:', 'P 6,050.00 / day'],
+        ['Total Month-to-Date Earnings:', 'P 145,200.00'],
+      ]),
+    ];
+  }
+
+  static pw.Widget _buildHighlightCard(
+    String title,
+    String amount,
+    String subtitle,
+  ) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: const PdfColor.fromInt(0xFFECFDF5),
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: const PdfColor.fromInt(0xFFA7F3D0)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          pw.Text(
+            title,
+            style: const pw.TextStyle(
+              fontSize: 7,
+              color: PdfColor.fromInt(0xFF374151),
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            amount,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: const PdfColor.fromInt(0xFF064E3B),
+            ),
+          ),
+          pw.SizedBox(height: 2),
+          pw.Text(
+            subtitle,
+            style: const pw.TextStyle(
+              fontSize: 7,
+              color: PdfColor.fromInt(0xFF6B7280),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget _buildTotalsBox(List<List<String>> items) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: const PdfColor.fromInt(0xFFECFDF5),
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: const PdfColor.fromInt(0xFFA7F3D0)),
+      ),
+      child: pw.Column(
+        children: items.map((pair) {
+          final isLast = pair == items.last;
+          return pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(vertical: 2),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  pair[0],
+                  style: pw.TextStyle(
+                    fontSize: isLast ? 11 : 9,
+                    fontWeight: isLast
+                        ? pw.FontWeight.bold
+                        : pw.FontWeight.normal,
+                    color: isLast
+                        ? const PdfColor.fromInt(0xFF064E3B)
+                        : const PdfColor.fromInt(0xFF374151),
+                  ),
+                ),
+                pw.Text(
+                  pair[1],
+                  style: pw.TextStyle(
+                    fontSize: isLast ? 11 : 9,
+                    fontWeight: pw.FontWeight.bold,
+                    color: isLast
+                        ? const PdfColor.fromInt(0xFF064E3B)
+                        : const PdfColor.fromInt(0xFF1F2937),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  static Uint8List buildExcel(String period, String stallName) {
     final excel = Excel.createExcel();
     final sheet = excel['Sales Report'];
     excel.setDefaultSheet('Sales Report');
 
+    // Title Row 1
+    final titleCell = sheet.cell(CellIndex.indexByString('A1'));
+    titleCell.value = TextCellValue('PalengkeGo - Stall Earnings Report');
+    titleCell.cellStyle = CellStyle(
+      bold: true,
+      fontSize: 14,
+      fontColorHex: ExcelColor.fromHexString('#0B372B'),
+    );
+
+    // Subtitle Row 2
+    final subtitleCell = sheet.cell(CellIndex.indexByString('A2'));
+    subtitleCell.value = TextCellValue(
+      'Stall: $stallName    Period: July 01, 2026 - July 24, 2026',
+    );
+    subtitleCell.cellStyle = CellStyle(
+      italic: true,
+      fontSize: 10,
+      fontColorHex: ExcelColor.fromHexString('#64748B'),
+    );
+
+    // Summary Table Header (Row 4)
     final headerStyle = CellStyle(
       bold: true,
       backgroundColorHex: ExcelColor.fromHexString('#0B372B'),
       fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
     );
-    final boldStyle = CellStyle(bold: true);
 
-    final titleCell = sheet.cell(CellIndex.indexByString('A1'));
-    titleCell.value = TextCellValue('PalengkeGo Sales Report');
-    titleCell.cellStyle = headerStyle;
+    sheet.cell(CellIndex.indexByString('A4')).value = TextCellValue(
+      'Summary Category',
+    );
+    sheet.cell(CellIndex.indexByString('B4')).value = TextCellValue(
+      'Total Amount (PHP)',
+    );
+    sheet.cell(CellIndex.indexByString('C4')).value = TextCellValue(
+      'Completed Orders',
+    );
 
-    sheet.appendRow([TextCellValue('Period'), TextCellValue(report.period)]);
-    sheet.appendRow([
-      TextCellValue('Total Earnings'),
-      TextCellValue(report.total),
-    ]);
-    sheet.appendRow([TextCellValue('Change'), TextCellValue(report.change)]);
-    sheet.appendRow([TextCellValue('')]);
+    sheet.cell(CellIndex.indexByString('A4')).cellStyle = headerStyle;
+    sheet.cell(CellIndex.indexByString('B4')).cellStyle = headerStyle;
+    sheet.cell(CellIndex.indexByString('C4')).cellStyle = headerStyle;
 
-    final payoutHeaderCell = sheet.cell(CellIndex.indexByString('A6'));
-    payoutHeaderCell.value = TextCellValue('Recent Payouts');
-    payoutHeaderCell.cellStyle = boldStyle;
+    final rowStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#ECFDF5'),
+    );
 
-    sheet.appendRow([
-      TextCellValue('Method'),
-      TextCellValue('Amount'),
-      TextCellValue('Date'),
-    ]);
-    sheet.cell(CellIndex.indexByString('A7')).cellStyle = headerStyle;
-    sheet.cell(CellIndex.indexByString('B7')).cellStyle = headerStyle;
-    sheet.cell(CellIndex.indexByString('C7')).cellStyle = headerStyle;
+    // Summary Rows (Rows 5-7)
+    final summaryData = [
+      ['Earnings Today', 'P 5,400.00', '18 Orders'],
+      ['Earnings This Week', 'P 29,850.00', '89 Orders'],
+      ['Total Monthly Earnings', 'P 48,250.00', '142 Orders'],
+    ];
 
-    for (final payout in report.payouts) {
-      sheet.appendRow([
-        TextCellValue(payout.method),
-        TextCellValue(payout.amount),
-        TextCellValue(payout.date),
-      ]);
+    for (int r = 0; r < summaryData.length; r++) {
+      final rowIndex = 4 + r;
+      for (int c = 0; c < 3; c++) {
+        final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: c, rowIndex: rowIndex),
+        );
+        cell.value = TextCellValue(summaryData[r][c]);
+        cell.cellStyle = rowStyle;
+      }
     }
 
-    sheet.setColumnWidth(0, 20);
-    sheet.setColumnWidth(1, 15);
-    sheet.setColumnWidth(2, 15);
+    // Daily Earnings Breakdown Section (Row 10)
+    final sectionTitleCell = sheet.cell(CellIndex.indexByString('A10'));
+    sectionTitleCell.value = TextCellValue('Daily Earnings Breakdown');
+    sectionTitleCell.cellStyle = CellStyle(
+      bold: true,
+      fontSize: 11,
+      fontColorHex: ExcelColor.fromHexString('#0B372B'),
+    );
+
+    // Dark Green Bar (Row 11)
+    for (int c = 0; c < 3; c++) {
+      sheet
+              .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 10))
+              .cellStyle =
+          headerStyle;
+    }
+
+    // Daily Table Header (Row 12)
+    sheet.cell(CellIndex.indexByString('A12')).value = TextCellValue('Date');
+    sheet.cell(CellIndex.indexByString('B12')).value = TextCellValue(
+      'Completed Orders',
+    );
+    sheet.cell(CellIndex.indexByString('C12')).value = TextCellValue(
+      'Total Earnings (PHP)',
+    );
+
+    sheet.cell(CellIndex.indexByString('A12')).cellStyle = CellStyle(
+      bold: true,
+    );
+    sheet.cell(CellIndex.indexByString('B12')).cellStyle = CellStyle(
+      bold: true,
+    );
+    sheet.cell(CellIndex.indexByString('C12')).cellStyle = CellStyle(
+      bold: true,
+    );
+
+    // Daily Rows (Rows 13-17)
+    final dailyLog = [
+      ['2026-07-24', '18', 'P 5,400.00'],
+      ['2026-07-23', '22', 'P 6,850.00'],
+      ['2026-07-22', '15', 'P 4,200.00'],
+      ['2026-07-21', '20', 'P 7,100.00'],
+      ['2026-07-20', '19', 'P 6,300.00'],
+    ];
+
+    for (int r = 0; r < dailyLog.length; r++) {
+      final rowIndex = 12 + r;
+      for (int c = 0; c < 3; c++) {
+        sheet
+            .cell(
+              CellIndex.indexByColumnRow(columnIndex: c, rowIndex: rowIndex),
+            )
+            .value = TextCellValue(
+          dailyLog[r][c],
+        );
+      }
+    }
+
+    sheet.setColumnWidth(0, 30);
+    sheet.setColumnWidth(1, 24);
+    sheet.setColumnWidth(2, 24);
 
     return Uint8List.fromList(excel.encode() ?? const []);
   }

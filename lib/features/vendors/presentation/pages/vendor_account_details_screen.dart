@@ -99,6 +99,7 @@ class _VendorAccountDetailsScreenState
                         controller: _phoneController,
                         hint: 'Enter phone number',
                         keyboardType: TextInputType.phone,
+                        prefixText: '+63 ',
                       ),
                       const SizedBox(height: 20),
 
@@ -312,6 +313,7 @@ class _VendorAccountDetailsScreenState
     required TextEditingController controller,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    String? prefixText,
   }) {
     return TextFormField(
       controller: controller,
@@ -323,6 +325,12 @@ class _VendorAccountDetailsScreenState
       ),
       decoration: InputDecoration(
         hintText: hint,
+        prefixText: prefixText,
+        prefixStyle: const TextStyle(
+          fontFamily: 'PlusJakartaSans',
+          fontSize: 14,
+          color: Color(0xFF1E293B),
+        ),
         hintStyle: const TextStyle(
           fontFamily: 'PlusJakartaSans',
           fontSize: 14,
@@ -352,7 +360,9 @@ class _VendorAccountDetailsScreenState
           return 'This field is required';
         }
         if (keyboardType == TextInputType.emailAddress) {
-          final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+          final emailRegExp = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+          );
           if (!emailRegExp.hasMatch(val.trim())) {
             return 'Please enter a valid email address';
           }
@@ -421,8 +431,11 @@ class _VendorAccountDetailsScreenState
             if (val == null || val.isEmpty) {
               return 'This field is required';
             }
-            if (val.length < 6) {
-              return 'Password must be at least 6 characters';
+            final pwRegex = RegExp(
+              r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$&*~]).{8,}$',
+            );
+            if (!pwRegex.hasMatch(val)) {
+              return 'Must contain uppercase, number, symbol, and 8+ chars';
             }
             return null;
           },

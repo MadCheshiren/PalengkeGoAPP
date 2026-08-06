@@ -63,7 +63,7 @@ class BlockVendorDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'You will no longer see products from this vendor, and they won\'t be able to message you. This action can be undone in your settings.',
+              'You will no longer see products from this stall holder, and they won\'t be able to message you. This action can be undone in your settings.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'PlusJakartaSans',

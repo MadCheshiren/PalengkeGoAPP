@@ -37,8 +37,7 @@ const _mockPayouts = [
 class VendorPayoutsScreen extends StatelessWidget {
   const VendorPayoutsScreen({super.key});
 
-  double get _totalPaid =>
-      _mockPayouts.fold(0.0, (sum, p) => sum + p.amount);
+  double get _totalPaid => _mockPayouts.fold(0.0, (sum, p) => sum + p.amount);
 
   @override
   Widget build(BuildContext context) {
@@ -153,10 +152,7 @@ class _SummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '₱${totalPaid.toStringAsFixed(2).replaceAllMapped(
-                        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                        (m) => '${m[1]},',
-                      )}',
+                  '₱${totalPaid.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 26,
@@ -270,10 +266,7 @@ class _PayoutCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '₱${payout.amount.toStringAsFixed(2).replaceAllMapped(
-                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                      (m) => '${m[1]},',
-                    )}',
+                '₱${payout.amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
                 style: const TextStyle(
                   fontFamily: 'PlusJakartaSans',
                   fontSize: 15,
@@ -283,8 +276,7 @@ class _PayoutCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF0FDF4),
                   borderRadius: BorderRadius.circular(6),
