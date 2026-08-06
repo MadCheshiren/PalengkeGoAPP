@@ -30,7 +30,7 @@ docs/*
 !docs/BACKEND_ARCHITECTURE.md
 !docs/QA_PIPELINE.md
 !docs/REFACTOR_HANDOFF.md
-!docs/ULTIMATE_IMPLEMENTATION_PLAN.md
+!docs/CHANGELOG.md
 !docs/superpowers/
 docs/superpowers/*
 !docs/superpowers/plans/
