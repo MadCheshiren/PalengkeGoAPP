@@ -1,4 +1,4 @@
-enum UserRole { customer, vendor }
+enum UserRole { customer, vendor, admin }
 
 class AppUser {
   const AppUser({
@@ -6,27 +6,44 @@ class AppUser {
     required this.email,
     this.displayName,
     this.role = UserRole.customer,
+    this.phoneNumber,
+    this.profilePhoto,
+    this.isVerified = false,
+    this.isBlocked = false,
   });
 
   final String uid;
   final String email;
   final String? displayName;
   final UserRole role;
+  final String? phoneNumber;
+  final String? profilePhoto;
+  final bool isVerified;
+  final bool isBlocked;
 
   bool get isVendor => role == UserRole.vendor;
   bool get isCustomer => role == UserRole.customer;
+  bool get isAdmin => role == UserRole.admin;
 
   AppUser copyWith({
     String? uid,
     String? email,
     String? displayName,
     UserRole? role,
+    String? phoneNumber,
+    String? profilePhoto,
+    bool? isVerified,
+    bool? isBlocked,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
       role: role ?? this.role,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
+      isVerified: isVerified ?? this.isVerified,
+      isBlocked: isBlocked ?? this.isBlocked,
     );
   }
 }
@@ -41,8 +58,8 @@ class MockUsers {
   );
 
   static const vendor = AppUser(
-    uid: 'vendor-001',
-    email: 'vendor@palengkego.ph',
+    uid: 'stall holder-001',
+    email: 'stall holder@palengkego.ph',
     displayName: 'Diosa Fruit Stand',
     role: UserRole.vendor,
   );

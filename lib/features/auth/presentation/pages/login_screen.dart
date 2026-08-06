@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -37,11 +38,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _isLoading = true);
     try {
-      await ref
-          .read(authProvider.notifier)
-          .login(_emailController.text, _passwordController.text);
+      final email = _emailController.text.trim().toLowerCase();
+      final password = _passwordController.text;
+      await ref.read(authProvider.notifier).login(email, password);
       if (!mounted) return;
       _navigateByRole();
     } catch (e) {
@@ -96,28 +98,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   horizontal: 16,
                   vertical: 10,
                 ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.code_rounded,
-                      color: Color(0xFFF59E0B),
-                      size: 14,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'DEV MODE —',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.code_rounded,
                         color: Color(0xFFF59E0B),
+                        size: 14,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    _devChip('Customer', () => _devLoginAs(UserRole.customer)),
-                    const SizedBox(width: 6),
-                    _devChip('Vendor', () => _devLoginAs(UserRole.vendor)),
-                  ],
+                      const SizedBox(width: 8),
+                      const Text(
+                        'DEV MODE —',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFF59E0B),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _devChip(
+                        'Customer',
+                        () => _devLoginAs(UserRole.customer),
+                      ),
+                      const SizedBox(width: 6),
+                      _devChip(
+                        'Stall Holder',
+                        () => _devLoginAs(UserRole.vendor),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -132,6 +143,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       // Header
                       const SizedBox(height: 40),
+                      Image.asset('assets/images/logonobg.png', height: 80),
+                      const SizedBox(height: 16),
                       Text(
                         'Welcome Back!',
                         style: TextStyle(
@@ -165,6 +178,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         controller: _emailController,
+                        // Strip spaces and force lowercase as the user types
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                          _LowercaseFormatter(),
+                        ],
+                        validator: (v) {
+                          final val = (v ?? '').trim();
+                          if (val.isEmpty) return 'Email is required';
+                          final ok = RegExp(
+                            r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
+                          ).hasMatch(val);
+                          return ok ? null : 'Enter a valid email address';
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Password field
@@ -232,48 +258,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       // Social Login Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _socialLoginButton(
-                              icon: 'assets/icons/google_icon.svg',
-                              label: 'Google',
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Google Sign-In coming soon!',
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _socialLoginButton(
-                              icon: 'assets/icons/facebook_icon.svg',
-                              label: 'Facebook',
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Facebook Sign-In coming soon!',
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                      _googleSignInButton(),
                       const SizedBox(height: 24),
                       // Register link
                       GestureDetector(
                         onTap: () {
                           Navigator.of(
                             context,
-                          ).pushNamed(AppRoutes.registration);
+                          ).pushReplacementNamed(AppRoutes.registration);
                         },
                         child: Center(
                           child: RichText(
@@ -341,6 +333,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     TextInputType? keyboardType,
     TextInputAction? textInputAction,
     TextEditingController? controller,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,6 +359,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             controller: controller,
             keyboardType: keyboardType,
             textInputAction: textInputAction,
+            inputFormatters: inputFormatters,
+            validator: validator,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: const TextStyle(
@@ -385,6 +382,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
+              errorStyle: const TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 11,
+                color: Color(0xFFEF4444),
+              ),
             ),
           ),
         ),
@@ -392,45 +394,68 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _socialLoginButton({
-    required String icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              icon,
-              width: 20,
-              height: 20,
-              errorBuilder: (_, _, _) =>
-                  const Icon(Icons.login, size: 20, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF334155),
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authProvider.notifier).signInWithGoogle();
+      if (!mounted) return;
+      _navigateByRole();
+    } catch (e) {
+      if (mounted) {
+        final msg = e.toString().replaceAll('Exception: ', '');
+        if (msg != 'Google Sign-In cancelled.') {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(msg)));
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _googleSignInButton() {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      elevation: 0.5,
+      shadowColor: const Color(0xFF000000).withValues(alpha: 0.2),
+      child: InkWell(
+        onTap: _isLoading ? null : _handleGoogleSignIn,
+        borderRadius: BorderRadius.circular(12),
+        splashColor: const Color(0xFFF1F5F9),
+        highlightColor: const Color(0xFFF8FAFC),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFDADCE0), width: 1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/icons/google_icon.svg',
+                width: 20,
+                height: 20,
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: const Text(
+                  'Continue with Google',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF3C4043),
+                    letterSpacing: 0.25,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -573,4 +598,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+}
+
+/// Forces all typed characters to lowercase — used on email fields.
+class _LowercaseFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) => newValue.copyWith(text: newValue.text.toLowerCase());
 }

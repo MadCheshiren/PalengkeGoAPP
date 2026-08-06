@@ -1,9 +1,12 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
@@ -14,19 +17,23 @@ class RegistrationScreen extends ConsumerStatefulWidget {
 
 class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _surnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  bool _termsAccepted = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  DeliveryAddress? _selectedAddress;
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _surnameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -35,29 +42,67 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   }
 
   Future<void> _handleRegister() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Form validators cover all field-level checks.
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (!_termsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the Terms & Privacy Policy.'),
+        ),
+      );
+      return;
+    }
+
+    if (_selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please set your delivery location first.'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-      final name = _nameController.text.trim();
-      await ref.read(authProvider.notifier).register(
-        email.isEmpty ? 'test@example.com' : email,
-        password.isEmpty ? 'password' : password,
-        name.isEmpty ? 'Test User' : name,
-      );
+      final firstName = _firstNameController.text.trim();
+      final surname = _surnameController.text.trim();
+      final email = _emailController.text.trim().toLowerCase();
+      final password = _passwordController.text;
+      final name = '$firstName $surname';
+      await ref.read(authProvider.notifier).register(email, password, name);
+
+      // Save the selected address if any
+      if (_selectedAddress != null) {
+        ref
+            .read(preferencesProvider.notifier)
+            .updateAddress(
+              primaryAddress: _selectedAddress!.primaryAddress,
+              streetAddress: _selectedAddress!.streetAddress,
+              notes: _selectedAddress!.notes,
+            );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Registration successful!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
 
       if (!mounted) return;
 
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context, true);
-      } else {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
-      }
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,21 +122,39 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F7),
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
-            // Simple header with title only (no logo, no back button - entry point)
-            const SizedBox(height: 24),
+            // Header with back button
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Color(0xFF0B372B),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
             // Scrollable form
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Header text
+                      Image.asset('assets/images/logonobg.png', height: 80),
+                      const SizedBox(height: 16),
                       Text(
                         'Create an Account',
                         style: TextStyle(
@@ -117,12 +180,54 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 48),
-                      // Full Name
-                      _buildField(
-                        label: 'Full Name',
-                        hintText: 'Enter your full name',
-                        prefixIcon: Icons.person_outline_rounded,
-                        controller: _nameController,
+                      // Name
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildField(
+                              label: 'First Name',
+                              hintText: 'First name',
+                              prefixIcon: Icons.person_outline_rounded,
+                              controller: _firstNameController,
+                              // Allow letters, spaces, hyphens, and periods (for names like "Ma. Elena")
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r"[a-zA-ZÀ-ÿ .\-']"),
+                                ),
+                              ],
+                              textCapitalization: TextCapitalization.words,
+                              validator: (v) {
+                                final val = (v ?? '').trim();
+                                if (val.isEmpty) {
+                                  return 'First name is required';
+                                }
+                                if (val.length < 2) return 'Too short';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildField(
+                              label: 'Surname',
+                              hintText: 'Surname',
+                              prefixIcon: Icons.person_outline_rounded,
+                              controller: _surnameController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r"[a-zA-ZÀ-ÿ .\-']"),
+                                ),
+                              ],
+                              textCapitalization: TextCapitalization.words,
+                              validator: (v) {
+                                final val = (v ?? '').trim();
+                                if (val.isEmpty) return 'Surname is required';
+                                if (val.length < 2) return 'Too short';
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       // Email
@@ -133,16 +238,41 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         controller: _emailController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                          _LowercaseFormatter(),
+                        ],
+                        validator: (v) {
+                          final val = (v ?? '').trim();
+                          if (val.isEmpty) return 'Email is required';
+                          final ok = RegExp(
+                            r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
+                          ).hasMatch(val);
+                          return ok ? null : 'Enter a valid email address';
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Phone
                       _buildField(
                         label: 'Phone Number',
-                        hintText: '+63 900 000 0000',
+                        hintText: 'xxx xxx xxxx',
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
                         controller: _phoneController,
+                        prefixText: '+63 ',
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                          _PhoneSpaceFormatter(),
+                        ],
+                        validator: (v) {
+                          final val = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                          if (val.isEmpty) return 'Phone number is required';
+                          if (val.length < 10) {
+                            return 'Enter a 10-digit PH number';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Password
@@ -155,6 +285,21 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
                           });
+                        },
+                        validator: (v) {
+                          final val = v ?? '';
+                          if (val.isEmpty) return 'Password is required';
+                          if (val.length < 8) return 'At least 8 characters';
+                          if (!RegExp(r'[A-Z]').hasMatch(val)) {
+                            return 'Add an uppercase letter';
+                          }
+                          if (!RegExp(r'[0-9]').hasMatch(val)) {
+                            return 'Add a number';
+                          }
+                          if (!RegExp(r'[!@#&*~^%]').hasMatch(val)) {
+                            return 'Add a special character (!@#&*~^%)';
+                          }
+                          return null;
                         },
                       ),
                       const SizedBox(height: 16),
@@ -169,46 +314,107 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             _obscureConfirmPassword = !_obscureConfirmPassword;
                           });
                         },
+                        validator: (v) {
+                          if ((v ?? '').isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (v != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Set Address Button
                       _addressPlaceholder(),
                       const SizedBox(height: 24),
                       // Terms
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF64748B),
-                            ),
-                            children: [
-                              const TextSpan(
-                                text: 'By registering, you agree to our ',
-                              ),
-                              TextSpan(
-                                text: 'Terms & Privacy Policy',
-                                style: TextStyle(
-                                  color: const Color(0xFF0B372B),
-                                  fontWeight: FontWeight.w600,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Checkbox(
+                            value: _termsAccepted,
+                            onChanged: (val) {
+                              setState(() {
+                                _termsAccepted = val ?? false;
+                              });
+                            },
+                            activeColor: const Color(0xFF0B372B),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () async {
+                                final url = Uri.parse(
+                                  'https://palengkego.com/terms',
+                                );
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url);
+                                } else {
+                                  if (!context.mounted) return;
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text(
+                                        'Terms & Privacy Policy',
+                                      ),
+                                      content: const SingleChildScrollView(
+                                        child: Text(
+                                          'By registering, you agree to our Terms & Privacy Policy.\n\n'
+                                          'Please note: Stall holder contact numbers are collected and displayed to allow direct customer communication.\n\n'
+                                          'For full terms, please visit https://palengkego.com/terms',
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(),
+                                          child: const Text(
+                                            'Close',
+                                            style: TextStyle(
+                                              color: Color(0xFF0B372B),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                              child: RichText(
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: const Color(0xFF64748B),
+                                  ),
+                                  children: [
+                                    const TextSpan(
+                                      text: 'By registering, you agree to our ',
+                                    ),
+                                    TextSpan(
+                                      text: 'Terms & Privacy Policy',
+                                      style: TextStyle(
+                                        color: const Color(0xFF0B372B),
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+                      _bottomActionBar(),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
             ),
-            // Bottom action bar
-            _bottomActionBar(),
           ],
         ),
       ),
@@ -222,6 +428,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     TextInputType? keyboardType,
     TextInputAction? textInputAction,
     TextEditingController? controller,
+    String? prefixText,
+    List<TextInputFormatter>? inputFormatters,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,36 +446,64 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            textInputAction: textInputAction,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF94A3B8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          inputFormatters: inputFormatters,
+          textCapitalization: textCapitalization,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          decoration: InputDecoration(
+            hintText: hintText,
+            prefixText: prefixText,
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            hintStyle: const TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFF94A3B8),
+            ),
+            prefixIcon: Icon(
+              prefixIcon,
+              size: 18,
+              color: const Color(0xFF94A3B8),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF0B372B),
+                width: 1.5,
               ),
-              prefixIcon: Icon(
-                prefixIcon,
-                size: 18,
-                color: const Color(0xFF94A3B8),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFEF4444)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
               ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 14,
-              ),
+            ),
+            errorStyle: const TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 11,
+              color: Color(0xFFEF4444),
             ),
           ),
         ),
@@ -279,6 +517,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     required TextEditingController controller,
     required bool obscureText,
     required VoidCallback onToggleVisibility,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,53 +532,78 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextFormField(
-            controller: controller,
-            obscureText: obscureText,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF94A3B8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          textInputAction: TextInputAction.next,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          decoration: InputDecoration(
+            hintText: hintText,
+            filled: true,
+            fillColor: Colors.white,
+            hintStyle: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF94A3B8),
+            ),
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(left: 12),
+              child: Icon(
+                Icons.lock_outline,
+                size: 16,
+                color: Color(0xFF94A3B8),
               ),
-              prefixIcon: const Padding(
-                padding: EdgeInsets.only(left: 12),
-                child: Icon(
-                  Icons.lock_outline,
-                  size: 16,
-                  color: Color(0xFF94A3B8),
-                ),
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 0,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                obscureText
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                size: 18,
+                color: const Color(0xFF64748B),
               ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 0,
+              onPressed: onToggleVisibility,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 15,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF0B372B),
+                width: 1.5,
               ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  obscureText
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  size: 18,
-                  color: const Color(0xFF64748B),
-                ),
-                onPressed: onToggleVisibility,
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFEF4444)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 15,
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
+            ),
+            errorStyle: const TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 11,
+              color: Color(0xFFEF4444),
             ),
           ),
         ),
@@ -353,11 +617,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         final result = await Navigator.of(
           context,
         ).pushNamed(AppRoutes.setDeliveryAddress);
-        // Handle the returned address data if needed
         if (result is DeliveryAddress) {
-          // Update the address display or store the data
           setState(() {
-            // Update with selected address
+            _selectedAddress = result;
           });
         }
       },
@@ -392,7 +654,8 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Set Your Delivery Address',
+                  _selectedAddress?.primaryAddress ??
+                      'Set Your Delivery Address',
                   style: TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
@@ -400,16 +663,18 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     color: const Color(0xFF0B372B),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Naga City, Camarines Sur',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFF64748B),
+                if (_selectedAddress != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _selectedAddress!.streetAddress,
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF64748B),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
             const Spacer(),
@@ -441,9 +706,11 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 height: 56,
+                width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
@@ -508,7 +775,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pushNamed(AppRoutes.login);
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.login);
                 },
                 child: Center(
                   child: RichText(
@@ -538,6 +805,42 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Forces all typed characters to lowercase — used on email fields.
+class _LowercaseFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) => newValue.copyWith(text: newValue.text.toLowerCase());
+}
+
+class _PhoneSpaceFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var text = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (text.length > 10) text = text.substring(0, 10);
+    var formatted = '';
+    for (var i = 0; i < text.length; i++) {
+      if (i == 3 || i == 6) formatted += ' ';
+      formatted += text[i];
+    }
+
+    // Attempt to maintain cursor position
+    int cursor = newValue.selection.baseOffset;
+    if (cursor > formatted.length) {
+      cursor = formatted.length;
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
