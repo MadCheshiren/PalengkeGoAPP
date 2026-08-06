@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/services/preferences_provider.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
@@ -24,19 +25,26 @@ class OnboardingScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Market stall illustration container
-                    Container(
-                      width: isSmall ? 280 : 320,
-                      height: isSmall ? 280 : 320,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0B372B),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.storefront_outlined,
-                          size: 120,
-                          color: Colors.white.withValues(alpha: 0.9),
+                    // Market stall image placeholder
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: SizedBox(
+                        width: isSmall ? 280 : 320,
+                        height: isSmall ? 280 : 320,
+                        child: AdaptiveImage(
+                          // Placeholder image of a market, can be swapped with a real asset later
+                          'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600&h=600',
+                          fit: BoxFit.cover,
+                          placeholder: Container(
+                            color: const Color(0xFF0B372B),
+                            child: Center(
+                              child: Icon(
+                                Icons.storefront_outlined,
+                                size: 120,
+                                color: Colors.white.withValues(alpha: 0.9),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -82,7 +90,9 @@ class OnboardingScreen extends ConsumerWidget {
                         final prefs = ref.read(sharedPreferencesProvider);
                         await prefs.setBool('hasSeenOnboarding', true);
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+                          Navigator.of(
+                            context,
+                          ).pushReplacementNamed(AppRoutes.main);
                         }
                       },
                       style: ElevatedButton.styleFrom(

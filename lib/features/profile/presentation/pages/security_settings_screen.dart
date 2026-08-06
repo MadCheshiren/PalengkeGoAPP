@@ -13,7 +13,6 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
-  bool _twoFactorEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -229,124 +228,6 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-
-                      // Two-Factor Authentication
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 12,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFEDD5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.phonelink_lock_outlined,
-                                size: 24,
-                                color: Color(0xFF9A3412),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Two-Factor\nAuthentication',
-                                    style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF1F2937),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Add an extra layer of security to your\naccount.',
-                                    style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                      color: const Color(0xFF6B7280),
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Switch.adaptive(
-                              value: _twoFactorEnabled,
-                              onChanged: (value) {
-                                setState(() {
-                                  _twoFactorEnabled = value;
-                                });
-                              },
-                              activeTrackColor: const Color(0xFF0B372B),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Recent Security Activity
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 12,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'RECENT SECURITY ACTIVITY',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF9CA3AF),
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildActivityItem(
-                              icon: Icons.phone_iphone_outlined,
-                              title: 'New Login: iPhone 13',
-                              subtitle: 'Manila, PH · 2 hours ago',
-                              color: const Color(0xFF0B372B),
-                            ),
-                            const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                            _buildActivityItem(
-                              icon: Icons.verified_user_outlined,
-                              title: 'Security checkup completed',
-                              subtitle:
-                                  'Your account is well protected 2 days ago',
-                              color: const Color(0xFF0B372B),
-                            ),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -423,51 +304,6 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               color: Color(0xFF1F2937),
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActivityItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 24, color: color),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF9CA3AF),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 14,
-          color: Color(0xFF9CA3AF),
         ),
       ],
     );

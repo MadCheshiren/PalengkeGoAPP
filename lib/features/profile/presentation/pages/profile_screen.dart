@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/profile/application/favorites_provider.dart';
 import 'package:palengkego/features/profile/application/profile_provider.dart';
+import 'package:palengkego/features/home/presentation/widgets/location_selection_sheet.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_onboarding_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/application/has_vendor_stall_provider.dart';
 import 'edit_profile_screen.dart';
 import 'security_settings_screen.dart';
 import 'saved_stalls_screen.dart';
+import 'help_support_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -19,6 +25,9 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsyncValue = ref.watch(currentProfileProvider);
     final favoriteVendors = ref.watch(favoriteVendorsProvider);
+    final user = ref.watch(authProvider);
+    final isVendor = user?.isVendor ?? false;
+    final hasVendorStall = ref.watch(hasVendorStallProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -87,9 +96,7 @@ class ProfileScreen extends ConsumerWidget {
                                   width: 2,
                                 ),
                               ),
-                              child: ClipOval(
-                                child: _fallbackAvatar(),
-                              ),
+                              child: ClipOval(child: _fallbackAvatar()),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -128,7 +135,20 @@ class ProfileScreen extends ConsumerWidget {
                             iconData: Icons.person_add_alt_1_rounded,
                             title: 'Create an Account',
                             onTap: () {
-                              Navigator.of(context).pushNamed(AppRoutes.registration);
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AppRoutes.registration);
+                            },
+                          ),
+                          _buildMenuItem(
+                            iconData: Icons.help_outline_rounded,
+                            title: 'Help & Support',
+                            onTap: () {
+                              Navigator.of(context).push(
+                                PageTransitions.slideFromRight(
+                                  const CustomerHelpSupportScreen(),
+                                ),
+                              );
                             },
                           ),
                         ],
@@ -151,14 +171,11 @@ class ProfileScreen extends ConsumerWidget {
                               ),
                             ),
                             child: ClipOval(
-                              child: profile.avatarUrl != null
-                                  ? Image.network(
-                                      profile.avatarUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) =>
-                                          _fallbackAvatar(),
-                                    )
-                                  : _fallbackAvatar(),
+                              child: AdaptiveImage(
+                                profile.avatarUrl,
+                                fit: BoxFit.cover,
+                                placeholder: _fallbackAvatar(),
+                              ),
                             ),
                           ),
                         ),
@@ -189,119 +206,145 @@ class ProfileScreen extends ConsumerWidget {
                         const SizedBox(height: 32),
 
                         // ── Favorites Section ─────────────────────────────
-                        if (favoriteVendors.isNotEmpty) ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'My Favorites',
-                                style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B372B),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F5E9),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  '${favoriteVendors.length}',
-                                  style: const TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF0B372B),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 100,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: favoriteVendors.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) {
-                                final vendor = favoriteVendors[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      PageTransitions.slideFromRight(
-                                        VendorProfileScreen(
-                                            vendorId: vendor.id),
+                        favoriteVendors.maybeWhen(
+                          data: (vendors) {
+                            if (vendors.isEmpty) return const SizedBox.shrink();
+                            return Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'My Favorites',
+                                      style: TextStyle(
+                                        fontFamily: 'PlusJakartaSans',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF0B372B),
                                       ),
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 80,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      color: Colors.white,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                              alpha: 0.05),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
                                     ),
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.vertical(
-                                              top: Radius.circular(12),
-                                            ),
-                                            child: Image.network(
-                                              vendor.imageUrl,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, _, _) =>
-                                                  Container(
-                                                color:
-                                                    const Color(0xFFE8F5E9),
-                                                child: const Icon(
-                                                  Icons.storefront_outlined,
-                                                  color: Color(0xFF6D9773),
-                                                ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE8F5E9),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${vendors.length}',
+                                        style: const TextStyle(
+                                          fontFamily: 'PlusJakartaSans',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF0B372B),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: vendors.length,
+                                    separatorBuilder: (_, _) =>
+                                        const SizedBox(width: 12),
+                                    itemBuilder: (context, index) {
+                                      final vendor = vendors[index];
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            PageTransitions.slideFromRight(
+                                              VendorProfileScreen(
+                                                vendorId: vendor.id,
                                               ),
                                             ),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(6),
-                                          child: Text(
-                                            vendor.name,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontFamily: 'PlusJakartaSans',
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF0B372B),
+                                          );
+                                        },
+                                        child: Container(
+                                          width: 80,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
+                                            color: Colors.white,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.05,
+                                                ),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Expanded(
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      const BorderRadius.vertical(
+                                                        top: Radius.circular(
+                                                          12,
+                                                        ),
+                                                      ),
+                                                  child: AdaptiveImage(
+                                                    vendor.imageUrl,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                    placeholder: Container(
+                                                      color: const Color(
+                                                        0xFFE8F5E9,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons
+                                                            .storefront_outlined,
+                                                        color: Color(
+                                                          0xFF6D9773,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.all(
+                                                  6,
+                                                ),
+                                                child: Text(
+                                                  vendor.name,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    fontFamily:
+                                                        'PlusJakartaSans',
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF0B372B),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                        ],
+                                ),
+                                const SizedBox(height: 28),
+                              ],
+                            );
+                          },
+                          orElse: () => const SizedBox.shrink(),
+                        ),
 
                         // ── Menu Items ────────────────────────────────────
                         _buildMenuItem(
@@ -312,6 +355,19 @@ class ProfileScreen extends ConsumerWidget {
                               PageTransitions.slideFromRight(
                                 const EditProfileScreen(),
                               ),
+                            );
+                          },
+                        ),
+                        _buildMenuItem(
+                          iconData: Icons.location_on_outlined,
+                          title: 'My Addresses',
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.transparent,
+                              isScrollControlled: true,
+                              builder: (context) =>
+                                  const LocationSelectionSheet(),
                             );
                           },
                         ),
@@ -338,14 +394,52 @@ class ProfileScreen extends ConsumerWidget {
                           },
                         ),
                         _buildMenuItem(
-                          iconPath: 'assets/icons/start selling icon.svg',
-                          title: 'Start Selling',
+                          iconData: Icons.help_outline_rounded,
+                          title: 'Help & Support',
                           onTap: () {
                             Navigator.of(context).push(
                               PageTransitions.slideFromRight(
-                                const VendorOnboardingScreen(),
+                                const CustomerHelpSupportScreen(),
                               ),
                             );
+                          },
+                        ),
+                        _buildMenuItem(
+                          iconPath: isVendor
+                              ? null
+                              : (hasVendorStall
+                                    ? null
+                                    : 'assets/icons/start selling icon.svg'),
+                          iconData: isVendor
+                              ? Icons.storefront_rounded
+                              : (hasVendorStall
+                                    ? Icons.storefront_rounded
+                                    : null),
+                          title: isVendor
+                              ? 'Manage Stall Holder Stall'
+                              : (hasVendorStall
+                                    ? 'Manage Stall Holder Stall'
+                                    : 'Start Selling'),
+                          onTap: () async {
+                            if (isVendor || hasVendorStall) {
+                              await ref
+                                  .read(authProvider.notifier)
+                                  .loginAs(UserRole.vendor);
+                              if (context.mounted) {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  PageTransitions.slideFromRight(
+                                    const VendorDashboardScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              }
+                            } else {
+                              Navigator.of(context).push(
+                                PageTransitions.slideFromRight(
+                                  const VendorOnboardingScreen(),
+                                ),
+                              );
+                            }
                           },
                         ),
                         _buildMenuItem(
@@ -366,8 +460,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  error: (error, stack) =>
-                      Center(child: Text('Error: $error')),
+                  error: (error, stack) => Center(child: Text('Error: $error')),
                 ),
               ),
             ),
@@ -428,7 +521,9 @@ class ProfileScreen extends ConsumerWidget {
               Icon(
                 iconData,
                 size: 22,
-                color: isLogout ? const Color(0xFFEF4444) : const Color(0xFF0B372B),
+                color: isLogout
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFF0B372B),
               ),
             const SizedBox(width: 16),
             Expanded(

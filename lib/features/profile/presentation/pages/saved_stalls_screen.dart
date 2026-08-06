@@ -22,8 +22,10 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
     final blockedVendors = ref.watch(blockedVendorsListProvider);
 
     final currentList = _selectedIndex == 0 ? favoriteVendors : blockedVendors;
-    final emptyTitle = _selectedIndex == 0 ? 'No Favorites Yet' : 'No Blocked Stalls';
-    final emptyMessage = _selectedIndex == 0 
+    final emptyTitle = _selectedIndex == 0
+        ? 'No Favorites Yet'
+        : 'No Blocked Stalls';
+    final emptyMessage = _selectedIndex == 0
         ? 'Stalls you favorite will appear here.'
         : 'Stalls you block will appear here.';
 
@@ -71,7 +73,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                 ],
               ),
             ),
-            
+
             // Segmented Pill Control
             const SizedBox(height: 16),
             Center(
@@ -106,7 +108,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                         ),
                       ),
                     ),
-                    
+
                     // Options
                     Row(
                       children: [
@@ -118,61 +120,71 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Grid content
             Expanded(
-              child: currentList.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _selectedIndex == 0 
-                                ? Icons.favorite_border_rounded 
-                                : Icons.block_flipped,
-                            size: 48,
-                            color: const Color(0xFF9CA3AF),
+              child: currentList.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+                data: (list) {
+                  return list.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _selectedIndex == 0
+                                    ? Icons.favorite_border_rounded
+                                    : Icons.block_flipped,
+                                size: 48,
+                                color: const Color(0xFF9CA3AF),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                emptyTitle,
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1F2937),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                emptyMessage,
+                                style: const TextStyle(
+                                  fontFamily: 'PlusJakartaSans',
+                                  fontSize: 14,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            emptyTitle,
-                            style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1F2937),
-                            ),
+                        )
+                      : GridView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            emptyMessage,
-                            style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: 0.55,
-                      ),
-                      itemCount: currentList.length,
-                      itemBuilder: (context, index) {
-                        if (_selectedIndex == 1) {
-                          return _BlockedStallCard(vendor: currentList[index]);
-                        }
-                        return StallCard(vendor: currentList[index]);
-                      },
-                    ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: 0.55,
+                              ),
+                          itemCount: list.length,
+                          itemBuilder: (context, index) {
+                            if (_selectedIndex == 1) {
+                              return _BlockedStallCard(vendor: list[index]);
+                            }
+                            return StallCard(vendor: list[index]);
+                          },
+                        );
+                },
+              ),
             ),
           ],
         ),
@@ -197,7 +209,9 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
               fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-              color: isSelected ? const Color(0xFF0B372B) : const Color(0xFF64748B),
+              color: isSelected
+                  ? const Color(0xFF0B372B)
+                  : const Color(0xFF64748B),
             ),
             child: Text(title),
           ),
@@ -235,9 +249,7 @@ class _BlockedStallCard extends ConsumerWidget {
         Positioned.fill(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.08),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: 0.08)),
           ),
         ),
 

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/core/utils/image_picker_helper.dart';
 import 'package:palengkego/features/profile/application/profile_provider.dart';
@@ -157,26 +158,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               ),
                               child: ClipOval(
                                 child: _pickedImage != null
-                                    ? Image.file(
-                                        _pickedImage!,
+                                    ? AdaptiveImage(
+                                        _pickedImage!.path,
                                         fit: BoxFit.cover,
+                                        placeholder: const Icon(
+                                          Icons.person_rounded,
+                                          size: 48,
+                                          color: Color(0xFF94A3B8),
+                                        ),
                                       )
-                                    : (_initialProfile!.avatarUrl != null
-                                          ? Image.network(
-                                              _initialProfile!.avatarUrl!,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, _, _) =>
-                                                  const Icon(
-                                                    Icons.person_rounded,
-                                                    size: 48,
-                                                    color: Color(0xFF94A3B8),
-                                                  ),
-                                            )
-                                          : const Icon(
-                                              Icons.person_rounded,
-                                              size: 48,
-                                              color: Color(0xFF94A3B8),
-                                            )),
+                                    : AdaptiveImage(
+                                        _initialProfile!.avatarUrl,
+                                        fit: BoxFit.cover,
+                                        placeholder: const Icon(
+                                          Icons.person_rounded,
+                                          size: 48,
+                                          color: Color(0xFF94A3B8),
+                                        ),
+                                      ),
                               ),
                             ),
                             Positioned(
@@ -236,7 +235,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           if (value == null || value.trim().isEmpty) {
                             return 'Email is required';
                           }
-                          if (!value.contains('@')) {
+                          final emailRegex = RegExp(
+                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                          );
+                          if (!emailRegex.hasMatch(value.trim())) {
                             return 'Enter a valid email';
                           }
                           return null;
@@ -427,6 +429,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }) {
     return TextFormField(
       controller: controller,
+      textCapitalization: TextCapitalization.words,
       keyboardType: keyboardType,
       validator: validator,
       style: const TextStyle(

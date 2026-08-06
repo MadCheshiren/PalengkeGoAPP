@@ -29,17 +29,30 @@ class BlockedVendorsNotifier extends Notifier<Set<String>> {
   bool isBlocked(String vendorId) => state.contains(vendorId);
 
   void _persist(Set<String> ids) {
-    ref.read(sharedPreferencesProvider).setStringList(_kBlockedKey, ids.toList());
+    ref
+        .read(sharedPreferencesProvider)
+        .setStringList(_kBlockedKey, ids.toList());
   }
 }
 
 final blockedVendorsProvider =
-    NotifierProvider<BlockedVendorsNotifier, Set<String>>(BlockedVendorsNotifier.new);
+    NotifierProvider<BlockedVendorsNotifier, Set<String>>(
+      BlockedVendorsNotifier.new,
+    );
 
-/// Derives the list of blocked [MarketVendor] objects from the market repo.
-final blockedVendorsListProvider = Provider<List<MarketVendor>>((ref) {
+final blockedVendorsListProvider = Provider<AsyncValue<List<MarketVendor>>>((
+  ref,
+) {
   final blockedIds = ref.watch(blockedVendorsProvider);
-  final repo = ref.watch(marketRepositoryProvider);
-  final allVendors = repo.getVendorsByCategory('All');
-  return allVendors.where((v) => blockedIds.contains(v.id)).toList();
+  final vendorsAsync = ref.watch(allVendorsProvider);
+
+  return vendorsAsync.whenData((allVendors) {
+    return allVendors.where((v) {
+      final idLower = v.id.toLowerCase();
+      final nameLower = v.name.toLowerCase();
+      return blockedIds.any(
+        (b) => b.toLowerCase() == idLower || b.toLowerCase() == nameLower,
+      );
+    }).toList();
+  });
 });
