@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 
 class CartItemCard extends StatelessWidget {
@@ -12,7 +13,7 @@ class CartItemCard extends StatelessWidget {
 
   final CartItem item;
   final VoidCallback onToggleSelect;
-  final ValueChanged<int> onQuantityChange;
+  final ValueChanged<double> onQuantityChange;
   final VoidCallback onDelete;
 
   @override
@@ -54,26 +55,20 @@ class CartItemCard extends StatelessWidget {
               color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: item.image.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      item.image,
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const Icon(
-                        Icons.image_outlined,
-                        size: 28,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                  )
-                : const Icon(
-                    Icons.image_outlined,
-                    size: 28,
-                    color: Color(0xFF94A3B8),
-                  ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: AdaptiveImage(
+                item.image.isNotEmpty ? item.image : null,
+                width: 72,
+                height: 72,
+                fit: BoxFit.cover,
+                placeholder: const Icon(
+                  Icons.image_outlined,
+                  size: 28,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -93,7 +88,7 @@ class CartItemCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${item.weight} • ${item.pricePerKg}',
+                  item.quantityLabel,
                   style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
@@ -105,7 +100,7 @@ class CartItemCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        'PHP ${item.total.toStringAsFixed(0)}',
+                        '₱${item.total.toStringAsFixed(0)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -119,8 +114,11 @@ class CartItemCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     _QuantityStepper(
                       quantity: item.quantity,
-                      maxQuantity: item.stockQuantity,
-                      onChanged: onQuantityChange,
+                      maxQuantity: item.stockQuantity.toDouble(),
+                      unit: item.unit,
+                      onChanged: (delta) {
+                        onQuantityChange(delta);
+                      },
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
@@ -142,16 +140,55 @@ class CartItemCard extends StatelessWidget {
   }
 }
 
+double _stepKgQuantity(double current, bool isIncrement, double maxWeight) {
+  final double whole = current.floorToDouble();
+  final double fraction = current - whole;
+
+  if (isIncrement) {
+    if (fraction < 0.124) {
+      return (whole + 0.125).clamp(0.125, maxWeight);
+    } else if (fraction < 0.249) {
+      return (whole + 0.25).clamp(0.125, maxWeight);
+    } else if (fraction < 0.499) {
+      return (whole + 0.5).clamp(0.125, maxWeight);
+    } else if (fraction < 0.749) {
+      return (whole + 0.75).clamp(0.125, maxWeight);
+    } else {
+      return (whole + 1.0).clamp(0.125, maxWeight);
+    }
+  } else {
+    if (fraction > 0.751) {
+      return (whole + 0.75).clamp(0.125, maxWeight);
+    } else if (fraction > 0.501) {
+      return (whole + 0.5).clamp(0.125, maxWeight);
+    } else if (fraction > 0.251) {
+      return (whole + 0.25).clamp(0.125, maxWeight);
+    } else if (fraction > 0.126) {
+      return (whole + 0.125).clamp(0.125, maxWeight);
+    } else if (fraction > 0.001) {
+      return whole.clamp(0.0, maxWeight);
+    } else {
+      if (whole >= 1.0) {
+        return (whole - 1.0 + 0.75).clamp(0.125, maxWeight);
+      } else {
+        return 0.0;
+      }
+    }
+  }
+}
+
 class _QuantityStepper extends StatelessWidget {
   const _QuantityStepper({
     required this.quantity,
     required this.maxQuantity,
+    required this.unit,
     required this.onChanged,
   });
 
-  final int quantity;
-  final int maxQuantity;
-  final ValueChanged<int> onChanged;
+  final double quantity;
+  final double maxQuantity;
+  final String unit;
+  final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +202,13 @@ class _QuantityStepper extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
-            onTap: () => onChanged(-1),
+            onTap: () {
+              if (unit == 'kg') {
+                onChanged(_stepKgQuantity(quantity, false, maxQuantity));
+              } else {
+                onChanged((quantity - 1.0).clamp(0.0, maxQuantity));
+              }
+            },
             child: Container(
               width: 30,
               height: 30,
@@ -173,24 +216,42 @@ class _QuantityStepper extends StatelessWidget {
               child: const Icon(Icons.remove_rounded, size: 16),
             ),
           ),
-          SizedBox(
-            width: 30,
+          Container(
+            constraints: const BoxConstraints(minWidth: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
             height: 30,
-            child: Center(
-              child: Text(
-                '$quantity',
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF101828),
-                ),
+            alignment: Alignment.center,
+            child: Text(
+              unit == 'kg'
+                  ? CartItem(
+                      productId: '',
+                      vendorName: '',
+                      productName: '',
+                      price: 0,
+                      image: '',
+                      quantity: quantity,
+                      unit: 'kg',
+                    ).quantityLabel.replaceAll(' kg', '')
+                  : quantity.toInt().toString(),
+              maxLines: 1,
+              softWrap: false,
+              style: const TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF101828),
               ),
             ),
           ),
           GestureDetector(
             onTap: quantity < maxQuantity
-                ? () => onChanged(1)
+                ? () {
+                    if (unit == 'kg') {
+                      onChanged(_stepKgQuantity(quantity, true, maxQuantity));
+                    } else {
+                      onChanged((quantity + 1.0).clamp(1.0, maxQuantity));
+                    }
+                  }
                 : () {
                     if (!context.mounted) return;
                     ScaffoldMessenger.maybeOf(context)?.showSnackBar(

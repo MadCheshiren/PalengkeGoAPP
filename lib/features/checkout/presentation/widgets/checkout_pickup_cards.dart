@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
 class CheckoutPickupHeader extends StatelessWidget {
   const CheckoutPickupHeader({super.key});
@@ -86,11 +87,10 @@ class CheckoutPickupCard extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                vendorImageUrl ??
-                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face',
+              child: AdaptiveImage(
+                vendorImageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Icon(
+                placeholder: const Icon(
                   Icons.storefront_rounded,
                   color: Color(0xFF94A3B8),
                 ),
@@ -198,6 +198,17 @@ class CheckoutReadyTimeCard extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF0B372B),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '* Initial estimate. The actual preparation time will be set by the vendor once they accept your order.',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                    height: 1.3,
                   ),
                 ),
               ],

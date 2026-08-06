@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/checkout/domain/payment_selection.dart';
@@ -12,8 +13,13 @@ import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 /// - Credit/Debit Card
 class PaymentMethodsScreen extends StatefulWidget {
   final String? currentMethod;
+  final String fulfillmentMethod;
 
-  const PaymentMethodsScreen({super.key, this.currentMethod});
+  const PaymentMethodsScreen({
+    super.key,
+    this.currentMethod,
+    this.fulfillmentMethod = 'delivery',
+  });
 
   @override
   State<PaymentMethodsScreen> createState() => _PaymentMethodsScreenState();
@@ -53,23 +59,127 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 
   Future<void> _addGCash() async {
-    // TODO: Implement Paymongo GCash integration
-    // For now, show placeholder
-    showDialog(
+    // Mocking GCash account linking
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('GCash Payment'),
-        content: const Text(
-          'GCash setup is not connected yet.\n\n'
-          'For now, you can continue with Cash on Delivery or add a card.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 24,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Link GCash Account',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Mobile Number',
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF374151),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                  _PhoneSpaceFormatter(),
+                ],
+                decoration: InputDecoration(
+                  hintText: 'xxx xxx xxxx',
+                  prefixText: '+63 ',
+                  prefixStyle: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF3F4F6),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF007DFE), // GCash Blue
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(sheetContext); // Close bottom sheet
+
+                    // Show loading dialog
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (dialogContext) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+
+                    // Simulate API delay
+                    await Future.delayed(const Duration(seconds: 2));
+
+                    if (!mounted) return;
+                    Navigator.pop(context); // Close loading dialog
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('GCash account linked successfully!'),
+                      ),
+                    );
+
+                    setState(() {
+                      _selectedMethod = 'gcash';
+                    });
+
+                    Navigator.pop(
+                      context,
+                      PaymentSelectionResult(method: 'gcash'),
+                    );
+                  },
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -107,14 +217,23 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
                     // Cash on Delivery
                     _buildPaymentOption(
-                      method: 'cod',
-                      title: 'Cash on Delivery',
-                      subtitle: 'Pay when you receive your order',
+                      method: widget.fulfillmentMethod == 'pickup'
+                          ? 'cop'
+                          : 'cod',
+                      title: widget.fulfillmentMethod == 'pickup'
+                          ? 'Cash on Pickup'
+                          : 'Cash on Delivery',
+                      subtitle: widget.fulfillmentMethod == 'pickup'
+                          ? 'Pay when you pick up your order'
+                          : 'Pay when you receive your order',
                       icon: Icons.payments_outlined,
                       iconBgColor: const Color(0xFFFFF7ED),
                       iconColor: const Color(0xFFF59E0B),
-                      isSelected: _selectedMethod == 'cod',
-                      onTap: () => _selectMethod('cod'),
+                      isSelected:
+                          _selectedMethod == 'cod' || _selectedMethod == 'cop',
+                      onTap: () => _selectMethod(
+                        widget.fulfillmentMethod == 'pickup' ? 'cop' : 'cod',
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -233,6 +352,32 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PhoneSpaceFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var text = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (text.length > 10) text = text.substring(0, 10);
+    var formatted = '';
+    for (var i = 0; i < text.length; i++) {
+      if (i == 3 || i == 6) formatted += ' ';
+      formatted += text[i];
+    }
+
+    int cursor = newValue.selection.baseOffset;
+    if (cursor > formatted.length) {
+      cursor = formatted.length;
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

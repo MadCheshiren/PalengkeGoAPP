@@ -1,8 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/orders/domain/order_line_item.dart';
 
 import 'package:palengkego/features/orders/application/order_provider.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/profile/application/profile_provider.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
@@ -11,6 +16,7 @@ import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_delivery_cards.dart';
+import 'package:palengkego/features/checkout/presentation/widgets/checkout_delivery_option_card.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_footer.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_method_toggle.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_order_item.dart';
@@ -29,6 +35,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   int _deliveryMethod = 0; // 0 = Delivery, 1 = Pick-Up
+  bool _isPriority = false;
   final Map<String, TextEditingController> _vendorNotesControllers = {};
 
   @override
@@ -41,16 +48,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.read(cartServiceProvider);
-    final items = ref.watch(cartItemsProvider);
-    final orders = ref.watch(orderServiceProvider);
+    final itemsAsync = ref.watch(cartItemsProvider);
+    final items = itemsAsync.value ?? [];
     final preferences = ref.watch(preferencesProvider);
     final selectedItems = items.where((item) => item.selected).toList();
     final subtotal = selectedItems.fold<double>(
       0,
       (sum, item) => sum + item.total,
     );
-    final deliveryFee = _deliveryMethod == 0 ? 50.0 : 0.0;
+    final deliveryFee = _deliveryMethod == 0 ? FeeConfig.deliveryFee : 0.0;
+    final priorityFee = (_deliveryMethod == 0 && _isPriority)
+        ? FeeConfig.priorityFee
+        : 0.0;
     final Map<String, List<CartItem>> itemsByVendor = {};
 
     for (final item in selectedItems) {
@@ -59,7 +68,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
 
     for (final vendor in itemsByVendor.keys) {
-      _vendorNotesControllers.putIfAbsent(vendor, () => TextEditingController());
+      _vendorNotesControllers.putIfAbsent(
+        vendor,
+        () => TextEditingController(),
+      );
     }
 
     final deliveryAddress = preferences.deliveryAddress;
@@ -81,6 +93,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       deliveryMethod: _deliveryMethod,
                       onChanged: (value) {
                         setState(() => _deliveryMethod = value);
+                        ref
+                            .read(preferencesProvider.notifier)
+                            .updatePaymentMethod(value == 0 ? 'cod' : 'cop');
                       },
                     ),
                     const SizedBox(height: 24),
@@ -92,10 +107,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       const SizedBox(height: 12),
                       CheckoutDeliveryAddressCard(
                         deliveryAddress: deliveryAddress,
-                      ),
-                      const SizedBox(height: 12),
-                      CheckoutDeliveryMapCard(
-                        onTap: () async {
+                        onChange: () async {
                           final result = await Navigator.of(
                             context,
                           ).pushNamed(AppRoutes.setDeliveryAddress);
@@ -113,28 +125,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           }
                         },
                       ),
+                      const SizedBox(height: 16),
+                      CheckoutDeliveryOptionCard(
+                        isPrioritySelected: _isPriority,
+                        onOptionChanged: (val) {
+                          setState(() => _isPriority = val);
+                        },
+                      ),
                     ] else ...[
                       const CheckoutPickupHeader(),
                       const SizedBox(height: 12),
                       ...itemsByVendor.entries.map((entry) {
                         final vendorName = entry.key;
-                        final vendorModel = ref
-                            .watch(marketRepositoryProvider)
-                            .getFeaturedVendors()
-                            .firstWhere(
-                              (v) => v.name == vendorName,
-                              orElse: () => const MarketVendor(
-                                id: '',
-                                name: 'Vendor',
-                                category: 'General',
-                                rating: 4.6,
-                                isVerified: false,
-                                distance: '',
-                                imageUrl: '',
-                                stallNumber: 'Market Stall',
-                                marketSection: 'Fish Section',
-                              ),
-                            );
+                        final allVendors = ref
+                            .watch(allVendorsProvider)
+                            .maybeWhen(data: (v) => v, orElse: () => []);
+                        final vendorModel = allVendors.firstWhere(
+                          (v) => v.name == vendorName,
+                          orElse: () => const MarketVendor(
+                            id: '',
+                            name: 'Stall Holder',
+                            category: 'General',
+                            rating: 4.6,
+                            isVerified: false,
+                            distance: '',
+                            imageUrl: '',
+                            stallNumber: 'Market Stall',
+                            marketSection: 'Fish Section',
+                          ),
+                        );
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: CheckoutPickupCard(
@@ -199,15 +218,32 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     const SizedBox(height: 12),
                     CheckoutSummaryRow(
                       label: 'Subtotal',
-                      value: 'PHP ${subtotal.toStringAsFixed(2)}',
+                      value: '₱${subtotal.toStringAsFixed(2)}',
                     ),
                     const SizedBox(height: 8),
                     CheckoutSummaryRow(
                       label: 'Delivery Fee',
                       value: _deliveryMethod == 0
-                          ? 'PHP ${deliveryFee.toStringAsFixed(2)}'
+                          ? '₱${deliveryFee.toStringAsFixed(2)}'
                           : 'FREE',
                       highlighted: _deliveryMethod == 1,
+                    ),
+                    if (_deliveryMethod == 0 && _isPriority) ...[
+                      const SizedBox(height: 8),
+                      const CheckoutSummaryRow(
+                        label: 'Priority Delivery Fee',
+                        value: '₱29.00',
+                        highlighted: true,
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    const Divider(color: Color(0xFFE2E8F0)),
+                    const SizedBox(height: 12),
+                    CheckoutSummaryRow(
+                      label: 'Total',
+                      value:
+                          '₱${(subtotal + deliveryFee + priorityFee).toStringAsFixed(2)}',
+                      isBold: true,
                     ),
                   ],
                 ),
@@ -255,7 +291,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         onPressed: () => Navigator.of(context).pop(true),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFF10B981),
+                          backgroundColor: const Color(0xFF0B372B),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -271,7 +307,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ],
                   ),
                 );
-
                 if (confirm != true) return;
                 if (!context.mounted) return;
 
@@ -283,25 +318,65 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   }
                 }
 
+                final profile = ref.read(currentProfileProvider).value;
+                final customerName = profile?.displayName ?? 'Customer';
+                final customerUid = ref.read(authProvider)?.uid ?? '';
+
                 // Create orders
-                final createdOrders = orders.placeOrders(
-                  items: selectedItems,
-                  isPickup: _deliveryMethod == 1,
-                  vendorNotes: vendorNotes.isNotEmpty ? vendorNotes : null,
-                );
+                try {
+                  final Map<String, (String, List<OrderLineItem>)>
+                  groupedItems = {};
+                  for (final item in selectedItems) {
+                    groupedItems.putIfAbsent(
+                      item.vendorName,
+                      () => (item.image, <OrderLineItem>[]),
+                    );
+                    groupedItems[item.vendorName]!.$2.add(
+                      OrderLineItem(
+                        productId: item.productId,
+                        productName: item.productName,
+                        quantity: item.quantity,
+                        unitPrice: item.price,
+                        unit: item.unit,
+                        image: item.image,
+                      ),
+                    );
+                  }
 
-                cart.removeSelectedItems();
+                  final createdOrders = await ref
+                      .read(orderRepositoryProvider)
+                      .placeOrders(
+                        groupedItems: groupedItems,
+                        isPickup: _deliveryMethod == 1,
+                        vendorNotes: vendorNotes.isNotEmpty
+                            ? vendorNotes
+                            : null,
+                        customerName: customerName,
+                        customerUid: customerUid,
+                        isPriority: _deliveryMethod == 0 && _isPriority,
+                        priorityFee: priorityFee,
+                      );
 
-                // Navigate to order confirmation screen
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.orderConfirmation,
-                  (route) => false,
-                  arguments: OrderConfirmationRouteArgs(
-                    isPickup: _deliveryMethod == 1,
-                    orders: createdOrders,
-                    address: deliveryAddress.displayLine,
-                  ),
-                );
+                  ref.read(orderServiceProvider.notifier).refresh();
+                  ref.read(cartItemsProvider.notifier).removeSelectedItems();
+
+                  // Navigate to order confirmation screen
+                  if (!context.mounted) {
+                    return;
+                  }
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    AppRoutes.orderConfirmation,
+                    (route) => false,
+                    arguments: OrderConfirmationRouteArgs(
+                      isPickup: _deliveryMethod == 1,
+                      orders: createdOrders,
+                      address: deliveryAddress.displayLine,
+                    ),
+                  );
+                } catch (e, stack) {
+                  if (kDebugMode) debugPrint('Error placing order: $e');
+                  if (kDebugMode) debugPrint('Stacktrace: $stack');
+                }
               },
             ),
           ],
@@ -315,7 +390,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       onTap: () async {
         final result = await Navigator.of(context).pushNamed(
           AppRoutes.paymentMethods,
-          arguments: const PaymentMethodsRouteArgs(currentMethod: 'cod'),
+          arguments: PaymentMethodsRouteArgs(
+            currentMethod: ref.read(preferencesProvider).paymentMethod,
+            fulfillmentMethod: _deliveryMethod == 0 ? 'delivery' : 'pickup',
+          ),
         );
         if (!mounted) return;
         if (result is PaymentSelectionResult) {

@@ -6,11 +6,13 @@ class CheckoutSummaryRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.highlighted = false,
+    this.isBold = false,
   });
 
   final String label;
   final String value;
   final bool highlighted;
+  final bool isBold;
 
   @override
   Widget build(BuildContext context) {
@@ -19,20 +21,20 @@ class CheckoutSummaryRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Color(0xFF64748B),
+            fontSize: isBold ? 16 : 14,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+            color: isBold ? const Color(0xFF0B372B) : const Color(0xFF64748B),
           ),
         ),
         Text(
           value,
           style: TextStyle(
             fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: highlighted
+            fontSize: isBold ? 16 : 14,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+            color: (highlighted || isBold)
                 ? const Color(0xFF0B372B)
                 : const Color(0xFF64748B),
           ),

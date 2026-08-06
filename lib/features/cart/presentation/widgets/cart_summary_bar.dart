@@ -73,7 +73,7 @@ class CartSummaryBar extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'PHP ${subtotal.toStringAsFixed(2)}',
+                    '₱${subtotal.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
