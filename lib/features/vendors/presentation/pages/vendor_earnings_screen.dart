@@ -4,6 +4,8 @@ import 'package:palengkego/features/vendors/application/vendor_stall_provider.da
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/application/sales_report_export_service.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 
 import 'package:palengkego/core/utils/file_export_util.dart';
 // ── Per-period mock data ──────────────────────────────────────────────────────
@@ -300,9 +302,13 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
   Future<void> _exportToPdf() async {
     try {
       final stallName = ref.read(vendorStallProvider).name;
+      final orders = (ref.read(vendorOrdersProvider).value ?? [])
+          .where((o) => o.status == OrderStatus.completed)
+          .toList();
       final bytes = await SalesReportExportService.buildPdf(
         _selectedTab,
         stallName,
+        orders,
       );
       final filename = SalesReportExportService.buildFilename(
         _selectedTab,
@@ -334,9 +340,13 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
   Future<void> _exportToExcel() async {
     try {
       final stallName = ref.read(vendorStallProvider).name;
+      final orders = (ref.read(vendorOrdersProvider).value ?? [])
+          .where((o) => o.status == OrderStatus.completed)
+          .toList();
       final fileBytes = SalesReportExportService.buildExcel(
         _selectedTab,
         stallName,
+        orders,
       );
       final filename = SalesReportExportService.buildFilename(
         _selectedTab,

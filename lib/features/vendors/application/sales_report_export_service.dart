@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class SalesReportExportService {
   const SalesReportExportService._();
@@ -23,14 +25,79 @@ class SalesReportExportService {
     return '${cleanStall}_earnings_report_${cleanPeriod}_$formattedTimestamp';
   }
 
-  static Future<Uint8List> buildPdf(String period, String stallName) async {
+  // ── Report computation ───────────────────────────────────────────────────────
+
+  /// Half-open [start, end) boundaries for a period label, from the device
+  /// clock. Supports 'today', 'week' (Mon-Sun) and anything else (month).
+  static (DateTime, DateTime) periodBounds(String period, DateTime now) {
+    final startDay = DateTime(now.year, now.month, now.day);
+    final lower = period.toLowerCase();
+    if (lower == 'today') {
+      return (startDay, startDay.add(const Duration(days: 1)));
+    }
+    if (lower == 'week') {
+      final monday = startDay.subtract(Duration(days: now.weekday - 1));
+      return (monday, monday.add(const Duration(days: 7)));
+    }
+    final monthStart = DateTime(now.year, now.month, 1);
+    return (monthStart, DateTime(now.year, now.month + 1, 1));
+  }
+
+  static List<MarketOrder> completedInRange(
+    List<MarketOrder> orders,
+    DateTime start,
+    DateTime end,
+  ) {
+    return orders
+        .where(
+          (o) =>
+              o.status == OrderStatus.completed &&
+              !o.placedAt.isBefore(start) &&
+              o.placedAt.isBefore(end),
+        )
+        .toList();
+  }
+
+  static double _subtotal(List<MarketOrder> orders) =>
+      orders.fold(0.0, (sum, o) => sum + o.total);
+
+  static String _fmtDay(DateTime d) => DateFormat('MMM dd, yyyy').format(d);
+
+  static String _fmtMoney(double amount) =>
+      'P ${NumberFormat('#,##0.00').format(amount)}';
+
+  /// Completed orders grouped by the calendar day they were placed on.
+  static Map<DateTime, List<MarketOrder>> _byDay(List<MarketOrder> orders) {
+    final map = <DateTime, List<MarketOrder>>{};
+    for (final o in orders) {
+      final day = DateTime(o.placedAt.year, o.placedAt.month, o.placedAt.day);
+      map.putIfAbsent(day, () => []).add(o);
+    }
+    return map;
+  }
+
+  static Future<Uint8List> buildPdf(
+    String period,
+    String stallName,
+    List<MarketOrder> orders,
+  ) async {
+    final now = DateTime.now();
+    final (start, end) = periodBounds(period, now);
+    final completed = completedInRange(orders, start, end);
+    final generatedTime =
+        'Generated: ${DateFormat('MMMM dd, yyyy HH:mm').format(now)}';
+
     final fontRegular = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
     final theme = pw.ThemeData.withFont(base: fontRegular, bold: fontBold);
 
-    final pdf = pw.Document(theme: theme);
     final isDaily = period.toLowerCase() == 'today';
     final isWeekly = period.toLowerCase() == 'week';
+    final periodRange = isDaily
+        ? 'Period: ${_fmtDay(start)} - ${_fmtDay(end.subtract(const Duration(days: 1)))}'
+        : isWeekly
+        ? 'Week Period: ${_fmtDay(start)} - ${_fmtDay(end.subtract(const Duration(days: 1)))}'
+        : 'Month: ${DateFormat('MMMM yyyy').format(start)}';
 
     final title = isDaily
         ? 'Stall Earnings Summary Report'
@@ -38,13 +105,7 @@ class SalesReportExportService {
         ? 'Weekly Stall Earnings Report'
         : 'Monthly Stall Earnings Report';
 
-    final periodSub = isDaily
-        ? 'Period: July 01, 2026 - July 24, 2026'
-        : isWeekly
-        ? 'Week Period: July 18, 2026 - July 24, 2026 (Week 30)'
-        : 'Month: July 2026 (July 01 - July 24, MTD)';
-
-    final generatedTime = 'Generated: July 24, 2026 18:00 PST';
+    final pdf = pw.Document(theme: theme);
 
     pdf.addPage(
       pw.MultiPage(
@@ -65,6 +126,7 @@ class SalesReportExportService {
                 ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -100,7 +162,7 @@ class SalesReportExportService {
                         ),
                         pw.SizedBox(height: 2),
                         pw.Text(
-                          periodSub,
+                          periodRange,
                           style: const pw.TextStyle(
                             color: PdfColor.fromInt(0xFFD1D5DB),
                             fontSize: 8,
@@ -127,18 +189,18 @@ class SalesReportExportService {
             alignment: pw.Alignment.center,
             margin: const pw.EdgeInsets.only(top: 14),
             child: pw.Text(
-              'Official Earnings Report generated by PalengkeGo Vendor Portal | Page ${context.pageNumber} of ${context.pagesCount}',
+              'Sales Report for $stallName | Page ${context.pageNumber} of ${context.pagesCount}',
               style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 8),
             ),
           );
         },
         build: (context) {
           if (isDaily) {
-            return _buildDailyPdfContent();
+            return _buildDailyPdfContent(completed, now);
           } else if (isWeekly) {
-            return _buildWeeklyPdfContent();
+            return _buildWeeklyPdfContent(completed, start);
           } else {
-            return _buildMonthlyPdfContent();
+            return _buildMonthlyPdfContent(completed, start, end);
           }
         },
       ),
@@ -147,7 +209,31 @@ class SalesReportExportService {
     return pdf.save();
   }
 
-  static List<pw.Widget> _buildDailyPdfContent() {
+  static List<pw.Widget> _buildDailyPdfContent(
+    List<MarketOrder> orders,
+    DateTime now,
+  ) {
+    final byDay = _byDay(orders);
+    final today = DateTime(now.year, now.month, now.day);
+    final todayOrders = byDay[today] ?? <MarketOrder>[];
+    final monthOrders = orders
+        .where(
+          (o) => o.placedAt.year == now.year && o.placedAt.month == now.month,
+        )
+        .toList();
+
+    final rows = <List<String>>[];
+    for (var i = 6; i >= 0; i--) {
+      final day = now.subtract(Duration(days: i));
+      final dayStart = DateTime(day.year, day.month, day.day);
+      final dayOrders = byDay[dayStart] ?? <MarketOrder>[];
+      rows.add([
+        DateFormat('yyyy-MM-dd').format(dayStart),
+        '${dayOrders.length}',
+        _fmtMoney(_subtotal(dayOrders)),
+      ]);
+    }
+
     return [
       pw.Text(
         'Earnings Highlights',
@@ -162,17 +248,17 @@ class SalesReportExportService {
         children: [
           pw.Expanded(
             child: _buildHighlightCard(
-              'TOTAL EARNINGS (THIS MONTH)',
-              'P 48,250.00',
-              'Across 142 completed orders',
+              'TODAY\'S EARNINGS',
+              _fmtMoney(_subtotal(todayOrders)),
+              'Across ${todayOrders.length} completed orders',
             ),
           ),
           pw.SizedBox(width: 12),
           pw.Expanded(
             child: _buildHighlightCard(
-              'TODAY\'S EARNINGS',
-              'P 5,400.00',
-              'Across 18 completed orders',
+              'TOTAL EARNINGS (THIS MONTH)',
+              _fmtMoney(_subtotal(monthOrders)),
+              'Across ${monthOrders.length} completed orders',
             ),
           ),
         ],
@@ -199,22 +285,45 @@ class SalesReportExportService {
         cellStyle: const pw.TextStyle(fontSize: 9),
         data: <List<String>>[
           ['DATE', 'COMPLETED ORDERS', 'TOTAL EARNINGS'],
-          ['2026-07-24 (Today)', '18', 'P 5,400.00'],
-          ['2026-07-23', '22', 'P 6,850.00'],
-          ['2026-07-22', '15', 'P 4,200.00'],
-          ['2026-07-21', '20', 'P 7,100.00'],
-          ['2026-07-20', '19', 'P 6,300.00'],
+          ...rows,
         ],
       ),
       pw.SizedBox(height: 16),
       _buildTotalsBox([
-        ['Total Orders Processed:', '142 Orders'],
-        ['Total Stall Earnings:', 'P 48,250.00'],
+        ['Total Orders Processed:', '${orders.length} Orders'],
+        ['Total Stall Earnings:', _fmtMoney(_subtotal(orders))],
       ]),
     ];
   }
 
-  static List<pw.Widget> _buildWeeklyPdfContent() {
+  static List<pw.Widget> _buildWeeklyPdfContent(
+    List<MarketOrder> orders,
+    DateTime start,
+  ) {
+    final byDay = _byDay(orders);
+    final rows = <List<String>>[];
+    var weekRevenue = 0.0;
+    var weekCount = 0;
+    DateTime? peakDay;
+    for (var i = 0; i < 7; i++) {
+      final day = start.add(Duration(days: i));
+      final dayOrders = byDay[day] ?? <MarketOrder>[];
+      final dayRevenue = _subtotal(dayOrders);
+      weekRevenue += dayRevenue;
+      weekCount += dayOrders.length;
+      if (dayOrders.isNotEmpty &&
+          (peakDay == null ||
+              dayRevenue > _subtotal(byDay[peakDay] ?? <MarketOrder>[]))) {
+        peakDay = day;
+      }
+      rows.add([
+        '${DateFormat('EEEE').format(day)} (${_fmtDay(day)})',
+        '${dayOrders.length}',
+        _fmtMoney(dayRevenue),
+      ]);
+    }
+    final peakOrders = peakDay == null ? <MarketOrder>[] : byDay[peakDay]!;
+
     return [
       pw.Text(
         'Weekly Performance Highlights',
@@ -230,24 +339,24 @@ class SalesReportExportService {
           pw.Expanded(
             child: _buildHighlightCard(
               'WEEKLY TOTAL EARNINGS',
-              'P 41,700.00',
-              'Across 124 orders',
+              _fmtMoney(weekRevenue),
+              'Across $weekCount orders',
             ),
           ),
           pw.SizedBox(width: 8),
           pw.Expanded(
             child: _buildHighlightCard(
               'DAILY AVERAGE',
-              'P 5,957.14',
-              '~18 orders / day',
+              _fmtMoney(weekRevenue / 7),
+              '~${(weekCount / 7).toStringAsFixed(1)} orders / day',
             ),
           ),
           pw.SizedBox(width: 8),
           pw.Expanded(
             child: _buildHighlightCard(
               'PEAK SALES DAY',
-              'Saturday',
-              'P 7,800.00 (July 18)',
+              peakDay == null ? '-' : DateFormat('EEEE').format(peakDay),
+              peakDay == null ? '-' : _fmtMoney(_subtotal(peakOrders)),
             ),
           ),
         ],
@@ -274,25 +383,52 @@ class SalesReportExportService {
         cellStyle: const pw.TextStyle(fontSize: 9),
         data: <List<String>>[
           ['DAY & DATE', 'COMPLETED ORDERS', 'TOTAL EARNINGS'],
-          ['Saturday (2026-07-18)', '23', 'P 7,800.00'],
-          ['Sunday (2026-07-19)', '21', 'P 7,050.00'],
-          ['Monday (2026-07-20)', '19', 'P 6,300.00'],
-          ['Tuesday (2026-07-21)', '20', 'P 7,100.00'],
-          ['Wednesday (2026-07-22)', '15', 'P 4,200.00'],
-          ['Thursday (2026-07-23)', '22', 'P 6,850.00'],
-          ['Friday (2026-07-24 - Today)', '18', 'P 5,400.00'],
+          ...rows,
         ],
       ),
       pw.SizedBox(height: 16),
       _buildTotalsBox([
-        ['Total Weekly Orders:', '124 Orders'],
-        ['Average Order Value (AOV):', 'P 336.29 / order'],
-        ['Total Weekly Stall Earnings:', 'P 41,700.00'],
+        ['Total Weekly Orders:', '$weekCount Orders'],
+        [
+          'Average Order Value (AOV):',
+          weekCount == 0
+              ? 'P 0.00 / order'
+              : '${_fmtMoney(weekRevenue / weekCount)} / order',
+        ],
+        ['Total Weekly Stall Earnings:', _fmtMoney(weekRevenue)],
       ]),
     ];
   }
 
-  static List<pw.Widget> _buildMonthlyPdfContent() {
+  static List<pw.Widget> _buildMonthlyPdfContent(
+    List<MarketOrder> orders,
+    DateTime start,
+    DateTime end,
+  ) {
+    final byWeek = <int, List<MarketOrder>>{};
+    for (final o in orders) {
+      byWeek.putIfAbsent((o.placedAt.day - 1) ~/ 7, () => []).add(o);
+    }
+
+    final daysInMonth = end.difference(start).inDays;
+    final elapsedDays = (end.subtract(const Duration(minutes: 1))).day;
+    final weekCounts = byWeek.keys.length;
+    final monthRevenue = _subtotal(orders);
+    final projected = elapsedDays == 0
+        ? 0.0
+        : monthRevenue / elapsedDays * daysInMonth;
+
+    final rows = <List<String>>[];
+    for (var w = 0; w < weekCounts; w++) {
+      final weekOrders = byWeek[w] ?? <MarketOrder>[];
+      final firstDay = DateTime(start.year, start.month, w * 7 + 1);
+      rows.add([
+        'Week ${w + 1} (${_fmtDay(firstDay)})',
+        '${weekOrders.length}',
+        _fmtMoney(_subtotal(weekOrders)),
+      ]);
+    }
+
     return [
       pw.Text(
         'Monthly Performance Highlights',
@@ -308,31 +444,31 @@ class SalesReportExportService {
           pw.Expanded(
             child: _buildHighlightCard(
               'MONTH-TO-DATE EARNINGS',
-              'P 145,200.00',
-              'Across 438 orders',
+              _fmtMoney(monthRevenue),
+              'Across ${orders.length} orders',
             ),
           ),
           pw.SizedBox(width: 8),
           pw.Expanded(
             child: _buildHighlightCard(
               'WEEKLY AVERAGE',
-              'P 42,350.00',
-              '~128 orders / week',
+              _fmtMoney(weekCounts == 0 ? 0 : monthRevenue / weekCounts),
+              '~${(orders.length / (weekCounts == 0 ? 1 : weekCounts)).round()} orders / week',
             ),
           ),
           pw.SizedBox(width: 8),
           pw.Expanded(
             child: _buildHighlightCard(
-              'PROJECTED MONTH END',
-              'P 187,500.00',
-              'Based on 24-day run rate',
+              'EST. MONTH-END (RUN RATE)',
+              _fmtMoney(projected),
+              'Based on $elapsedDays-day run rate',
             ),
           ),
         ],
       ),
       pw.SizedBox(height: 16),
       pw.Text(
-        'Weekly Breakdown (July 2026)',
+        'Weekly Breakdown (${DateFormat('MMMM yyyy').format(start)})',
         style: pw.TextStyle(
           fontSize: 12,
           fontWeight: pw.FontWeight.bold,
@@ -352,17 +488,20 @@ class SalesReportExportService {
         cellStyle: const pw.TextStyle(fontSize: 9),
         data: <List<String>>[
           ['WEEK RANGE', 'TOTAL ORDERS', 'WEEKLY EARNINGS'],
-          ['Week 1 (July 01 - July 05)', '88', 'P 28,500.00'],
-          ['Week 2 (July 06 - July 12)', '112', 'P 37,200.00'],
-          ['Week 3 (July 13 - July 19)', '126', 'P 42,800.00'],
-          ['Week 4 (July 20 - July 24 - Partial)', '112', 'P 36,700.00'],
+          ...rows,
+          ['Month-to-Date', '${orders.length}', _fmtMoney(monthRevenue)],
         ],
       ),
       pw.SizedBox(height: 16),
       _buildTotalsBox([
-        ['Total Orders Processed (MTD):', '438 Orders'],
-        ['Average Daily Revenue:', 'P 6,050.00 / day'],
-        ['Total Month-to-Date Earnings:', 'P 145,200.00'],
+        ['Total Orders Processed (MTD):', '${orders.length} Orders'],
+        [
+          'Average Daily Revenue:',
+          elapsedDays == 0
+              ? 'P 0.00 / day'
+              : '${_fmtMoney(monthRevenue / elapsedDays)} / day',
+        ],
+        ['Total Month-to-Date Earnings:', _fmtMoney(monthRevenue)],
       ]),
     ];
   }
@@ -458,10 +597,123 @@ class SalesReportExportService {
     );
   }
 
-  static Uint8List buildExcel(String period, String stallName) {
+  static Uint8List buildExcel(
+    String period,
+    String stallName,
+    List<MarketOrder> orders,
+  ) {
     final excel = Excel.createExcel();
     final sheet = excel['Sales Report'];
     excel.setDefaultSheet('Sales Report');
+
+    final now = DateTime.now();
+    final (start, end) = periodBounds(period, now);
+    final completed = completedInRange(orders, start, end);
+    final byDay = _byDay(completed);
+    final isDaily = period.toLowerCase() == 'today';
+    final isWeekly = period.toLowerCase() == 'week';
+
+    final periodRange = isDaily
+        ? 'Period: ${_fmtDay(start)} - ${_fmtDay(end.subtract(const Duration(days: 1)))}'
+        : isWeekly
+        ? 'Week Period: ${_fmtDay(start)} - ${_fmtDay(end.subtract(const Duration(days: 1)))}'
+        : 'Month: ${DateFormat('MMMM yyyy').format(start)}';
+
+    final today = DateTime(now.year, now.month, now.day);
+    final todayOrders = byDay[today] ?? <MarketOrder>[];
+    final monthOrders = orders
+        .where(
+          (o) =>
+              o.status == OrderStatus.completed &&
+              o.placedAt.year == now.year &&
+              o.placedAt.month == now.month,
+        )
+        .toList();
+    final monthRevenue = _subtotal(monthOrders);
+
+    final daysInMonth = end.difference(start).inDays;
+    final elapsedDays = (end.subtract(const Duration(minutes: 1))).day;
+    final projected = elapsedDays == 0
+        ? 0.0
+        : monthRevenue / elapsedDays * daysInMonth;
+
+    final List<List<String>> summaryData;
+    if (isDaily || isWeekly) {
+      summaryData = [
+        [
+          'Earnings Today',
+          _fmtMoney(_subtotal(todayOrders)),
+          '${todayOrders.length} Orders',
+        ],
+        [
+          'Earnings This Period',
+          _fmtMoney(_subtotal(completed)),
+          '${completed.length} Orders',
+        ],
+        [
+          'Total Monthly Earnings',
+          _fmtMoney(monthRevenue),
+          '${monthOrders.length} Orders',
+        ],
+      ];
+    } else {
+      summaryData = [
+        [
+          'Total Monthly Earnings',
+          _fmtMoney(monthRevenue),
+          '${monthOrders.length} Orders',
+        ],
+        [
+          'Average Daily Revenue',
+          elapsedDays == 0
+              ? 'P 0.00 / day'
+              : '${_fmtMoney(monthRevenue / elapsedDays)} / day',
+          '',
+        ],
+        [
+          'Month-End Run Rate',
+          projected <= 0 ? 'P 0.00' : _fmtMoney(projected),
+          '',
+        ],
+      ];
+    }
+
+    final List<List<String>> tableRows;
+    final List<String> tableHeader;
+    if (isDaily || isWeekly) {
+      tableHeader = ['DAY & DATE', 'COMPLETED ORDERS', 'TOTAL EARNINGS'];
+      tableRows = [
+        for (var i = 6; i >= 0; i--)
+          () {
+            final day = now.subtract(Duration(days: i));
+            final dayStart = DateTime(day.year, day.month, day.day);
+            final dayOrders = byDay[dayStart] ?? <MarketOrder>[];
+            return [
+              DateFormat('yyyy-MM-dd').format(dayStart),
+              '${dayOrders.length}',
+              _fmtMoney(_subtotal(dayOrders)),
+            ];
+          }(),
+      ];
+    } else {
+      tableHeader = ['WEEK RANGE', 'TOTAL ORDERS', 'WEEKLY EARNINGS'];
+      final byWeek = <int, List<MarketOrder>>{};
+      for (final o in completed) {
+        byWeek.putIfAbsent((o.placedAt.day - 1) ~/ 7, () => []).add(o);
+      }
+      tableRows = [
+        for (var w = 0; w < byWeek.keys.length; w++)
+          () {
+            final weekOrders = byWeek[w] ?? <MarketOrder>[];
+            final firstDay = DateTime(start.year, start.month, w * 7 + 1);
+            return [
+              'Week ${w + 1} (${_fmtDay(firstDay)})',
+              '${weekOrders.length}',
+              _fmtMoney(_subtotal(weekOrders)),
+            ];
+          }(),
+      ];
+    }
 
     // Title Row 1
     final titleCell = sheet.cell(CellIndex.indexByString('A1'));
@@ -474,9 +726,7 @@ class SalesReportExportService {
 
     // Subtitle Row 2
     final subtitleCell = sheet.cell(CellIndex.indexByString('A2'));
-    subtitleCell.value = TextCellValue(
-      'Stall: $stallName    Period: July 01, 2026 - July 24, 2026',
-    );
+    subtitleCell.value = TextCellValue('Stall: $stallName    $periodRange');
     subtitleCell.cellStyle = CellStyle(
       italic: true,
       fontSize: 10,
@@ -508,13 +758,7 @@ class SalesReportExportService {
       backgroundColorHex: ExcelColor.fromHexString('#ECFDF5'),
     );
 
-    // Summary Rows (Rows 5-7)
-    final summaryData = [
-      ['Earnings Today', 'P 5,400.00', '18 Orders'],
-      ['Earnings This Week', 'P 29,850.00', '89 Orders'],
-      ['Total Monthly Earnings', 'P 48,250.00', '142 Orders'],
-    ];
-
+    // Summary Rows (5.. up, 0-based below)
     for (int r = 0; r < summaryData.length; r++) {
       final rowIndex = 4 + r;
       for (int c = 0; c < 3; c++) {
@@ -526,67 +770,45 @@ class SalesReportExportService {
       }
     }
 
-    // Daily Earnings Breakdown Section (Row 10)
-    final sectionTitleCell = sheet.cell(CellIndex.indexByString('A10'));
-    sectionTitleCell.value = TextCellValue('Daily Earnings Breakdown');
+    // Breakdown Section Title
+    final sectionStart = 6 + summaryData.length;
+    final sectionTitleCell = sheet.cell(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: sectionStart),
+    );
+    sectionTitleCell.value = TextCellValue('Sales & Earnings Breakdown');
     sectionTitleCell.cellStyle = CellStyle(
       bold: true,
       fontSize: 11,
       fontColorHex: ExcelColor.fromHexString('#0B372B'),
     );
 
-    // Dark Green Bar (Row 11)
+    // Table Header
+    final tableHeaderRow = sectionStart + 1;
     for (int c = 0; c < 3; c++) {
-      sheet
-              .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 10))
-              .cellStyle =
-          headerStyle;
+      final cell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: c, rowIndex: tableHeaderRow),
+      );
+      cell.value = TextCellValue(tableHeader[c]);
+      cell.cellStyle = headerStyle;
     }
 
-    // Daily Table Header (Row 12)
-    sheet.cell(CellIndex.indexByString('A12')).value = TextCellValue('Date');
-    sheet.cell(CellIndex.indexByString('B12')).value = TextCellValue(
-      'Completed Orders',
-    );
-    sheet.cell(CellIndex.indexByString('C12')).value = TextCellValue(
-      'Total Earnings (PHP)',
-    );
-
-    sheet.cell(CellIndex.indexByString('A12')).cellStyle = CellStyle(
-      bold: true,
-    );
-    sheet.cell(CellIndex.indexByString('B12')).cellStyle = CellStyle(
-      bold: true,
-    );
-    sheet.cell(CellIndex.indexByString('C12')).cellStyle = CellStyle(
-      bold: true,
-    );
-
-    // Daily Rows (Rows 13-17)
-    final dailyLog = [
-      ['2026-07-24', '18', 'P 5,400.00'],
-      ['2026-07-23', '22', 'P 6,850.00'],
-      ['2026-07-22', '15', 'P 4,200.00'],
-      ['2026-07-21', '20', 'P 7,100.00'],
-      ['2026-07-20', '19', 'P 6,300.00'],
-    ];
-
-    for (int r = 0; r < dailyLog.length; r++) {
-      final rowIndex = 12 + r;
+    // Table Rows
+    for (int r = 0; r < tableRows.length; r++) {
+      final rowIndex = tableHeaderRow + 1 + r;
       for (int c = 0; c < 3; c++) {
         sheet
             .cell(
               CellIndex.indexByColumnRow(columnIndex: c, rowIndex: rowIndex),
             )
             .value = TextCellValue(
-          dailyLog[r][c],
+          tableRows[r][c],
         );
       }
     }
 
-    sheet.setColumnWidth(0, 30);
-    sheet.setColumnWidth(1, 24);
-    sheet.setColumnWidth(2, 24);
+    sheet.setColumnWidth(0, 34);
+    sheet.setColumnWidth(1, 26);
+    sheet.setColumnWidth(2, 26);
 
     return Uint8List.fromList(excel.encode() ?? const []);
   }

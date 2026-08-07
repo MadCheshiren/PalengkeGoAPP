@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/services/app_services.dart';
-import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/detailed_sales_report_export_service.dart';
 import 'package:palengkego/core/utils/file_export_util.dart';
 
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
+import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 
 class VendorSalesReportScreen extends ConsumerStatefulWidget {
   const VendorSalesReportScreen({super.key});
@@ -23,10 +24,17 @@ class _VendorSalesReportScreenState
     extends ConsumerState<VendorSalesReportScreen> {
   bool _isExporting = false;
 
+  List<MarketOrder> _completedOrders() {
+    final vendorOrders = ref.read(vendorOrdersProvider).value ?? [];
+    return vendorOrders
+        .where((o) => o.status == OrderStatus.completed)
+        .toList();
+  }
+
   Future<void> _exportPdf() async {
     setState(() => _isExporting = true);
     try {
-      final orders = ref.read(orderServiceProvider).value ?? [];
+      final orders = _completedOrders();
       final now = DateTime.now();
       final stallName = ref.read(vendorStallProvider).name;
       final bytes = await DetailedSalesReportExportService.buildPdf(
@@ -60,7 +68,7 @@ class _VendorSalesReportScreenState
   Future<void> _exportExcel() async {
     setState(() => _isExporting = true);
     try {
-      final orders = ref.read(orderServiceProvider).value ?? [];
+      final orders = _completedOrders();
       final now = DateTime.now();
       final stallName = ref.read(vendorStallProvider).name;
       final bytes = DetailedSalesReportExportService.buildExcel(
@@ -93,7 +101,12 @@ class _VendorSalesReportScreenState
 
   @override
   Widget build(BuildContext context) {
-    final ordersAsync = ref.watch(completedOrdersProvider);
+    final ordersAsync = ref
+        .watch(vendorOrdersProvider)
+        .whenData(
+          (orders) =>
+              orders.where((o) => o.status == OrderStatus.completed).toList(),
+        );
 
     return AuthGuard(
       allowedRoles: {UserRole.vendor},

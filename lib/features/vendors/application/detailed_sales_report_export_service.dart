@@ -23,6 +23,12 @@ class DetailedSalesReportExportService {
     return 'P ${NumberFormat('#,##0.00').format(amount)}';
   }
 
+  static String _firstName(String fullName) {
+    final trimmed = fullName.trim();
+    if (trimmed.isEmpty) return 'Customer';
+    return trimmed.split(RegExp(r'\s+')).first;
+  }
+
   static Future<Uint8List> buildPdf(
     List<MarketOrder> orders,
     DateTime timestamp,
@@ -32,7 +38,7 @@ class DetailedSalesReportExportService {
     final fontBold = await PdfGoogleFonts.robotoBold();
     final theme = pw.ThemeData.withFont(base: fontRegular, bold: fontBold);
 
-    final pdf = pw.Document(theme: theme);
+    final pdf = pw.Document(theme: theme, compress: false);
 
     final dateHeaderStr = DateFormat('yyyy-MM-dd').format(timestamp);
     final totalOrdersCount = orders.length;
@@ -42,9 +48,9 @@ class DetailedSalesReportExportService {
         )
         .length;
     final pickupCount = totalOrdersCount - deliveryCount;
-    final subtotalSales = orders.fold(0.0, (sum, o) => sum + o.total);
-    final deliveryFees = deliveryCount * 50.0;
-    final grandTotalSales = subtotalSales + (orders.isEmpty ? 0 : deliveryFees);
+    final subtotalSales = orders.fold(0.0, (sum, o) => sum + o.subtotal);
+    final deliveryFees = orders.fold(0.0, (sum, o) => sum + o.deliveryFee);
+    final grandTotalSales = orders.fold(0.0, (sum, o) => sum + o.total);
 
     pdf.addPage(
       pw.MultiPage(
@@ -102,7 +108,7 @@ class DetailedSalesReportExportService {
                         ),
                         pw.SizedBox(height: 2),
                         pw.Text(
-                          'Date Range: $dateHeaderStr (Today)',
+                          'Export Date: $dateHeaderStr',
                           style: const pw.TextStyle(
                             color: PdfColor.fromInt(0xFFD1D5DB),
                             fontSize: 8,
@@ -230,7 +236,7 @@ class DetailedSalesReportExportService {
                   return [
                     '$dateStr\n$timeStr',
                     '#PG-${o.id}',
-                    '${o.customerName}\n0917****123',
+                    _firstName(o.customerName),
                     typeText,
                     paymentText,
                     itemsListStr.isEmpty ? ' - Items Breakdown' : itemsListStr,
@@ -287,7 +293,7 @@ class DetailedSalesReportExportService {
                         ),
                       ),
                       pw.Text(
-                        _formatP(orders.isEmpty ? 0 : deliveryFees),
+                        _formatP(deliveryFees),
                         style: pw.TextStyle(
                           fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
@@ -412,7 +418,7 @@ class DetailedSalesReportExportService {
       sheet
           .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex))
           .value = TextCellValue(
-        o.customerName,
+        _firstName(o.customerName),
       );
       sheet
           .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
