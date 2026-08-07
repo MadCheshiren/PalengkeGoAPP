@@ -1,52 +1,62 @@
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:palengkego/features/auth/data/auth_repository.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 
 class MockAuthRepository implements AuthRepository {
   AppUser? _currentUser;
   final _authStateController = StreamController<AppUser?>.broadcast();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  static const _uidKey = 'mock_auth_uid';
+  static const _roleKey = 'mock_auth_role';
 
   MockAuthRepository() {
     _init();
   }
 
   Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final uid = prefs.getString('mock_auth_uid');
-    final roleString = prefs.getString('mock_auth_role');
+    try {
+      final uid = await _storage.read(key: _uidKey);
+      final roleString = await _storage.read(key: _roleKey);
 
-    if (uid != null && roleString != null) {
-      final role = roleString == 'stall holder'
-          ? UserRole.vendor
-          : UserRole.customer;
-      _currentUser = AppUser(
-        uid: uid,
-        email: role == UserRole.vendor
-            ? MockUsers.vendor.email
-            : MockUsers.customer.email,
-        displayName: role == UserRole.vendor
-            ? MockUsers.vendor.displayName
-            : MockUsers.customer.displayName,
-        role: role,
-      );
-      _authStateController.add(_currentUser);
+      if (uid != null && roleString != null) {
+        final role = roleString == 'stall holder'
+            ? UserRole.vendor
+            : UserRole.customer;
+        _currentUser = AppUser(
+          uid: uid,
+          email: role == UserRole.vendor
+              ? MockUsers.vendor.email
+              : MockUsers.customer.email,
+          displayName: role == UserRole.vendor
+              ? MockUsers.vendor.displayName
+              : MockUsers.customer.displayName,
+          role: role,
+        );
+        _authStateController.add(_currentUser);
+      }
+    } catch (_) {
+      // Secure storage unavailable (e.g. in tests) — start logged out.
+      _currentUser = null;
     }
   }
 
   Future<void> _saveSession(AppUser user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('mock_auth_uid', user.uid);
-    await prefs.setString(
-      'mock_auth_role',
-      user.role == UserRole.vendor ? 'stall holder' : 'customer',
-    );
+    try {
+      await _storage.write(key: _uidKey, value: user.uid);
+      await _storage.write(
+        key: _roleKey,
+        value: user.role == UserRole.vendor ? 'stall holder' : 'customer',
+      );
+    } catch (_) {
+      // Session persistence is best-effort for the mock layer.
+    }
   }
 
   Future<void> _clearSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('mock_auth_uid');
-    await prefs.remove('mock_auth_role');
+    await _storage.delete(key: _uidKey);
+    await _storage.delete(key: _roleKey);
   }
 
   @override

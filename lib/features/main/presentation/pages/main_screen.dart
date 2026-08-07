@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/core/widgets/app_bottom_nav_bar.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/home/presentation/pages/home_screen.dart';
@@ -10,7 +11,6 @@ import 'package:palengkego/features/orders/presentation/pages/order_history_scre
 import 'package:palengkego/features/orders/presentation/widgets/floating_order_progress.dart';
 import 'package:palengkego/features/recipes/presentation/pages/recipes_screen.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
-import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/core/widgets/login_required_sheet.dart';
 import 'package:palengkego/features/vendors/application/kyc_provider.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
@@ -194,9 +194,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               ElevatedButton(
                 onPressed: () async {
                   Navigator.of(dialogCtx).pop(); // Dismiss dialog
-                  await ref
+                  final entered = await ref
                       .read(authProvider.notifier)
-                      .loginAs(UserRole.vendor);
+                      .enterVendorMode();
+                  if (!entered) {
+                    if (context.mounted) {
+                      AppServices.showError(
+                        'Only stall holders can manage a stall.',
+                      );
+                    }
+                    return;
+                  }
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
                       PageTransitions.slideFromRight(

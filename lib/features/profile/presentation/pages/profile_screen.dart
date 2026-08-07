@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/profile/application/favorites_provider.dart';
@@ -11,7 +12,6 @@ import 'package:palengkego/features/home/presentation/widgets/location_selection
 import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_onboarding_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
-import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/application/has_vendor_stall_provider.dart';
 import 'edit_profile_screen.dart';
 import 'security_settings_screen.dart';
@@ -422,9 +422,17 @@ class ProfileScreen extends ConsumerWidget {
                                     : 'Start Selling'),
                           onTap: () async {
                             if (isVendor || hasVendorStall) {
-                              await ref
+                              final entered = await ref
                                   .read(authProvider.notifier)
-                                  .loginAs(UserRole.vendor);
+                                  .enterVendorMode();
+                              if (!entered) {
+                                if (context.mounted) {
+                                  AppServices.showError(
+                                    'Only stall holders can manage a stall.',
+                                  );
+                                }
+                                return;
+                              }
                               if (context.mounted) {
                                 Navigator.of(context).pushAndRemoveUntil(
                                   PageTransitions.slideFromRight(

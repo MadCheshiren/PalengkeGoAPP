@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/config/fee_config.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 
@@ -376,6 +377,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 } catch (e, stack) {
                   if (kDebugMode) debugPrint('Error placing order: $e');
                   if (kDebugMode) debugPrint('Stacktrace: $stack');
+                  if (context.mounted) {
+                    AppServices.showError(
+                      'Failed to place your order. Your cart is unchanged — please try again.',
+                    );
+                  }
                 }
               },
             ),

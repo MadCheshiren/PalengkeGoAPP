@@ -4,7 +4,6 @@ import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_account_details_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_sales_report_screen.dart';
@@ -229,7 +228,7 @@ class VendorAccountScreen extends ConsumerWidget {
             title: 'Switch to Customer View',
             subtitle: 'Return to shopping mode',
             onTap: () async {
-              await ref.read(authProvider.notifier).loginAs(UserRole.customer);
+              await ref.read(authProvider.notifier).enterCustomerMode();
               if (context.mounted) {
                 Navigator.of(
                   context,

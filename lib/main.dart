@@ -114,7 +114,7 @@ Future<void> main() async {
     return;
   }
 
-  await SharedOrderStore.load(prefs);
+  await SharedOrderStore.load();
 
   runApp(
     ProviderScope(

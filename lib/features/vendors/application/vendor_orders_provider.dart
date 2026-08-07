@@ -14,6 +14,7 @@ class VendorOrdersNotifier extends AsyncNotifier<List<MarketOrder>> {
     final vendorId = ref.watch(currentVendorIdProvider);
     // Watch orderServiceProvider to automatically refresh vendor orders when a new order is placed or modified
     ref.watch(orderServiceProvider);
+    if (vendorId == null) return const [];
     final orders = await repo.getOrdersForVendor(vendorId);
     return orders;
   }
@@ -22,6 +23,9 @@ class VendorOrdersNotifier extends AsyncNotifier<List<MarketOrder>> {
     final repo = ref.read(orderRepositoryProvider);
     final uid = ref.read(authProvider)?.uid;
     final vendorId = ref.read(currentVendorIdProvider);
+    if (vendorId == null) {
+      throw StateError('Vendor session required to update orders');
+    }
 
     // Get order before update to get details (e.g. vendor name, estimated time)
     final ordersBefore = await repo.getOrdersForVendor(vendorId);
@@ -65,6 +69,9 @@ class VendorOrdersNotifier extends AsyncNotifier<List<MarketOrder>> {
     final repo = ref.read(orderRepositoryProvider);
     final uid = ref.read(authProvider)?.uid;
     final vendorId = ref.read(currentVendorIdProvider);
+    if (vendorId == null) {
+      throw StateError('Vendor session required to cancel orders');
+    }
 
     final ordersBefore = await repo.getOrdersForVendor(vendorId);
     final prevOrder = ordersBefore.firstWhere(
@@ -100,6 +107,9 @@ class VendorOrdersNotifier extends AsyncNotifier<List<MarketOrder>> {
     final repo = ref.read(orderRepositoryProvider);
     final uid = ref.read(authProvider)?.uid;
     final vendorId = ref.read(currentVendorIdProvider);
+    if (vendorId == null) {
+      throw StateError('Vendor session required to update orders');
+    }
 
     await repo.updateOrderStatus(
       orderId,

@@ -23,12 +23,14 @@ class VendorProductsScreen extends ConsumerStatefulWidget {
 class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
   String _selectedFilter = 'All Products';
   String _searchQuery = '';
-  late String _vendorId;
+  String? _vendorId;
 
   @override
   Widget build(BuildContext context) {
     _vendorId = ref.watch(currentVendorIdProvider);
-    final productsAsync = ref.watch(vendorProductsProvider(_vendorId));
+    final productsAsync = _vendorId == null
+        ? const AsyncValue<List<VendorProduct>>.data([])
+        : ref.watch(vendorProductsProvider(_vendorId!));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -410,6 +412,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                           value: product.isActive && product.stockQuantity > 0,
                           onChanged: product.stockQuantity > 0
                               ? (value) async {
+                                  if (_vendorId == null) return;
                                   final messenger = ScaffoldMessenger.of(
                                     context,
                                   );
@@ -419,7 +422,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                                   await ref
                                       .read(
                                         vendorProductsManagerProvider(
-                                          _vendorId,
+                                          _vendorId!,
                                         ),
                                       )
                                       .updateProduct(updated);

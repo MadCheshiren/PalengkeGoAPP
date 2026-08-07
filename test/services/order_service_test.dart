@@ -7,13 +7,13 @@ import 'package:palengkego/features/orders/data/mock_order_repository.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   late MockOrderRepository repository;
 
   setUpAll(() {
-    SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
   });
 
   setUp(() {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/preferences_provider.dart';
+import 'package:palengkego/core/services/secure_storage_provider.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
 
 class CustomerPreferencesState {
@@ -63,36 +64,12 @@ const _kDeliveryAddressKey = 'pref_delivery_address';
 const _kSavedAddressesKey = 'pref_saved_addresses';
 const _kPaymentMethodKey = 'pref_payment_method';
 
+/// Addresses are PII: persisted in keychain-backed secure storage, while the
+/// non-sensitive payment-method choice stays in SharedPreferences.
 class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
   @override
   CustomerPreferencesState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
-
-    // Load delivery address
-    DeliveryAddress? currentAddress;
-    final addressStr = prefs.getString(_kDeliveryAddressKey);
-    if (addressStr != null) {
-      try {
-        final Map<String, dynamic> data = Map<String, dynamic>.from(
-          const JsonDecoder().convert(addressStr) as Map,
-        );
-        currentAddress = DeliveryAddress.fromFirestore(data);
-      } catch (_) {}
-    }
-
-    // Load saved addresses
-    List<DeliveryAddress> savedAddresses = [];
-    final savedListStr = prefs.getStringList(_kSavedAddressesKey);
-    if (savedListStr != null) {
-      for (final str in savedListStr) {
-        try {
-          final Map<String, dynamic> data = Map<String, dynamic>.from(
-            const JsonDecoder().convert(str) as Map,
-          );
-          savedAddresses.add(DeliveryAddress.fromFirestore(data));
-        } catch (_) {}
-      }
-    }
 
     // Load payment method
     final paymentMethod = prefs.getString(_kPaymentMethodKey) ?? 'cod';
@@ -103,36 +80,87 @@ class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
       streetAddress: '123 Magsaysay Avenue',
     );
 
-    currentAddress ??= defaultAddress;
-    if (savedAddresses.isEmpty) {
-      savedAddresses = [
-        defaultAddress,
-        const DeliveryAddress(
-          label: 'School',
-          primaryAddress: 'Ateneo de Naga University',
-          streetAddress: 'Ateneo Avenue',
-        ),
-      ];
-    }
+    const defaultSavedAddresses = [
+      defaultAddress,
+      DeliveryAddress(
+        label: 'School',
+        primaryAddress: 'Ateneo de Naga University',
+        streetAddress: 'Ateneo Avenue',
+      ),
+    ];
 
-    return CustomerPreferencesState(
-      deliveryAddress: currentAddress,
-      savedAddresses: savedAddresses,
+    final initial = CustomerPreferencesState(
+      deliveryAddress: defaultAddress,
+      savedAddresses: defaultSavedAddresses,
       paymentMethod: paymentMethod,
       blockedStallIds: [],
     );
+
+    _loadAddressesFromSecure().then((loaded) {
+      if (loaded != null && ref.mounted) state = loaded;
+    });
+
+    return initial;
+  }
+
+  Future<CustomerPreferencesState?> _loadAddressesFromSecure() async {
+    final storage = ref.read(secureStorageProvider);
+    try {
+      DeliveryAddress? currentAddress;
+      final addressStr = await storage.read(key: _kDeliveryAddressKey);
+      if (addressStr != null) {
+        final Map<String, dynamic> data = Map<String, dynamic>.from(
+          const JsonDecoder().convert(addressStr) as Map,
+        );
+        currentAddress = DeliveryAddress.fromFirestore(data);
+      }
+
+      List<DeliveryAddress> savedAddresses = [];
+      final savedListStr = await storage.read(key: _kSavedAddressesKey);
+      if (savedListStr != null) {
+        final List<dynamic> decoded = const JsonDecoder().convert(savedListStr);
+        for (final entry in decoded) {
+          try {
+            final Map<String, dynamic> data = Map<String, dynamic>.from(
+              entry as Map,
+            );
+            savedAddresses.add(DeliveryAddress.fromFirestore(data));
+          } catch (_) {}
+        }
+      }
+
+      if (currentAddress == null && savedAddresses.isEmpty) {
+        return null;
+      }
+      return state.copyWith(
+        deliveryAddress: currentAddress ?? state.deliveryAddress,
+        savedAddresses: savedAddresses.isEmpty
+            ? state.savedAddresses
+            : savedAddresses,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _persistState(CustomerPreferencesState nextState) async {
     final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setString(
-      _kDeliveryAddressKey,
-      const JsonEncoder().convert(nextState.deliveryAddress.toFirestore()),
-    );
-    final savedListStr = nextState.savedAddresses
-        .map((a) => const JsonEncoder().convert(a.toFirestore()))
-        .toList();
-    await prefs.setStringList(_kSavedAddressesKey, savedListStr);
+    final storage = ref.read(secureStorageProvider);
+    try {
+      await storage.write(
+        key: _kDeliveryAddressKey,
+        value: const JsonEncoder().convert(nextState.deliveryAddress.toFirestore()),
+      );
+      final savedListStr = nextState.savedAddresses
+          .map((a) => const JsonEncoder().convert(a.toFirestore()))
+          .toList();
+      await storage.write(
+        key: _kSavedAddressesKey,
+        value: const JsonEncoder().convert(savedListStr),
+      );
+    } catch (_) {
+      // Address persistence is best-effort; in-memory state remains correct.
+    }
     await prefs.setString(_kPaymentMethodKey, nextState.paymentMethod);
   }
 

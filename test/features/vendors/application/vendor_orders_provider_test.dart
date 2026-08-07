@@ -13,7 +13,7 @@ import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/payment_status.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -91,7 +91,7 @@ void main() {
   });
 
   setUpAll(() {
-    SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
   });
 
   group('VendorOrdersNotifier', () {

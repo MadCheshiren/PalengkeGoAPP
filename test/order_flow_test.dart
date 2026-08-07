@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/features/orders/data/mock_order_repository.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
@@ -6,9 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUp(() async {
+    FlutterSecureStorage.setMockInitialValues({});
     SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    await SharedOrderStore.load(prefs);
+    await SharedOrderStore.load();
   });
 
   test('place order and get orders for vendor', () async {

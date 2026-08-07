@@ -11,6 +11,7 @@ import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/cart/data/mock_cart_repository.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -32,6 +33,7 @@ void main() {
     'Full Checkout to OrderConfirmationScreen flow with multiple vendors and hover',
     (WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       MockCartRepository.clearTestState();
       final cart = MockCartRepository();

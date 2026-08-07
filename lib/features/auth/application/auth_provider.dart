@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/infrastructure/firebase_service.dart';
 import 'package:palengkego/features/auth/data/auth_repository.dart';
@@ -82,6 +83,26 @@ class AuthNotifier extends Notifier<AppUser?> {
     await ref.read(hasVendorStallProvider.notifier).clear();
     state = null;
   }
+
+  /// Enters vendor mode for demo/dev role-switch taps. In production the
+  /// authenticated role is authoritative; returns whether the caller may
+  /// proceed into vendor UI.
+  Future<bool> enterVendorMode() async {
+    if (kDebugMode) {
+      await loginAs(UserRole.vendor);
+      return true;
+    }
+    return state?.isVendor == true;
+  }
+
+  /// Returns to the customer-facing area. In production the market screens
+  /// are open to all authenticated users, so no role switch is performed.
+  Future<bool> enterCustomerMode() async {
+    if (kDebugMode) {
+      await loginAs(UserRole.customer);
+    }
+    return true;
+  }
 }
 
 final authProvider = NotifierProvider<AuthNotifier, AppUser?>(AuthNotifier.new);
@@ -93,10 +114,13 @@ final authStateProvider = StreamProvider<AppUser?>((ref) {
 });
 
 /// Maps the current user's UID to vendor ID.
-/// In mock mode 'stall holder-001' maps to 'v1'. In Firebase mode the UID is used directly.
-final currentVendorIdProvider = Provider<String>((ref) {
+/// Returns null when the user is not signed in or is not a vendor — never a
+/// fabricated vendor identity. In mock mode the vendor uid 'stall holder-001'
+/// maps to 'v1'; in Firebase mode the UID is used directly.
+final currentVendorIdProvider = Provider<String?>((ref) {
   final user = ref.watch(authProvider);
-  if (user == null) return 'v1';
+  if (user == null) return null;
+  if (user.role != UserRole.vendor) return null;
   if (user.uid == 'stall holder-001') return 'v1'; // mock compatibility
   return user.uid;
 });

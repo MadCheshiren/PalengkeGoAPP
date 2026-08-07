@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
@@ -12,6 +12,7 @@ import 'package:palengkego/features/orders/domain/order_line_item.dart';
 class SharedOrderStore {
   static final List<MarketOrder> orders = [];
   static final Map<String, List<OrderStatusHistory>> history = {};
+  static final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   static const _ordersKey = 'mock_orders';
   static const _historyKey = 'mock_order_history';
@@ -109,12 +110,20 @@ class SharedOrderStore {
     ],
   };
 
-  static Future<void> load(SharedPreferences prefs) async {
-    final ordersJson = prefs.getString(_ordersKey);
-    final historyJson = prefs.getString(_historyKey);
-
+  static Future<void> load() async {
     orders.clear();
     history.clear();
+
+    String? ordersJson;
+    String? historyJson;
+    try {
+      ordersJson = await _storage.read(key: _ordersKey);
+      historyJson = await _storage.read(key: _historyKey);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('SharedOrderStore: Secure storage unavailable: $e');
+      }
+    }
 
     if (ordersJson != null) {
       try {
@@ -181,8 +190,6 @@ class SharedOrderStore {
 
   static Future<void> save() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
       // Explicitly call toJson on nested items to avoid JsonUnsupportedObjectError
       final List<Map<String, dynamic>> serializedOrders = orders.map((o) {
         final json = o.toJson();
@@ -202,8 +209,8 @@ class SharedOrderStore {
       });
       final historyJson = jsonEncode(serializedHistory);
 
-      await prefs.setString(_ordersKey, ordersJson);
-      await prefs.setString(_historyKey, historyJson);
+      await _storage.write(key: _ordersKey, value: ordersJson);
+      await _storage.write(key: _historyKey, value: historyJson);
       if (kDebugMode) debugPrint("SharedOrderStore: Saved successfully!");
     } catch (e, stack) {
       if (kDebugMode) debugPrint("SharedOrderStore: Error saving: $e\n$stack");

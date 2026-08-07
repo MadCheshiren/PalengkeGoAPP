@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/notifications/application/notification_provider.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
@@ -134,9 +135,17 @@ class NotificationsScreen extends ConsumerWidget {
                               } else if (notif.id.startsWith(
                                 'vendor_reg_success',
                               )) {
-                                await ref
+                                final entered = await ref
                                     .read(authProvider.notifier)
-                                    .loginAs(UserRole.vendor);
+                                    .enterVendorMode();
+                                if (!entered) {
+                                  if (context.mounted) {
+                                    AppServices.showError(
+                                      'Only stall holders can manage a stall.',
+                                    );
+                                  }
+                                  return;
+                                }
                                 if (context.mounted) {
                                   Navigator.of(context).pushAndRemoveUntil(
                                     PageTransitions.slideFromRight(

@@ -129,6 +129,11 @@ class _VendorAddProductScreenState
       final double? discount = double.tryParse(_discountController.text.trim());
       // Read ref synchronously BEFORE any await — safe even if widget unmounts later.
       final vendorId = ref.read(currentVendorIdProvider);
+      if (vendorId == null) {
+        setState(() => _isSaving = false);
+        AppServices.showError('Vendor session required.');
+        return;
+      }
       final manager = ref.read(vendorProductsManagerProvider(vendorId));
 
       final product = VendorProduct(
@@ -298,6 +303,10 @@ class _VendorAddProductScreenState
     final productName = widget.existingProduct!.name;
     final productId = widget.existingProduct!.id;
     final vendorId = ref.read(currentVendorIdProvider);
+    if (vendorId == null) {
+      AppServices.showError('Vendor session required.');
+      return;
+    }
     final manager = ref.read(vendorProductsManagerProvider(vendorId));
 
     final confirmed = await showDialog<bool>(
