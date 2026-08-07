@@ -2,7 +2,9 @@ import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/core/mock/mock_data.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
+import 'package:palengkego/features/orders/domain/order_policy.dart';
 import 'package:palengkego/features/orders/domain/order_repository.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/order_status_history.dart';
@@ -46,6 +48,40 @@ class MockOrderRepository implements OrderRepository {
     _seq = maxSeq + 1;
 
     final created = <MarketOrder>[];
+
+    // Validate against on-hand stock before creating anything, so a failing
+    // order leaves no partial orders behind (same contract as Firestore).
+    for (final entry in groupedItems.entries) {
+      final vendor = MockDataService.featuredVendors.firstWhere(
+        (v) => v['name'] == entry.key,
+        orElse: () => const {'id': ''},
+      );
+      final vendorId = vendor['id'] as String;
+      if (vendorId.isEmpty) continue;
+
+      for (final item in entry.value.$2) {
+        if (item.productId.startsWith('dummy') ||
+            item.productId.startsWith('recipe_')) {
+          continue;
+        }
+        final productIndex = MockDataService.products.indexWhere(
+          (p) => p['name'] == item.productName && p['vendorId'] == vendorId,
+        );
+if (productIndex == -1) continue;
+        deductStock(
+          // Seed products carry no stockQuantity; the mock treats an absent
+          // value as 15.0 (same default as MockDataService stock helpers).
+          stockQuantity:
+              (MockDataService.products[productIndex]['stockQuantity'] as num?)
+                      ?.toDouble() ??
+                  15.0,
+          requestedQuantity: item.quantity,
+          unit: MockDataService.products[productIndex]['unit'] as String? ?? '',
+          productName: item.productName,
+        );
+      }
+    }
+
     for (final entry in groupedItems.entries) {
       final orderId = '#$dateStr${_seq++}';
       final vendorName = entry.key;
@@ -132,6 +168,23 @@ class MockOrderRepository implements OrderRepository {
     if (idx == -1) return;
 
     final previous = _orders[idx].status;
+    if (previous.isTerminal) {
+      throw OrderFailure(
+        OrderFailureType.alreadyTerminal,
+        message:
+            'Order #$orderId is already ${previous.label} and can no longer be changed.',
+      );
+    }
+    // Same-status re-record (e.g. a new estimated ready time) is not a
+    // transition, so it bypasses the graph but still persists the fields.
+    if (previous != newStatus && !previous.canTransitionTo(newStatus)) {
+      throw OrderFailure(
+        OrderFailureType.illegalStatusTransition,
+        message:
+            'Cannot change order #$orderId from ${previous.label} to ${newStatus.label}.',
+      );
+    }
+
     _orders[idx] = _orders[idx].copyWith(
       status: newStatus,
       paymentStatus: newStatus == OrderStatus.completed
@@ -172,15 +225,37 @@ class MockOrderRepository implements OrderRepository {
   }
 
   @override
-  Future<bool> cancelOrder(String orderId, {String? reason}) async {
+  Future<void> cancelOrder(
+    String orderId, {
+    String? reason,
+    DateTime? now,
+  }) async {
     final idx = _orders.indexWhere((o) => o.id == orderId);
-    if (idx == -1) return false;
+    if (idx == -1) {
+      throw const OrderFailure(
+        OrderFailureType.orderNotFound,
+        message: 'Order not found.',
+      );
+    }
 
     final order = _orders[idx];
-    if (order.status != OrderStatus.pending) return false;
+    if (order.status != OrderStatus.pending) {
+      throw OrderFailure(
+        order.status.isTerminal
+            ? OrderFailureType.alreadyTerminal
+            : OrderFailureType.illegalStatusTransition,
+        message:
+            'Order #$orderId can only be cancelled while pending (current: ${order.status.label}).',
+      );
+    }
 
     final cancelUntil = order.placedAt.add(_cancelWindow);
-    if (DateTime.now().isAfter(cancelUntil)) return false;
+    if ((now ?? DateTime.now()).isAfter(cancelUntil)) {
+      throw OrderFailure(
+        OrderFailureType.cancelWindowExpired,
+        message: 'The cancellation window for order #$orderId has expired.',
+      );
+    }
 
     await updateOrderStatus(
       orderId,
@@ -188,7 +263,6 @@ class MockOrderRepository implements OrderRepository {
       changedByUid: 'customer',
       remarks: reason,
     );
-    return true;
   }
 
   @override

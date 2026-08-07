@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
+import 'package:palengkego/features/orders/domain/order_policy.dart';
 import 'package:palengkego/features/orders/domain/order_repository.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/order_status_history.dart';
@@ -87,7 +89,7 @@ class FirebaseOrderRepository implements OrderRepository {
 
         final stallId = vendorStallIds[entry.key];
 
-        // Deduct stock
+        // Deduct stock, keeping the exact quantity in the product's unit.
         if (stallId != null) {
           for (final item in order.items) {
             if (!item.productId.startsWith('dummy') &&
@@ -99,19 +101,29 @@ class FirebaseOrderRepository implements OrderRepository {
                   .doc(item.productId);
 
               final productDoc = await transaction.get(productRef);
-              if (productDoc.exists) {
-                final currentStock =
-                    (productDoc.data()?['stockQuantity'] as num?)?.toInt() ?? 0;
-                final qty = item.quantity.ceil();
-                final newStock = (currentStock - qty).clamp(0, 999999);
-
-                final updates = <String, dynamic>{'stockQuantity': newStock};
-                if (newStock <= 0) {
-                  updates['isActive'] = false;
-                }
-
-                transaction.update(productRef, updates);
+              if (!productDoc.exists) {
+                throw const OrderFailure(
+                  OrderFailureType.orderNotFound,
+                  message: 'A product in your order is no longer available.',
+                );
               }
+
+              final currentStock =
+                  (productDoc.data()?['stockQuantity'] as num?)?.toDouble() ??
+                  0;
+              final newStock = deductStock(
+                stockQuantity: currentStock,
+                requestedQuantity: item.quantity,
+                unit: item.unit,
+                productName: item.productName,
+              );
+
+              final updates = <String, dynamic>{'stockQuantity': newStock};
+              if (newStock <= 0) {
+                updates['isActive'] = false;
+              }
+
+              transaction.update(productRef, updates);
             }
           }
         }
@@ -171,14 +183,36 @@ class FirebaseOrderRepository implements OrderRepository {
   }) async {
     final ref = _orders.doc(orderId);
     final snap = await ref.get();
-    if (!snap.exists) return;
+    if (!snap.exists) {
+      throw const OrderFailure(
+        OrderFailureType.orderNotFound,
+        message: 'Order not found.',
+      );
+    }
 
     final previous = OrderStatus.values.firstWhere(
       (s) => s.name == (snap.data()!['status'] as String? ?? 'pending'),
       orElse: () => OrderStatus.pending,
     );
 
-    await ref.update({
+    if (previous.isTerminal) {
+      throw OrderFailure(
+        OrderFailureType.alreadyTerminal,
+        message:
+            'Order #$orderId is already ${previous.label} and can no longer be changed.',
+      );
+    }
+    // Same-status re-record (e.g. a new estimated ready time) is not a
+    // transition, so it bypasses the graph but still persists the fields.
+    if (previous != newStatus && !previous.canTransitionTo(newStatus)) {
+      throw OrderFailure(
+        OrderFailureType.illegalStatusTransition,
+        message:
+            'Cannot change order #$orderId from ${previous.label} to ${newStatus.label}.',
+      );
+    }
+
+    final data = <String, dynamic>{
       'status': newStatus.name,
       if (newStatus == OrderStatus.completed)
         'paymentStatus': PaymentStatus.paid.name,
@@ -188,24 +222,36 @@ class FirebaseOrderRepository implements OrderRepository {
       if (newStatus == OrderStatus.cancelled ||
           newStatus == OrderStatus.rejected)
         'cancellationReason': remarks,
-    });
+    };
 
-    await ref.collection('statusHistory').add({
-      'orderId': orderId,
-      'previousStatus': previous.name,
-      'newStatus': newStatus.name,
-      'changedBy': changedByUid ?? 'system',
-      'changedAt': FieldValue.serverTimestamp(),
-      'remarks': remarks,
+    await _firestore.runTransaction((transaction) async {
+      transaction.update(ref, data);
+      transaction.set(ref.collection('statusHistory').doc(), {
+        'orderId': orderId,
+        'previousStatus': previous.name,
+        'newStatus': newStatus.name,
+        'changedBy': changedByUid ?? 'system',
+        'changedAt': FieldValue.serverTimestamp(),
+        'remarks': remarks,
+      });
     });
   }
 
   // ── Cancel ──────────────────────────────────────────────────────────────────
 
   @override
-  Future<bool> cancelOrder(String orderId, {String? reason}) async {
+  Future<void> cancelOrder(
+    String orderId, {
+    String? reason,
+    DateTime? now,
+  }) async {
     final snap = await _orders.doc(orderId).get();
-    if (!snap.exists) return false;
+    if (!snap.exists) {
+      throw const OrderFailure(
+        OrderFailureType.orderNotFound,
+        message: 'Order not found.',
+      );
+    }
 
     final data = snap.data()!;
     final status = OrderStatus.values.firstWhere(
@@ -213,10 +259,23 @@ class FirebaseOrderRepository implements OrderRepository {
       orElse: () => OrderStatus.pending,
     );
 
-    if (status != OrderStatus.pending) return false;
+    if (status != OrderStatus.pending) {
+      throw OrderFailure(
+        status.isTerminal
+            ? OrderFailureType.alreadyTerminal
+            : OrderFailureType.illegalStatusTransition,
+        message:
+            'Order #$orderId is currently ${status.label} and cannot be cancelled anymore.',
+      );
+    }
 
     final placedAt = (data['placedAt'] as Timestamp).toDate();
-    if (DateTime.now().isAfter(placedAt.add(_cancelWindow))) return false;
+    if ((now ?? DateTime.now()).isAfter(placedAt.add(_cancelWindow))) {
+      throw OrderFailure(
+        OrderFailureType.cancelWindowExpired,
+        message: 'The cancellation window for order #$orderId has expired.',
+      );
+    }
 
     await updateOrderStatus(
       orderId,
@@ -224,7 +283,6 @@ class FirebaseOrderRepository implements OrderRepository {
       changedByUid: 'customer',
       remarks: reason,
     );
-    return true;
   }
 
   // ── History ─────────────────────────────────────────────────────────────────

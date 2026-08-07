@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -194,25 +195,41 @@ class VendorOrderDetailsScreen extends ConsumerWidget {
                                                   time.hour,
                                                   time.minute,
                                                 );
-                                                ref
-                                                    .read(
-                                                      vendorOrdersProvider
-                                                          .notifier,
-                                                    )
-                                                    .updateEstimatedReadyTime(
-                                                      order.id,
-                                                      estimatedTime,
-                                                      order.status,
-                                                    );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Estimated ready time updated.',
+                                                try {
+                                                  await ref
+                                                      .read(
+                                                        vendorOrdersProvider
+                                                            .notifier,
+                                                      )
+                                                      .updateEstimatedReadyTime(
+                                                        order.id,
+                                                        estimatedTime,
+                                                        order.status,
+                                                      );
+                                                  if (!context.mounted) return;
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Estimated ready time updated.',
+                                                      ),
                                                     ),
-                                                  ),
-                                                );
+                                                  );
+                                                } on OrderFailure catch (e) {
+                                                  if (!context.mounted) return;
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(e.message),
+                                                      backgroundColor:
+                                                          const Color(
+                                                            0xFFB3261E,
+                                                          ),
+                                                    ),
+                                                  );
+                                                }
                                               }
                                             },
                                             child: const Text(
@@ -555,17 +572,28 @@ class VendorOrderDetailsScreen extends ConsumerWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
               final notifier = ref.read(vendorOrdersProvider.notifier);
-              notifier.cancelOrder(
-                order.id,
-                reason: noteController.text.trim(),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Order ${order.id} cancelled.')),
-              );
-              Navigator.of(context).pop(); // pop back to list
+              try {
+                await notifier.cancelOrder(
+                  order.id,
+                  reason: noteController.text.trim(),
+                );
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Order ${order.id} cancelled.')),
+                );
+                Navigator.of(context).pop(); // pop back to list
+              } on OrderFailure catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.message),
+                    backgroundColor: const Color(0xFFB3261E),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),

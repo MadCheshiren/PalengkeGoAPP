@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 import 'package:intl/intl.dart';
@@ -378,6 +379,31 @@ class _VendorOrderActions extends ConsumerWidget {
 
   final MarketOrder order;
 
+  /// Runs a vendor action, surfacing any typed [OrderFailure] to the user
+  /// instead of showing a misleading success snackbar.
+  Future<void> _runAction(
+    BuildContext context,
+    Future<void> action, {
+    required String successMessage,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await action;
+      if (context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(successMessage)));
+      }
+    } on OrderFailure catch (e) {
+      if (context.mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: const Color(0xFFB3261E),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(vendorOrdersProvider.notifier);
@@ -390,13 +416,11 @@ class _VendorOrderActions extends ConsumerWidget {
               label: 'Reject',
               isPrimary: false,
               textColor: const Color(0xFFEF4444),
-              onTap: () {
-                final messenger = ScaffoldMessenger.of(context);
-                notifier.rejectOrder(order.id);
-                messenger.showSnackBar(
-                  SnackBar(content: Text('Order ${order.id} was rejected.')),
-                );
-              },
+              onTap: () => _runAction(
+                context,
+                notifier.rejectOrder(order.id),
+                successMessage: 'Order ${order.id} was rejected.',
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -465,18 +489,29 @@ class _VendorOrderActions extends ConsumerWidget {
                   },
                 );
                 if (mins != null) {
-                  await notifier.updateEstimatedReadyTime(
-                    order.id,
-                    DateTime.now().add(Duration(minutes: mins)),
-                    OrderStatus.preparing,
-                  );
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Order accepted! Prep time set to $mins mins.',
+                  try {
+                    await notifier.updateEstimatedReadyTime(
+                      order.id,
+                      DateTime.now().add(Duration(minutes: mins)),
+                      OrderStatus.preparing,
+                    );
+                    if (!context.mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Order accepted! Prep time set to $mins mins.',
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } on OrderFailure catch (e) {
+                    if (!context.mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: const Color(0xFFB3261E),
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -537,14 +572,27 @@ class _VendorOrderActions extends ConsumerWidget {
                   },
                 );
                 if (mins != null) {
-                  notifier.updateEstimatedReadyTime(
-                    order.id,
-                    DateTime.now().add(Duration(minutes: mins)),
-                    OrderStatus.preparing,
-                  );
-                  messenger.showSnackBar(
-                    SnackBar(content: Text('Prep time updated to $mins mins.')),
-                  );
+                  try {
+                    await notifier.updateEstimatedReadyTime(
+                      order.id,
+                      DateTime.now().add(Duration(minutes: mins)),
+                      OrderStatus.preparing,
+                    );
+                    if (!context.mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Prep time updated to $mins mins.'),
+                      ),
+                    );
+                  } on OrderFailure catch (e) {
+                    if (!context.mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(e.message),
+                        backgroundColor: const Color(0xFFB3261E),
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -557,17 +605,12 @@ class _VendorOrderActions extends ConsumerWidget {
               backgroundColor: const Color(0xFFF1F5F9),
               textColor: const Color(0xFF64748B),
               icon: Icons.inventory_2_outlined,
-              onTap: () {
-                final messenger = ScaffoldMessenger.of(context);
-                notifier.markOrderReady(order.id);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Order ${order.id} is ready for pickup or dispatch.',
-                    ),
-                  ),
-                );
-              },
+              onTap: () => _runAction(
+                context,
+                notifier.markOrderReady(order.id),
+                successMessage:
+                    'Order ${order.id} is ready for pickup or dispatch.',
+              ),
             ),
           ),
         ],
@@ -580,13 +623,11 @@ class _VendorOrderActions extends ConsumerWidget {
         child: _buildActionButton(
           label: order.isPickup ? 'Mark as Picked Up' : 'Dispatch Order',
           isPrimary: true,
-          onTap: () {
-            final messenger = ScaffoldMessenger.of(context);
-            notifier.completeOrder(order.id);
-            messenger.showSnackBar(
-              SnackBar(content: Text('Order ${order.id} has been completed.')),
-            );
-          },
+          onTap: () => _runAction(
+            context,
+            notifier.completeOrder(order.id),
+            successMessage: 'Order ${order.id} has been completed.',
+          ),
         ),
       );
     }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 
 import 'package:palengkego/features/orders/application/order_provider.dart';
@@ -374,6 +375,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       address: deliveryAddress.displayLine,
                     ),
                   );
+                } on OrderFailure catch (e) {
+                  if (context.mounted) {
+                    AppServices.showError(e.message);
+                  }
                 } catch (e, stack) {
                   if (kDebugMode) debugPrint('Error placing order: $e');
                   if (kDebugMode) debugPrint('Stacktrace: $stack');

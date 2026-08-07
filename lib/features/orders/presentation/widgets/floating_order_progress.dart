@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class FloatingOrderProgress extends ConsumerWidget {
@@ -424,16 +426,14 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
     if (order.status != OrderStatus.pending) {
       return false;
     }
-    // Cancel window is 2 minutes
-    final cancelUntil = order.placedAt.add(const Duration(minutes: 2));
+    final cancelUntil = order.placedAt.add(FeeConfig.cancelWindow);
     return DateTime.now().isBefore(cancelUntil);
   }
 
   Future<void> _cancelOrder(MarketOrder order) async {
-    final cancelled = await ref
-        .read(orderServiceProvider.notifier)
-        .cancelOrder(order.id);
-    if (cancelled && mounted) {
+    try {
+      await ref.read(orderServiceProvider.notifier).cancelOrder(order.id);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -441,6 +441,21 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
             style: const TextStyle(fontFamily: 'PlusJakartaSans'),
           ),
           backgroundColor: const Color(0xFF0B372B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } on OrderFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.message,
+            style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+          ),
+          backgroundColor: const Color(0xFFB3261E),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

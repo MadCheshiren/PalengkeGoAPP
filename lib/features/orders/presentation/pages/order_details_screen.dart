@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_details_items_list.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_details_cards.dart';
@@ -37,7 +39,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
   }
 
   void _startCancelTimer() {
-    final cancelUntil = _order.placedAt.add(const Duration(minutes: 2));
+    final cancelUntil = _order.placedAt.add(FeeConfig.cancelWindow);
     _updateTimeRemaining(cancelUntil);
 
     if (_timeRemaining > Duration.zero) {
@@ -60,12 +62,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
         ?.firstWhere((o) => o.id == _order.id, orElse: () => _order);
 
     if (currentOrder != null && currentOrder.status == OrderStatus.pending) {
-      await ref
-          .read(orderServiceProvider.notifier)
-          .updateOrderStatus(_order.id, OrderStatus.cancelled);
-
-      if (!mounted) return;
-      if (true) {
+      try {
+        await ref
+            .read(orderServiceProvider.notifier)
+            .cancelOrder(
+              _order.id,
+              now: _order.placedAt.add(FeeConfig.cancelWindow),
+            );
+        if (!mounted) return;
         AppServices.showSnackBar('Order automatically cancelled (timeout).');
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).popUntil((route) {
@@ -78,6 +82,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
             context,
           ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
         }
+      } on OrderFailure {
+        // Window already expired server-side — leave the order untouched.
       }
     }
   }
@@ -545,15 +551,16 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
       if (!mounted) return;
 
       int successCount = 0;
+      String? firstFailure;
       for (final id in idsToCancel) {
-        final cancelled = await ref
-            .read(orderServiceProvider.notifier)
-            .cancelOrder(id);
-        if (cancelled) {
+        try {
+          await ref.read(orderServiceProvider.notifier).cancelOrder(id);
           successCount++;
           if (id == widget.order.id) {
             _cancelTimer?.cancel();
           }
+        } on OrderFailure catch (e) {
+          firstFailure ??= e.message;
         }
       }
 
@@ -563,6 +570,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
         AppServices.showSnackBar(
           '$successCount order(s) cancelled successfully.',
         );
+      }
+      if (firstFailure != null) {
+        AppServices.showSnackBar(firstFailure);
       }
 
       final currentOrderCancelled = idsToCancel.contains(widget.order.id);

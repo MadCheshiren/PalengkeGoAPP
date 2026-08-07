@@ -9,6 +9,7 @@ import 'package:palengkego/features/orders/data/mock_order_repository.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/payment_status.dart';
@@ -47,9 +48,10 @@ MarketOrder _order(
 }
 
 MarketOrder _otherVendorOrder(String id, {DateTime? placedAt}) {
-  return _order(id, placedAt: placedAt).copyWith(
-    vendorName: 'Aling Nena Vegetables',
-  );
+  return _order(
+    id,
+    placedAt: placedAt,
+  ).copyWith(vendorName: 'Aling Nena Vegetables');
 }
 
 ProviderContainer _buildContainer() {
@@ -57,9 +59,9 @@ ProviderContainer _buildContainer() {
     overrides: [
       orderRepositoryProvider.overrideWithValue(MockOrderRepository()),
       authProvider.overrideWith(_TestAuthNotifier.new),
-      notificationServiceProvider.overrideWithValue(NotificationService(
-        isTest: true,
-      )),
+      notificationServiceProvider.overrideWithValue(
+        NotificationService(isTest: true),
+      ),
     ],
   );
   addTearDown(container.dispose);
@@ -101,20 +103,14 @@ void main() {
       SharedOrderStore.orders.addAll([
         _order('#1', status: OrderStatus.completed, placedAt: now),
         _order('#2', placedAt: now.add(const Duration(seconds: 5))),
-        _otherVendorOrder(
-          '#3',
-          placedAt: now.add(const Duration(seconds: 10)),
-        ),
+        _otherVendorOrder('#3', placedAt: now.add(const Duration(seconds: 10))),
       ]);
 
       final orders = await _readVendorOrders(container);
 
       expect(orders, hasLength(2));
       expect(orders.map((o) => o.id), ['#2', '#1']);
-      expect(
-        orders.every((o) => o.vendorName == 'Diosa Fruit Stand'),
-        isTrue,
-      );
+      expect(orders.every((o) => o.vendorName == 'Diosa Fruit Stand'), isTrue);
     });
 
     test('acceptOrder marks a pending order as preparing', () async {
@@ -141,9 +137,7 @@ void main() {
 
     test('markOrderReady marks an order as ready', () async {
       final container = _buildContainer();
-      SharedOrderStore.orders.add(
-        _order('#1', status: OrderStatus.preparing),
-      );
+      SharedOrderStore.orders.add(_order('#1', status: OrderStatus.preparing));
 
       await _readVendorOrders(container);
       await container.read(vendorOrdersProvider.notifier).markOrderReady('#1');
@@ -154,9 +148,7 @@ void main() {
 
     test('completeOrder marks an order completed and paid', () async {
       final container = _buildContainer();
-      SharedOrderStore.orders.add(
-        _order('#1', status: OrderStatus.ready),
-      );
+      SharedOrderStore.orders.add(_order('#1', status: OrderStatus.ready));
 
       await _readVendorOrders(container);
       await container.read(vendorOrdersProvider.notifier).completeOrder('#1');
@@ -165,6 +157,29 @@ void main() {
       expect(orders.single.status, OrderStatus.completed);
       expect(orders.single.paymentStatus, PaymentStatus.paid);
     });
+
+    test(
+      'completeOrder rejects a pending order with a typed failure',
+      () async {
+        final container = _buildContainer();
+        SharedOrderStore.orders.add(_order('#1'));
+
+        await _readVendorOrders(container);
+        await expectLater(
+          container.read(vendorOrdersProvider.notifier).completeOrder('#1'),
+          throwsA(
+            isA<OrderFailure>().having(
+              (e) => e.type,
+              'type',
+              OrderFailureType.illegalStatusTransition,
+            ),
+          ),
+        );
+
+        final orders = await _readVendorOrders(container);
+        expect(orders.single.status, OrderStatus.pending);
+      },
+    );
   });
 }
 

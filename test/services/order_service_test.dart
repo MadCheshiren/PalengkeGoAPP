@@ -5,6 +5,7 @@ import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/data/mock_order_repository.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -53,9 +54,7 @@ void main() {
   Map<String, (String, List<OrderLineItem>)> grouped(
     List<(String vendor, List<OrderLineItem> items)> entries,
   ) {
-    return {
-      for (final entry in entries) entry.$1: ('', entry.$2),
-    };
+    return {for (final entry in entries) entry.$1: ('', entry.$2)};
   }
 
   group('OrderRepository', () {
@@ -140,21 +139,24 @@ void main() {
       expect(orders.single.isPickup, isTrue);
     });
 
-    test('delivery orders start as pending until a vendor accepts them', () async {
-      final orders = await repository.placeOrders(
-        groupedItems: grouped([
-          (
-            'Aling Nena Vegetables',
-            [lineItem(productName: 'Carrots', price: 120)],
-          ),
-        ]),
-        isPickup: false,
-      );
+    test(
+      'delivery orders start as pending until a vendor accepts them',
+      () async {
+        final orders = await repository.placeOrders(
+          groupedItems: grouped([
+            (
+              'Aling Nena Vegetables',
+              [lineItem(productName: 'Carrots', price: 120)],
+            ),
+          ]),
+          isPickup: false,
+        );
 
-      expect(orders.single.status, OrderStatus.pending);
-      expect(orders.single.statusLabel, 'Pending');
-      expect(orders.single.isPickup, isFalse);
-    });
+        expect(orders.single.status, OrderStatus.pending);
+        expect(orders.single.statusLabel, 'Pending');
+        expect(orders.single.isPickup, isFalse);
+      },
+    );
 
     test(
       'cancelOrder moves a pending order to cancelled within the cancel window',
@@ -172,16 +174,16 @@ void main() {
         final orders = await container.read(orderServiceProvider.future);
         final order = orders.first;
 
-        final cancelled = await container
+        await container
             .read(orderServiceProvider.notifier)
             .cancelOrder(
               order.id,
               now: order.placedAt.add(const Duration(minutes: 4)),
             );
 
-        expect(cancelled, isTrue);
-        final updated = (await container.read(orderServiceProvider.future))
-            .firstWhere((entry) => entry.id == order.id);
+        final updated = (await container.read(
+          orderServiceProvider.future,
+        )).firstWhere((entry) => entry.id == order.id);
         expect(updated.status, OrderStatus.cancelled);
       },
     );
@@ -200,21 +202,29 @@ void main() {
       final orders = await container.read(orderServiceProvider.future);
       final order = orders.first;
 
-      final cancelled = await container
-          .read(orderServiceProvider.notifier)
-          .cancelOrder(
-            order.id,
-            now: order.placedAt.add(const Duration(minutes: 6)),
-          );
-
-      expect(cancelled, isFalse);
-      final updated = (await container.read(orderServiceProvider.future))
-          .firstWhere((entry) => entry.id == order.id);
+      await expectLater(
+        container
+            .read(orderServiceProvider.notifier)
+            .cancelOrder(
+              order.id,
+              now: order.placedAt.add(const Duration(minutes: 6)),
+            ),
+        throwsA(
+          isA<OrderFailure>().having(
+            (e) => e.type,
+            'type',
+            OrderFailureType.cancelWindowExpired,
+          ),
+        ),
+      );
+      final updated = (await container.read(
+        orderServiceProvider.future,
+      )).firstWhere((entry) => entry.id == order.id);
       expect(updated.status, OrderStatus.pending);
     });
 
     test(
-      'cancelOrder rejects completed orders even within the cancel window',
+      'cancelOrder rejects terminal orders even within the cancel window',
       () async {
         await repository.placeOrders(
           groupedItems: grouped([
@@ -229,22 +239,37 @@ void main() {
         final orders = await container.read(orderServiceProvider.future);
         final order = orders.first;
 
+        // Walk the order through the state machine to a terminal state.
+        await container
+            .read(orderServiceProvider.notifier)
+            .updateOrderStatus(order.id, OrderStatus.preparing);
+        await container
+            .read(orderServiceProvider.notifier)
+            .updateOrderStatus(order.id, OrderStatus.ready);
         await container
             .read(orderServiceProvider.notifier)
             .updateOrderStatus(order.id, OrderStatus.completed);
         // Let the invalidated provider rebuild before cancelOrder reads it.
         await container.read(orderServiceProvider.future);
 
-        final cancelled = await container
-            .read(orderServiceProvider.notifier)
-            .cancelOrder(
-              order.id,
-              now: order.placedAt.add(const Duration(minutes: 1)),
-            );
-
-        expect(cancelled, isFalse);
-        final updated = (await container.read(orderServiceProvider.future))
-            .firstWhere((entry) => entry.id == order.id);
+        await expectLater(
+          container
+              .read(orderServiceProvider.notifier)
+              .cancelOrder(
+                order.id,
+                now: order.placedAt.add(const Duration(minutes: 1)),
+              ),
+          throwsA(
+            isA<OrderFailure>().having(
+              (e) => e.type,
+              'type',
+              OrderFailureType.alreadyTerminal,
+            ),
+          ),
+        );
+        final updated = (await container.read(
+          orderServiceProvider.future,
+        )).firstWhere((entry) => entry.id == order.id);
         expect(updated.status, OrderStatus.completed);
       },
     );

@@ -8,6 +8,8 @@ abstract class OrderRepository {
   /// Place one or more orders from grouped line items.
   /// [groupedItems] maps vendor name -> (vendor image URL, line items).
   /// Returns the list of created orders.
+  /// Throws [OrderFailureType.outOfStock] / [OrderFailureType.invalidQuantity]
+  /// when a line item cannot be fulfilled exactly from on-hand stock.
   Future<List<MarketOrder>> placeOrders({
     required Map<String, (String vendorImage, List<OrderLineItem> items)>
     groupedItems,
@@ -28,6 +30,9 @@ abstract class OrderRepository {
 
   /// Update the status of a single order.
   /// [changedByUid] is the UID of whoever triggered the change.
+  /// Throws [OrderFailureType.illegalStatusTransition] when [newStatus] is
+  /// not reachable from the current status, and
+  /// [OrderFailureType.alreadyTerminal] when the order is terminal.
   Future<void> updateOrderStatus(
     String orderId,
     OrderStatus newStatus, {
@@ -36,9 +41,13 @@ abstract class OrderRepository {
     DateTime? estimatedReadyTime,
   });
 
-  /// Cancel an order. Returns false if the cancel window has passed
-  /// or the order is already terminal (completed/cancelled/rejected).
-  Future<bool> cancelOrder(String orderId, {String? reason});
+  /// Cancel a pending order within the cancellation window.
+  /// Completes successfully on cancellation, otherwise throws a typed
+  /// [OrderFailure]: [OrderFailureType.cancelWindowExpired] when the window
+  /// passed, [OrderFailureType.alreadyTerminal] when already cancelled or
+  /// otherwise terminal, [OrderFailureType.illegalStatusTransition] when no
+  /// longer pending, or [OrderFailureType.orderNotFound].
+  Future<void> cancelOrder(String orderId, {String? reason, DateTime? now});
 
   /// Status change timeline for a specific order.
   Future<List<OrderStatusHistory>> getOrderHistory(String orderId);
