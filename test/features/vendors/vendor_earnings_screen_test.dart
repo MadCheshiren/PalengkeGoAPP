@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_earnings_screen.dart';
+
+class TestAuthNotifier extends AuthNotifier {
+  TestAuthNotifier(this.initialUser);
+
+  final AppUser? initialUser;
+
+  @override
+  AppUser? build() => initialUser;
+}
 
 void main() {
   Future<void> pumpEarningsScreen(WidgetTester tester) async {
@@ -9,7 +21,14 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MaterialApp(home: VendorEarningsScreen()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authProvider.overrideWith(() => TestAuthNotifier(MockUsers.vendor)),
+        ],
+        child: const MaterialApp(home: VendorEarningsScreen()),
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 500));
   }
 

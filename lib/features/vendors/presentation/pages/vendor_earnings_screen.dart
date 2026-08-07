@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/application/sales_report_export_service.dart';
 
 import 'package:palengkego/core/utils/file_export_util.dart';
@@ -74,153 +76,156 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
   Widget build(BuildContext context) {
     final data = _currentData;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ──────────────────────────────────────────────────
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF6F8F7),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 16,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Earnings',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _showExportDialog,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.file_download_outlined,
-                        size: 20,
-                        color: Color(0xFF0B372B),
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header ──────────────────────────────────────────────────
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF6F8F7),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 16,
+                          color: Color(0xFF0B372B),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Earnings',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _showExportDialog,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.file_download_outlined,
+                          size: 20,
+                          color: Color(0xFF0B372B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
 
-              // ── Period tabs ──────────────────────────────────────────────
-              Row(
-                children: [
-                  _buildTab('Today'),
-                  const SizedBox(width: 8),
-                  _buildTab('Week'),
-                  const SizedBox(width: 8),
-                  _buildTab('Month'),
-                ],
-              ),
-              const SizedBox(height: 20),
+                // ── Period tabs ──────────────────────────────────────────────
+                Row(
+                  children: [
+                    _buildTab('Today'),
+                    const SizedBox(width: 8),
+                    _buildTab('Week'),
+                    const SizedBox(width: 8),
+                    _buildTab('Month'),
+                  ],
+                ),
+                const SizedBox(height: 20),
 
-              // ── Total earnings card — animates on tab change ─────────────
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0, 0.06),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOut,
+                // ── Total earnings card — animates on tab change ─────────────
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(0, 0.06),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
+                      child: child,
+                    ),
+                  ),
+                  child: _EarningsCard(
+                    key: ValueKey(_selectedTab),
+                    total: data.total,
+                    change: data.change,
+                    isPositive: data.isPositive,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // ── Bar chart ────────────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Daily Sales',
+                      style: TextStyle(
+                        fontFamily: 'PlusJakartaSans',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: Text(
+                          key: ValueKey('${_selectedTab}label'),
+                          _selectedTab == 'Today'
+                              ? 'Today, Jun 18'
+                              : _selectedTab == 'Week'
+                              ? 'Jun 12 - Jun 18'
+                              : 'June 2024',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontFamily: 'PlusJakartaSans',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF9CA3AF),
                           ),
                         ),
-                    child: child,
-                  ),
-                ),
-                child: _EarningsCard(
-                  key: ValueKey(_selectedTab),
-                  total: data.total,
-                  change: data.change,
-                  isPositive: data.isPositive,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Bar chart ────────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Daily Sales',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        key: ValueKey('${_selectedTab}label'),
-                        _selectedTab == 'Today'
-                            ? 'Today, Jun 18'
-                            : _selectedTab == 'Week'
-                            ? 'Jun 12 - Jun 18'
-                            : 'June 2024',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF9CA3AF),
-                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
-              // Animated bar chart
-              _AnimatedBarChart(
-                key: ValueKey(_selectedTab),
-                labels: data.labels,
-                values: data.values,
-                highlightIndex: data.highlightIndex,
-              ),
-              const SizedBox(height: 24),
-            ],
+                // Animated bar chart
+                _AnimatedBarChart(
+                  key: ValueKey(_selectedTab),
+                  labels: data.labels,
+                  values: data.values,
+                  highlightIndex: data.highlightIndex,
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),

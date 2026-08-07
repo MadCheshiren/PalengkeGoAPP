@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/vendors/application/detailed_sales_report_export_service.dart';
 import 'package:palengkego/core/utils/file_export_util.dart';
@@ -93,46 +95,51 @@ class _VendorSalesReportScreenState
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(completedOrdersProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          'Detailed Sales Report',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF0B372B),
-          ),
-        ),
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF0B372B)),
-      ),
-      body: Column(
-        children: [
-          _buildExportActions(),
-          Expanded(
-            child: ordersAsync.when(
-              data: (orders) => orders.isEmpty
-                  ? const Center(child: Text('No completed transactions yet.'))
-                  : ListView.builder(
-                      itemCount: orders.length,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      itemBuilder: (context, index) {
-                        final order = orders[index];
-                        return _buildTransactionCard(order);
-                      },
-                    ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) =>
-                  const Center(child: Text('Error loading report')),
+        appBar: AppBar(
+          title: const Text(
+            'Detailed Sales Report',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0B372B),
             ),
           ),
-        ],
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Color(0xFF0B372B)),
+        ),
+        body: Column(
+          children: [
+            _buildExportActions(),
+            Expanded(
+              child: ordersAsync.when(
+                data: (orders) => orders.isEmpty
+                    ? const Center(
+                        child: Text('No completed transactions yet.'),
+                      )
+                    : ListView.builder(
+                        itemCount: orders.length,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        itemBuilder: (context, index) {
+                          final order = orders[index];
+                          return _buildTransactionCard(order);
+                        },
+                      ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) =>
+                    const Center(child: Text('Error loading report')),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

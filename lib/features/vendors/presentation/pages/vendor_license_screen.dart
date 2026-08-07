@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/image_picker_helper.dart';
 import 'package:palengkego/features/vendors/application/license_renewal_provider.dart';
@@ -29,62 +31,65 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
     final historyAsync = ref.watch(renewalHistoryProvider);
     final stall = ref.watch(vendorStallProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const VendorScreenHeader(title: 'Stall License'),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    activeRenewalAsync.when(
-                      data: (activeRenewal) =>
-                          _buildStatusCard(status, activeRenewal, stall),
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF0B372B),
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Column(
+            children: [
+              const VendorScreenHeader(title: 'Stall License'),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      activeRenewalAsync.when(
+                        data: (activeRenewal) =>
+                            _buildStatusCard(status, activeRenewal, stall),
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF0B372B),
+                          ),
                         ),
+                        error: (err, _) => Text('Error: $err'),
                       ),
-                      error: (err, _) => Text('Error: $err'),
-                    ),
-                    const SizedBox(height: 32),
+                      const SizedBox(height: 32),
 
-                    const Text(
-                      'Renewal History',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    historyAsync.when(
-                      data: (history) => _buildHistoryList(history),
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF0B372B),
+                      const Text(
+                        'Renewal History',
+                        style: TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A),
                         ),
                       ),
-                      error: (err, _) => Text('Error: $err'),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      historyAsync.when(
+                        data: (history) => _buildHistoryList(history),
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF0B372B),
+                          ),
+                        ),
+                        error: (err, _) => Text('Error: $err'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        bottomNavigationBar:
+            (status == LicenseStatus.expiringSoon ||
+                status == LicenseStatus.expired ||
+                status == LicenseStatus.suspended)
+            ? _buildRenewBottomBar(stall)
+            : null,
       ),
-      bottomNavigationBar:
-          (status == LicenseStatus.expiringSoon ||
-              status == LicenseStatus.expired ||
-              status == LicenseStatus.suspended)
-          ? _buildRenewBottomBar(stall)
-          : null,
     );
   }
 

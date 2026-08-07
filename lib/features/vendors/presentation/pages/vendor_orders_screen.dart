@@ -5,6 +5,8 @@ import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_order_details_screen.dart';
 
 import '../widgets/vendor_screen_header.dart';
@@ -36,46 +38,49 @@ class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const VendorScreenHeader(title: 'Orders'),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TabBar(
-                controller: _tabController,
-                labelColor: const Color(0xFF0B372B),
-                unselectedLabelColor: const Color(0xFF9CA3AF),
-                indicatorColor: const Color(0xFF0B372B),
-                indicatorWeight: 2,
-                labelStyle: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Column(
+            children: [
+              const VendorScreenHeader(title: 'Orders'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: const Color(0xFF0B372B),
+                  unselectedLabelColor: const Color(0xFF9CA3AF),
+                  indicatorColor: const Color(0xFF0B372B),
+                  indicatorWeight: 2,
+                  labelStyle: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  tabs: const [
+                    Tab(text: 'Active'),
+                    Tab(text: 'History'),
+                  ],
                 ),
-                unselectedLabelStyle: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: const [
+                    _VendorOrdersTab(isHistory: false),
+                    _VendorOrdersTab(isHistory: true),
+                  ],
                 ),
-                tabs: const [
-                  Tab(text: 'Active'),
-                  Tab(text: 'History'),
-                ],
               ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: const [
-                  _VendorOrdersTab(isHistory: false),
-                  _VendorOrdersTab(isHistory: true),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

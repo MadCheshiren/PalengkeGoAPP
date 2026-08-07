@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/notifications/application/notification_provider.dart';
 
 class VendorNotificationsScreen extends ConsumerWidget {
@@ -11,129 +13,132 @@ class VendorNotificationsScreen extends ConsumerWidget {
     // ref.read only — ListenableBuilder below handles all reactivity.
     final notifService = ref.read(notificationServiceProvider);
 
-    return ListenableBuilder(
-      listenable: notifService,
-      builder: (context, _) {
-        final notifications = notifService.forVendor;
-        final unreadCount = notifService.vendorUnreadCount;
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: ListenableBuilder(
+        listenable: notifService,
+        builder: (context, _) {
+          final notifications = notifService.forVendor;
+          final unreadCount = notifService.vendorUnreadCount;
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
-          body: SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.maybePop(context),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
-                                  shape: BoxShape.circle,
+          return Scaffold(
+            backgroundColor: const Color(0xFFF8FAFC),
+            body: SafeArea(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  // Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.maybePop(context),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF1F5F9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    size: 16,
+                                    color: Color(0xFF0B372B),
+                                  ),
                                 ),
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  size: 16,
-                                  color: Color(0xFF0B372B),
-                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Notifications',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (unreadCount > 0)
-                          GestureDetector(
-                            onTap: () => notifService.markAllRead(
-                              NotificationTarget.vendor,
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F5E9),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'Mark all read',
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Notifications',
                                 style: TextStyle(
                                   fontFamily: 'PlusJakartaSans',
-                                  fontSize: 12,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF0B372B),
                                 ),
                               ),
+                            ],
+                          ),
+                          if (unreadCount > 0)
+                            GestureDetector(
+                              onTap: () => notifService.markAllRead(
+                                NotificationTarget.vendor,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'Mark all read',
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF0B372B),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Morphing sticky banner
-                SliverPersistentHeader(
-                  pinned: true,
-                  floating: false,
-                  delegate: _VendorStatusBannerDelegate(
-                    unreadCount: unreadCount,
-                  ),
-                ),
-
-                // Notifications list
-                if (notifications.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyVendorNotifications(),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final notif = notifications[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: _VendorNotificationCard(
-                            notification: notif,
-                            onTap: () => notifService.markRead(notif.id),
-                          ),
-                        );
-                      }, childCount: notifications.length),
+                        ],
+                      ),
                     ),
                   ),
 
-                // Vendor pro-tip box (always shown at bottom)
-                if (notifications.isNotEmpty)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 32),
-                    sliver: SliverToBoxAdapter(child: _VendorProTip()),
+                  // Morphing sticky banner
+                  SliverPersistentHeader(
+                    pinned: true,
+                    floating: false,
+                    delegate: _VendorStatusBannerDelegate(
+                      unreadCount: unreadCount,
+                    ),
                   ),
-              ],
+
+                  // Notifications list
+                  if (notifications.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyVendorNotifications(),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final notif = notifications[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: _VendorNotificationCard(
+                              notification: notif,
+                              onTap: () => notifService.markRead(notif.id),
+                            ),
+                          );
+                        }, childCount: notifications.length),
+                      ),
+                    ),
+
+                  // Vendor pro-tip box (always shown at bottom)
+                  if (notifications.isNotEmpty)
+                    const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      sliver: SliverToBoxAdapter(child: _VendorProTip()),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

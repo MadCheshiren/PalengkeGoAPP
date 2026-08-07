@@ -3,6 +3,8 @@ import 'package:palengkego/core/config/categories.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/domain/day_schedule.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_photo_editor.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_info_form.dart';
@@ -139,59 +141,62 @@ class _VendorStallSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const AppScreenHeader(title: 'Stall Settings'),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StallPhotoEditor(
-                        bannerImage: _bannerImage,
-                        avatarImage: _avatarImage,
-                        thumbnailImage: _thumbnailImage,
-                        onBannerChanged: (url) =>
-                            setState(() => _bannerImage = url),
-                        onAvatarChanged: (url) =>
-                            setState(() => _avatarImage = url),
-                        onThumbnailChanged: (url) =>
-                            setState(() => _thumbnailImage = url),
-                      ),
-                      const SizedBox(height: 24),
-                      StallInfoForm(
-                        nameController: _nameController,
-                        descriptionController: _descriptionController,
-                        locationController: _locationController,
-                        selectedCategory: _selectedCategory,
-                        categories: _categories,
-                        onCategoryChanged: (category) =>
-                            setState(() => _selectedCategory = category),
-                      ),
-                      const SizedBox(height: 32),
-                      OperatingHoursEditor(
-                        schedules: _schedules,
-                        onApplyMondayToAll: _applyMondayToAll,
-                        onChanged: () => setState(() {}),
-                      ),
-                      const SizedBox(height: 32),
-                      StallSettingsSaveButton(onSave: _saveChanges),
-                      const SizedBox(height: 24),
-                    ],
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const AppScreenHeader(title: 'Stall Settings'),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        StallPhotoEditor(
+                          bannerImage: _bannerImage,
+                          avatarImage: _avatarImage,
+                          thumbnailImage: _thumbnailImage,
+                          onBannerChanged: (url) =>
+                              setState(() => _bannerImage = url),
+                          onAvatarChanged: (url) =>
+                              setState(() => _avatarImage = url),
+                          onThumbnailChanged: (url) =>
+                              setState(() => _thumbnailImage = url),
+                        ),
+                        const SizedBox(height: 24),
+                        StallInfoForm(
+                          nameController: _nameController,
+                          descriptionController: _descriptionController,
+                          locationController: _locationController,
+                          selectedCategory: _selectedCategory,
+                          categories: _categories,
+                          onCategoryChanged: (category) =>
+                              setState(() => _selectedCategory = category),
+                        ),
+                        const SizedBox(height: 32),
+                        OperatingHoursEditor(
+                          schedules: _schedules,
+                          onApplyMondayToAll: _applyMondayToAll,
+                          onChanged: () => setState(() {}),
+                        ),
+                        const SizedBox(height: 32),
+                        StallSettingsSaveButton(onSave: _saveChanges),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

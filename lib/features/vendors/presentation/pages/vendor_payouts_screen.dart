@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 
 // ── Mock payout data ──────────────────────────────────────────────────────────
 
@@ -41,79 +43,82 @@ class VendorPayoutsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 20,
-            color: Color(0xFF0B372B),
-          ),
-        ),
-        title: const Text(
-          'Payout History',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF0B372B),
-          ),
-        ),
-        centerTitle: false,
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, color: Color(0xFFE5E7EB)),
-        ),
-      ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // ── Summary card ──────────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: _SummaryCard(
-                totalPaid: _totalPaid,
-                count: _mockPayouts.length,
-              ),
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF3F4F6),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: Color(0xFF0B372B),
             ),
           ),
-
-          // ── Section label ─────────────────────────────────────────────────
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: Text(
-                'All Payouts',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF9CA3AF),
-                  letterSpacing: 0.3,
+          title: const Text(
+            'Payout History',
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0B372B),
+            ),
+          ),
+          centerTitle: false,
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, color: Color(0xFFE5E7EB)),
+          ),
+        ),
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // ── Summary card ──────────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: _SummaryCard(
+                  totalPaid: _totalPaid,
+                  count: _mockPayouts.length,
                 ),
               ),
             ),
-          ),
 
-          // ── Payout list ───────────────────────────────────────────────────
-          SliverList.separated(
-            itemCount: _mockPayouts.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final isLast = index == _mockPayouts.length - 1;
-              return Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, isLast ? 24 : 0),
-                child: _PayoutCard(payout: _mockPayouts[index]),
-              );
-            },
-          ),
-        ],
+            // ── Section label ─────────────────────────────────────────────────
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: Text(
+                  'All Payouts',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF9CA3AF),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Payout list ───────────────────────────────────────────────────
+            SliverList.separated(
+              itemCount: _mockPayouts.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final isLast = index == _mockPayouts.length - 1;
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, isLast ? 24 : 0),
+                  child: _PayoutCard(payout: _mockPayouts[index]),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
