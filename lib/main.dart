@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
 import 'core/config/app_config.dart';
 import 'core/config/app_environment.dart';
@@ -145,6 +146,8 @@ class PalengkeGoApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       scaffoldMessengerKey: AppServices.scaffoldMessengerKey,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,
       builder: (context, child) {

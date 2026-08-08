@@ -87,22 +87,39 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
       ),
       child: SafeArea(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(
-              0,
-              Icons.dashboard_outlined,
-              Icons.dashboard,
-              'Dashboard',
+            Expanded(
+              child: _buildNavItem(
+                0,
+                Icons.dashboard_outlined,
+                Icons.dashboard,
+                'Dashboard',
+              ),
             ),
-            _buildNavItem(1, Icons.receipt_outlined, Icons.receipt, 'Orders'),
-            _buildNavItem(
-              2,
-              Icons.inventory_2_outlined,
-              Icons.inventory_2,
-              'Products',
+            Expanded(
+              child: _buildNavItem(
+                1,
+                Icons.receipt_outlined,
+                Icons.receipt,
+                'Orders',
+              ),
             ),
-            _buildNavItem(3, Icons.person_outline, Icons.person, 'Profile'),
+            Expanded(
+              child: _buildNavItem(
+                2,
+                Icons.inventory_2_outlined,
+                Icons.inventory_2,
+                'Products',
+              ),
+            ),
+            Expanded(
+              child: _buildNavItem(
+                3,
+                Icons.person_outline,
+                Icons.person,
+                'Profile',
+              ),
+            ),
           ],
         ),
       ),
@@ -131,6 +148,8 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
           const SizedBox(height: 4),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontFamily: 'PlusJakartaSans',
               fontSize: 10,
@@ -391,13 +410,17 @@ class _DashboardHome extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Recent Orders',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
+              Expanded(
+                child: Text(
+                  'Recent Orders',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0B372B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               GestureDetector(
@@ -508,7 +531,7 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 195,
+          height: 230,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 
 class CheckoutFooter extends StatelessWidget {
   const CheckoutFooter({
@@ -36,19 +37,23 @@ class CheckoutFooter extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Place Order',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Text(
+                    AppLocalizations.of(context).placeOrder,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'PlusJakartaSans',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded, size: 18),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_rounded, size: 18),
               ],
             ),
           ),

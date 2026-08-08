@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/notifications/application/notification_provider.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -43,14 +44,18 @@ class HomeHeader extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'Delivery to',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF6D9773),
-                              letterSpacing: 0.6,
+                          Flexible(
+                            child: Text(
+                              AppLocalizations.of(context).homeDeliveryTo,
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF6D9773),
+                                letterSpacing: 0.6,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 4),

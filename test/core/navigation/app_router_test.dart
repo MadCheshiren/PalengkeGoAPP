@@ -12,6 +12,7 @@ import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/notifications/application/notification_provider.dart';
 import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
@@ -43,6 +44,8 @@ void main() {
         ),
       ],
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         onGenerateRoute: AppRouter.onGenerateRoute,
         initialRoute: routeName,
         routes: {routeName: (_) => const SizedBox.shrink()},

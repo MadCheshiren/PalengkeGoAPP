@@ -11,6 +11,7 @@ import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/cart/data/mock_cart_repository.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -68,6 +69,8 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             initialRoute: AppRoutes.checkout,
             onGenerateRoute: (settings) {
               if (settings.name == AppRoutes.splash) {

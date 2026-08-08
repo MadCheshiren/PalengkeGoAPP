@@ -43,35 +43,41 @@ class NotificationsScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.maybePop(context),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  size: 18,
-                                  color: Color(0xFF0B372B),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.maybePop(context),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF1F5F9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    size: 18,
+                                    color: Color(0xFF0B372B),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Notifications',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  'Notifications',
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF0B372B),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         if (unreadCount > 0)
                           GestureDetector(
@@ -614,37 +620,40 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isAllCaughtUp ? 'STATUS UPDATE' : 'NEW NOTIFICATIONS',
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xB2FFFFFF),
-                        letterSpacing: 1.2,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isAllCaughtUp ? 'STATUS UPDATE' : 'NEW NOTIFICATIONS',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xB2FFFFFF),
+                          letterSpacing: 1.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isAllCaughtUp
-                          ? "You're all caught up!"
-                          : '$unreadCount new updates today',
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        height: 1.2,
+                      const SizedBox(height: 4),
+                      Text(
+                        isAllCaughtUp
+                            ? "You're all caught up!"
+                            : '$unreadCount new updates today',
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 16),

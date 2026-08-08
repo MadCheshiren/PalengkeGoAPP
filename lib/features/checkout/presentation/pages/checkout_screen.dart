@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/config/fee_config.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/orders/domain/order_failure.dart';
@@ -84,7 +85,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         bottom: false,
         child: Column(
           children: [
-            const AppScreenHeader(title: 'Checkout', size: 32, titleSize: 18),
+            AppScreenHeader(
+              title: AppLocalizations.of(context).checkoutSectionTitle,
+              size: 32,
+              titleSize: 18,
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -102,9 +107,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     ),
                     const SizedBox(height: 24),
                     if (_deliveryMethod == 0) ...[
-                      const CheckoutSectionTitle(
+                      CheckoutSectionTitle(
                         icon: Icons.location_on_outlined,
-                        title: 'Delivery Address',
+                        title: AppLocalizations.of(
+                          context,
+                        ).deliveryAddressTitle,
                       ),
                       const SizedBox(height: 12),
                       CheckoutDeliveryAddressCard(
@@ -173,25 +180,25 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       const CheckoutReadyTimeCard(),
                     ],
                     const SizedBox(height: 24),
-                    const CheckoutSectionTitle(
+                    CheckoutSectionTitle(
                       icon: Icons.credit_card_outlined,
-                      title: 'Payment Method',
+                      title: AppLocalizations.of(context).paymentMethodTitle,
                     ),
                     const SizedBox(height: 12),
                     _paymentMethodCard(),
                     const SizedBox(height: 24),
-                    const CheckoutSectionTitle(
+                    CheckoutSectionTitle(
                       icon: Icons.shopping_basket_outlined,
-                      title: 'Order Summary',
+                      title: AppLocalizations.of(context).orderSummaryTitle,
                     ),
                     const SizedBox(height: 12),
                     ...selectedItems.map(
                       (item) => CheckoutOrderItem(item: item),
                     ),
                     const SizedBox(height: 24),
-                    const CheckoutSectionTitle(
+                    CheckoutSectionTitle(
                       icon: Icons.note_alt_outlined,
-                      title: 'Order Notes / Instructions',
+                      title: AppLocalizations.of(context).orderNotesTitle,
                     ),
                     const SizedBox(height: 12),
                     ...itemsByVendor.keys.map((vendorName) {
@@ -201,7 +208,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Notes for $vendorName',
+                              AppLocalizations.of(
+                                context,
+                              ).notesForVendor(vendorName),
                               style: const TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 13,
@@ -219,21 +228,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     const Divider(color: Color(0xFFE2E8F0)),
                     const SizedBox(height: 12),
                     CheckoutSummaryRow(
-                      label: 'Subtotal',
+                      label: AppLocalizations.of(context).summarySubtotal,
                       value: '₱${subtotal.toStringAsFixed(2)}',
                     ),
                     const SizedBox(height: 8),
                     CheckoutSummaryRow(
-                      label: 'Delivery Fee',
+                      label: AppLocalizations.of(context).summaryDeliveryFee,
                       value: _deliveryMethod == 0
                           ? '₱${deliveryFee.toStringAsFixed(2)}'
-                          : 'FREE',
+                          : AppLocalizations.of(context).feeFree,
                       highlighted: _deliveryMethod == 1,
                     ),
                     if (_deliveryMethod == 0 && _isPriority) ...[
                       const SizedBox(height: 8),
-                      const CheckoutSummaryRow(
-                        label: 'Priority Delivery Fee',
+                      CheckoutSummaryRow(
+                        label: AppLocalizations.of(context).summaryPriorityFee,
                         value: '₱29.00',
                         highlighted: true,
                       ),
@@ -242,7 +251,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     const Divider(color: Color(0xFFE2E8F0)),
                     const SizedBox(height: 12),
                     CheckoutSummaryRow(
-                      label: 'Total',
+                      label: AppLocalizations.of(context).summaryTotal,
                       value:
                           '₱${(subtotal + deliveryFee + priorityFee).toStringAsFixed(2)}',
                       isBold: true,
@@ -257,9 +266,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text(
-                      'Place Order',
-                      style: TextStyle(
+                    title: Text(
+                      AppLocalizations.of(context).placeOrder,
+                      style: const TextStyle(
                         fontFamily: 'PlusJakartaSans',
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF0B372B),
@@ -280,9 +289,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context).cancel,
+                          style: const TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             color: Color(0xFF64748B),
                             fontWeight: FontWeight.w600,
@@ -298,9 +307,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Confirm',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context).confirm,
+                          style: const TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontWeight: FontWeight.w600,
                           ),
@@ -414,10 +423,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               .read(preferencesProvider.notifier)
               .updatePaymentMethod(method, cardLabel: cardLabel);
           final message = switch (method) {
-            'cod' => 'Cash on Delivery selected',
-            'gcash' => 'GCash selected',
-            'card' => 'Card selected',
-            _ => 'Payment method updated',
+            'cod' => AppLocalizations.of(context).codSelected,
+            'gcash' => AppLocalizations.of(context).gcashSelected,
+            'card' => AppLocalizations.of(context).cardSelected,
+            _ => AppLocalizations.of(context).paymentMethodUpdated,
           };
           ScaffoldMessenger.of(
             context,

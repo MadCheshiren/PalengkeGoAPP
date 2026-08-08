@@ -363,6 +363,7 @@ class _LocationSelectionSheetState
                             ),
                           ),
                           IconButton(
+                            tooltip: 'Edit address',
                             icon: const Icon(
                               Icons.edit_outlined,
                               size: 20,
