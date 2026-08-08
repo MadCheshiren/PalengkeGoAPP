@@ -391,13 +391,17 @@ class _DashboardHome extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Recent Orders',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
+              Expanded(
+                child: Text(
+                  'Recent Orders',
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0B372B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               GestureDetector(
@@ -508,7 +512,7 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 195,
+          height: 230,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {

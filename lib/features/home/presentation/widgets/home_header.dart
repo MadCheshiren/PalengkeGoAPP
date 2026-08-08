@@ -43,14 +43,18 @@ class HomeHeader extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'Delivery to',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF6D9773),
-                              letterSpacing: 0.6,
+                          const Flexible(
+                            child: Text(
+                              'Delivery to',
+                              style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF6D9773),
+                                letterSpacing: 0.6,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 4),
