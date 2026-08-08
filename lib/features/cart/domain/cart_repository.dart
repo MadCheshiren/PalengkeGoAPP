@@ -9,6 +9,7 @@ abstract class CartRepository {
 
   /// Updates the quantity of a specific item
   Future<void> updateCartItemQuantity({
+    required String productId,
     required String vendorName,
     required String productName,
     required String unit,
@@ -17,6 +18,7 @@ abstract class CartRepository {
 
   /// Toggles the selected state for checkout of a specific item
   Future<void> toggleItemSelection({
+    required String productId,
     required String vendorName,
     required String productName,
     required String unit,
@@ -27,6 +29,7 @@ abstract class CartRepository {
 
   /// Removes a specific item from the cart entirely
   Future<void> removeCartItem({
+    required String productId,
     required String vendorName,
     required String productName,
     required String unit,
@@ -37,4 +40,7 @@ abstract class CartRepository {
 
   /// Clears all items from the cart
   Future<void> clearCart();
+
+  /// Replaces the entire cart with [items] (used by guest-cart merge).
+  Future<void> replaceAll(List<CartItem> items);
 }

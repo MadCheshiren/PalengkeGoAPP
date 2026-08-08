@@ -34,7 +34,12 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
       if (allSelected == item.selected) {
         ref
             .read(cartItemsProvider.notifier)
-            .toggleSelect(item.vendorName, item.productName, item.unit);
+            .toggleSelect(
+              item.productId,
+              item.vendorName,
+              item.productName,
+              item.unit,
+            );
       }
     }
   }
@@ -337,6 +342,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                     ref
                                         .read(cartItemsProvider.notifier)
                                         .toggleSelect(
+                                          item.productId,
                                           item.vendorName,
                                           item.productName,
                                           item.unit,
@@ -350,6 +356,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                       ref
                                           .read(cartItemsProvider.notifier)
                                           .updateQuantity(
+                                            item.productId,
                                             item.vendorName,
                                             item.productName,
                                             item.unit,
@@ -359,6 +366,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                       ref
                                           .read(cartItemsProvider.notifier)
                                           .updateQuantity(
+                                            item.productId,
                                             item.vendorName,
                                             item.productName,
                                             item.unit,
@@ -370,6 +378,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                     ref
                                         .read(cartItemsProvider.notifier)
                                         .removeItem(
+                                          item.productId,
                                           item.vendorName,
                                           item.productName,
                                           item.unit,

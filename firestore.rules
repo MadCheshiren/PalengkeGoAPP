@@ -129,6 +129,14 @@ service cloud.firestore {
       }
     }
 
+    // ── cart ───────────────────────────────────────────────────────────────────
+
+    // carts/{uid} holds one document per user with an 'items' array.
+    // Only the owner reads or writes their own cart; nothing is shared.
+    match /carts/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
     // ── orders ─────────────────────────────────────────────────────────────────
 
     match /orders/{orderId} {

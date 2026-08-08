@@ -2,6 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/cart/domain/cart_repository.dart';
 
+/// In-memory [CartRepository] used by tests and mock mode.
+///
+/// Cart item identity is `(productId, unit)` — the same key the local and
+/// Firestore repositories use, so the contract stays identical across
+/// implementations.
 class MockCartRepository implements CartRepository {
   static final List<CartItem> _items = [];
 
@@ -13,6 +18,9 @@ class MockCartRepository implements CartRepository {
   @visibleForTesting
   List<CartItem> get items => List.unmodifiable(_items);
 
+  static bool _sameItem(CartItem a, CartItem b) =>
+      a.productId == b.productId && a.unit == b.unit;
+
   @override
   Future<List<CartItem>> getCartItems() async {
     return List.unmodifiable(_items);
@@ -20,12 +28,7 @@ class MockCartRepository implements CartRepository {
 
   @override
   Future<void> addToCart(CartItem item) async {
-    final existingIndex = _items.indexWhere(
-      (i) =>
-          i.vendorName == item.vendorName &&
-          i.productName == item.productName &&
-          i.unit == item.unit,
-    );
+    final existingIndex = _items.indexWhere((i) => _sameItem(i, item));
 
     if (existingIndex >= 0) {
       _items[existingIndex] = _items[existingIndex].copyWith(
@@ -39,16 +42,14 @@ class MockCartRepository implements CartRepository {
 
   @override
   Future<void> updateCartItemQuantity({
+    required String productId,
     required String vendorName,
     required String productName,
     required String unit,
     required double quantity,
   }) async {
     final existingIndex = _items.indexWhere(
-      (i) =>
-          i.vendorName == vendorName &&
-          i.productName == productName &&
-          i.unit == unit,
+      (i) => i.productId == productId && i.unit == unit,
     );
 
     if (existingIndex >= 0) {
@@ -64,15 +65,13 @@ class MockCartRepository implements CartRepository {
 
   @override
   Future<void> toggleItemSelection({
+    required String productId,
     required String vendorName,
     required String productName,
     required String unit,
   }) async {
     final existingIndex = _items.indexWhere(
-      (i) =>
-          i.vendorName == vendorName &&
-          i.productName == productName &&
-          i.unit == unit,
+      (i) => i.productId == productId && i.unit == unit,
     );
 
     if (existingIndex >= 0) {
@@ -91,16 +90,12 @@ class MockCartRepository implements CartRepository {
 
   @override
   Future<void> removeCartItem({
+    required String productId,
     required String vendorName,
     required String productName,
     required String unit,
   }) async {
-    _items.removeWhere(
-      (i) =>
-          i.vendorName == vendorName &&
-          i.productName == productName &&
-          i.unit == unit,
-    );
+    _items.removeWhere((i) => i.productId == productId && i.unit == unit);
   }
 
   @override
@@ -111,5 +106,12 @@ class MockCartRepository implements CartRepository {
   @override
   Future<void> clearCart() async {
     _items.clear();
+  }
+
+  @override
+  Future<void> replaceAll(List<CartItem> items) async {
+    _items
+      ..clear()
+      ..addAll(items);
   }
 }

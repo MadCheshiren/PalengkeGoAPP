@@ -57,23 +57,26 @@ void main() {
     expect(cart, isA<CartRepository>());
   });
 
-  test('cartItemsProvider reflects items added through the repository', () async {
-    final container = buildContainer([]);
+  test(
+    'cartItemsProvider reflects items added through the repository',
+    () async {
+      final container = buildContainer([]);
 
-    await add(
-      container,
-      item(
-        vendorName: 'Aling Nena',
-        productName: 'Carrots',
-        price: 120,
-        image: 'carrots.png',
-      ),
-    );
+      await add(
+        container,
+        item(
+          vendorName: 'Aling Nena',
+          productName: 'Carrots',
+          price: 120,
+          image: 'carrots.png',
+        ),
+      );
 
-    final items = await container.read(cartItemsProvider.future);
-    expect(items, hasLength(1));
-    expect(container.read(cartCountProvider).requireValue, 1);
-  });
+      final items = await container.read(cartItemsProvider.future);
+      expect(items, hasLength(1));
+      expect(container.read(cartCountProvider).requireValue, 1);
+    },
+  );
 
   test(
     'cartItemsProvider keeps existing items after cart provider rebuilds',
@@ -160,7 +163,7 @@ void main() {
     );
     await container
         .read(cartItemsProvider.notifier)
-        .toggleSelect('Mang Juan', 'Bangus', 'pc');
+        .toggleSelect('p-Mang Juan-Bangus', 'Mang Juan', 'Bangus', 'pc');
 
     expect(await container.read(cartItemsProvider.future), hasLength(2));
     expect(container.read(cartCountProvider).requireValue, 2);

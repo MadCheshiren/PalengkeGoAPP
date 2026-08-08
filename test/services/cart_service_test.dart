@@ -59,17 +59,20 @@ void main() {
       expect(items.single.productName, 'Carrots');
     });
 
-    test('adding the same vendor product and unit increments quantity', () async {
-      final notifier = container.read(cartItemsProvider.notifier);
-      await notifier.addToCart(item());
-      await notifier.addToCart(item());
+    test(
+      'adding the same vendor product and unit increments quantity',
+      () async {
+        final notifier = container.read(cartItemsProvider.notifier);
+        await notifier.addToCart(item());
+        await notifier.addToCart(item());
 
-      final items = await readCart();
-      expect(items, hasLength(1));
-      expect(items.single.quantity, 2);
-      expect(container.read(cartCountProvider).requireValue, 1);
-      expect(container.read(cartSubtotalProvider).requireValue, 240);
-    });
+        final items = await readCart();
+        expect(items, hasLength(1));
+        expect(items.single.quantity, 2);
+        expect(container.read(cartCountProvider).requireValue, 1);
+        expect(container.read(cartSubtotalProvider).requireValue, 240);
+      },
+    );
 
     test('adding a different product keeps existing cart items', () async {
       final notifier = container.read(cartItemsProvider.notifier);
@@ -86,10 +89,7 @@ void main() {
 
       final items = await readCart();
       expect(items, hasLength(2));
-      expect(
-        items.map((entry) => entry.productName),
-        ['Carrots', 'Bangus'],
-      );
+      expect(items.map((entry) => entry.productName), ['Carrots', 'Bangus']);
       expect(container.read(cartSubtotalProvider).requireValue, 210);
     });
 
@@ -105,7 +105,13 @@ void main() {
     test('updateQuantity removes an item when quantity is zero', () async {
       final notifier = container.read(cartItemsProvider.notifier);
       await notifier.addToCart(item());
-      await notifier.updateQuantity('Aling Nena', 'Carrots', 'kg', 0);
+      await notifier.updateQuantity(
+        'p-Aling Nena-Carrots',
+        'Aling Nena',
+        'Carrots',
+        'kg',
+        0,
+      );
 
       final items = await readCart();
       expect(items, isEmpty);
@@ -113,26 +119,29 @@ void main() {
       expect(container.read(cartSubtotalProvider).requireValue, 0);
     });
 
-    test('selectAll false excludes items from selected count and subtotal', () async {
-      final notifier = container.read(cartItemsProvider.notifier);
-      await notifier.addToCart(item());
-      await notifier.addToCart(
-        item(
-          vendorName: 'Mang Juan',
-          productName: 'Bangus',
-          price: 90,
-          unit: 'pc',
-          image: 'bangus.png',
-        ),
-      );
-      await notifier.selectAll(false);
+    test(
+      'selectAll false excludes items from selected count and subtotal',
+      () async {
+        final notifier = container.read(cartItemsProvider.notifier);
+        await notifier.addToCart(item());
+        await notifier.addToCart(
+          item(
+            vendorName: 'Mang Juan',
+            productName: 'Bangus',
+            price: 90,
+            unit: 'pc',
+            image: 'bangus.png',
+          ),
+        );
+        await notifier.selectAll(false);
 
-      final items = await readCart();
-      expect(items, hasLength(2));
-      expect(container.read(cartCountProvider).requireValue, 2);
-      expect(container.read(cartSubtotalProvider).requireValue, 0);
-      expect(items.every((entry) => !entry.selected), isTrue);
-    });
+        final items = await readCart();
+        expect(items, hasLength(2));
+        expect(container.read(cartCountProvider).requireValue, 2);
+        expect(container.read(cartSubtotalProvider).requireValue, 0);
+        expect(items.every((entry) => !entry.selected), isTrue);
+      },
+    );
 
     test('clearCart removes every item', () async {
       final notifier = container.read(cartItemsProvider.notifier);
