@@ -22,55 +22,64 @@ class DashboardSalesCard extends ConsumerWidget {
         color: color,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 12,
-                  color: textColor.withValues(alpha: 0.8),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.topLeft,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 12,
+                    color: textColor.withValues(alpha: 0.8),
+                  ),
                 ),
-              ),
-              if (badge != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    badge,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFB45309),
+                if (badge != null)
+                  Semantics(
+                    container: true,
+                    label: badge,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          fontFamily: 'PlusJakartaSans',
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFB45309),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: textColor,
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'PlusJakartaSans',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -113,13 +122,17 @@ class DashboardSalesCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Today\'s Sales',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white70,
+              Flexible(
+                child: Text(
+                  'Today\'s Sales',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white70,
+                  ),
                 ),
               ),
               GestureDetector(
@@ -153,41 +166,50 @@ class DashboardSalesCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            currencyFormatter.format(todaysSales),
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                currencyFormatter.format(todaysSales),
+                style: const TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatBox(
-                  label: 'Pending',
-                  value: pendingOrdersCount == 1
-                      ? '1 Order'
-                      : '$pendingOrdersCount Orders',
-                  color: const Color(0xFFFFF7ED),
-                  textColor: const Color(0xFFB45309),
-                  badge: pendingOrdersCount > 0 ? 'ACTION REQUIRED' : null,
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _buildStatBox(
+                    label: 'Pending',
+                    value: pendingOrdersCount == 1
+                        ? '1 Order'
+                        : '$pendingOrdersCount Orders',
+                    color: const Color(0xFFFFF7ED),
+                    textColor: const Color(0xFFB45309),
+                    badge: pendingOrdersCount > 0 ? 'ACTION REQUIRED' : null,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatBox(
-                  label: 'Completed',
-                  value: completedOrdersCount == 1
-                      ? '1 Order'
-                      : '$completedOrdersCount Orders',
-                  color: const Color(0xFFF0FDF4),
-                  textColor: const Color(0xFF166534),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatBox(
+                    label: 'Completed',
+                    value: completedOrdersCount == 1
+                        ? '1 Order'
+                        : '$completedOrdersCount Orders',
+                    color: const Color(0xFFF0FDF4),
+                    textColor: const Color(0xFF166534),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

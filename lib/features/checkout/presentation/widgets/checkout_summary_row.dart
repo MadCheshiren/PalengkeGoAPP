@@ -19,13 +19,17 @@ class CheckoutSummaryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: isBold ? 16 : 14,
-            fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-            color: isBold ? const Color(0xFF0B372B) : const Color(0xFF64748B),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: isBold ? 16 : 14,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+              color: isBold ? const Color(0xFF0B372B) : const Color(0xFF64748B),
+            ),
           ),
         ),
         Text(

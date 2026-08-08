@@ -76,15 +76,19 @@ class _ToggleButton extends StatelessWidget {
                   : const Color(0xFF64748B),
             ),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: selected
-                    ? const Color(0xFF0B372B)
-                    : const Color(0xFF64748B),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: 'PlusJakartaSans',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected
+                      ? const Color(0xFF0B372B)
+                      : const Color(0xFF64748B),
+                ),
               ),
             ),
           ],

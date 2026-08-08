@@ -171,4 +171,40 @@ void main() {
       });
     });
   }
+
+  final screens = <String, Widget Function()>{
+    'home screen': () => wrap(HomeScreen(onMarketSelected: () {})),
+    'market screen': () => wrap(const MarketScreen()),
+    'cart screen': () => wrap(const ShoppingCartScreen(), seedCart: true),
+    'checkout screen': () =>
+        wrap(const CheckoutScreen(), user: MockUsers.customer, seedCart: true),
+    'notifications screen': () => wrap(const NotificationsScreen()),
+    'vendor dashboard': () =>
+        wrap(const VendorDashboardScreen(), user: MockUsers.vendor),
+  };
+
+  for (final scale in const [1.3, 1.5]) {
+    for (final size in const [Size(360, 740), Size(390, 844)]) {
+      group('text scale ${scale}x at ${size.width.toInt()}dp', () {
+        for (final entry in screens.entries) {
+          testWidgets('${entry.key} renders without exceptions', (
+            tester,
+          ) async {
+            tester.platformDispatcher.textScaleFactorTestValue = scale;
+            addTearDown(
+              tester.platformDispatcher.clearTextScaleFactorTestValue,
+            );
+            await pumpAt(tester, size, entry.value());
+            final ex = tester.takeException();
+            if (ex != null) {
+              // ignore: avoid_print
+              print(ex is FlutterError ? ex.toStringDeep() : ex.toString());
+            }
+            expect(ex, isNull);
+            await unmountTree(tester);
+          });
+        }
+      });
+    }
+  }
 }
