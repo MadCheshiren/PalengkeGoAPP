@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 
 class CartSummaryBar extends StatelessWidget {
   const CartSummaryBar({
@@ -64,8 +65,8 @@ class CartSummaryBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Total',
+                  Text(
+                    AppLocalizations.of(context).cartTotal,
                     style: TextStyle(
                       fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
@@ -98,9 +99,9 @@ class CartSummaryBar extends StatelessWidget {
                   disabledBackgroundColor: const Color(0xFF94A3B8),
                   disabledForegroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'Checkout',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context).cartCheckout,
+                  style: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/animated_entrance.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
 import 'package:palengkego/features/profile/application/blocked_vendors_provider.dart';
 import 'package:palengkego/features/home/presentation/widgets/home_header.dart';
@@ -152,7 +153,7 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              'Popular Stalls',
+                              AppLocalizations.of(context).homePopularStalls,
                               style: TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 18,

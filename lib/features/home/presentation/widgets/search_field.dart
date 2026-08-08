@@ -1,6 +1,7 @@
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/market/domain/market_product.dart';
 import 'package:palengkego/features/market/domain/market_vendor.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
@@ -185,7 +186,7 @@ class _SearchFieldState extends ConsumerState<SearchField> {
                   color: Color(0xFF111827),
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search products, stalls...',
+                  hintText: AppLocalizations.of(context).searchHint,
                   hintStyle: const TextStyle(
                     fontFamily: 'PlusJakartaSans',
                     fontSize: 15,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 
@@ -255,7 +256,11 @@ class _QuantityStepper extends StatelessWidget {
                 : () {
                     if (!context.mounted) return;
                     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-                      const SnackBar(content: Text('Maximum stock reached')),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context).cartMaxStock,
+                        ),
+                      ),
                     );
                   },
             child: Container(

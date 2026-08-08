@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
@@ -77,9 +78,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Proceed to Checkout',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(ctx).cartProceed,
+          style: const TextStyle(
             fontFamily: 'PlusJakartaSans',
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -97,9 +98,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(ctx).cancel,
+              style: const TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -118,9 +119,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text(
-              'Proceed',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(ctx).proceed,
+              style: const TextStyle(
                 fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -169,7 +170,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppScreenHeader(
-                    title: 'Shopping Cart',
+                    title: AppLocalizations.of(context).cartTitle,
                     trailing: itemsAsync.when(
                       data: (items) => Text(
                         '${items.length} item${items.length == 1 ? '' : 's'}',
@@ -198,7 +199,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Deliver to ${deliveryAddress.displayLine}',
+                              AppLocalizations.of(
+                                context,
+                              ).cartDeliverTo(deliveryAddress.displayLine),
                               style: const TextStyle(
                                 fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
@@ -242,9 +245,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                             color: Color(0xFFCBD5E1),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'Your cart is empty',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context).cartEmptyTitle,
+                            style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -252,9 +255,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Start adding items from the market',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context).cartEmptyHint,
+                            style: const TextStyle(
                               fontFamily: 'PlusJakartaSans',
                               fontSize: 13,
                               color: Color(0xFF94A3B8),

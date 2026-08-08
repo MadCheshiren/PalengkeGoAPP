@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/core/services/preferences_provider.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
@@ -81,7 +82,11 @@ void main() {
         authProvider.overrideWith(() => _TestAuthNotifier(user)),
         if (seedCart) cartRepositoryProvider.overrideWithValue(cartRepository),
       ],
-      child: MaterialApp(home: screen),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: screen,
+      ),
     );
   }
 
