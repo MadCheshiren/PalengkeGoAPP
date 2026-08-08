@@ -22,8 +22,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final repository = ref.watch(recipeRepositoryProvider);
-    final allRecipes = repository.getRecipes();
+    final allRecipes = ref.watch(allRecipesProvider).value ?? const <Recipe>[];
     final savedRecipes = ref.watch(savedRecipesProvider);
     final ordersAsync = ref.watch(orderServiceProvider);
 

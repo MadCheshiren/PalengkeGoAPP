@@ -341,17 +341,17 @@ class MockRecipeRepository implements RecipeRepository {
   ];
 
   @override
-  List<Recipe> getRecipes() {
+  Future<List<Recipe>> getRecipes() async {
     return List<Recipe>.unmodifiable(_recipes);
   }
 
   @override
-  Recipe getFeaturedRecipe() {
+  Future<Recipe> getFeaturedRecipe() async {
     return _recipes.first;
   }
 
   @override
-  List<Recipe> getMoreRecipes() {
+  Future<List<Recipe>> getMoreRecipes() async {
     return List<Recipe>.unmodifiable(_recipes.skip(1));
   }
 }

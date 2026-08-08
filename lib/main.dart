@@ -11,10 +11,12 @@ import 'core/navigation/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/responsive_wrapper.dart';
 import 'core/services/app_services.dart';
+import 'core/services/notification_service.dart';
 import 'core/services/preferences_provider.dart';
 import 'core/presentation/pages/startup_error_screen.dart';
 import 'core/infrastructure/firebase_service.dart';
 import 'core/infrastructure/supabase_service.dart';
+import 'features/recipes/application/recipe_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,7 +112,9 @@ Future<void> main() async {
   }
 
   if (config.environment == AppEnvironment.production && startupError != null) {
-    runApp(StartupErrorScreen(message: 'Backend failed to start: $startupError'));
+    runApp(
+      StartupErrorScreen(message: 'Backend failed to start: $startupError'),
+    );
     return;
   }
 
@@ -133,6 +137,9 @@ class PalengkeGoApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Recipe suggestions follow the environment-selected content source.
+    NotificationService.recipeRepository = ref.watch(recipeRepositoryProvider);
+
     return MaterialApp(
       title: 'PalengkeGo',
       debugShowCheckedModeBanner: false,

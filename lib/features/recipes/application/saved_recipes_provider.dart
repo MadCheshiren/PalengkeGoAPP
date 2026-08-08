@@ -16,7 +16,7 @@ class SavedRecipesNotifier extends Notifier<List<Recipe>> {
     final prefs = await SharedPreferences.getInstance();
     final savedTitles = prefs.getStringList(_key) ?? [];
     if (savedTitles.isNotEmpty) {
-      final allRecipes = ref.read(recipeRepositoryProvider).getRecipes();
+      final allRecipes = await ref.read(recipeRepositoryProvider).getRecipes();
       state = allRecipes.where((r) => savedTitles.contains(r.title)).toList();
     }
   }

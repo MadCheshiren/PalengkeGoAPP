@@ -366,144 +366,151 @@ class _NotificationCard extends ConsumerWidget {
 
   Widget _buildRecipeCards(BuildContext context, WidgetRef ref) {
     final repository = ref.watch(recipeRepositoryProvider);
-    final allRecipes = repository.getRecipes();
+    final allRecipesFuture = repository.getRecipes();
 
-    // Find the suggested recipe in the body if any
-    Recipe? suggested;
-    for (final r in allRecipes) {
-      if (notification.body.toLowerCase().contains(r.title.toLowerCase())) {
-        suggested = r;
-        break;
-      }
-    }
+    return FutureBuilder<List<Recipe>>(
+      future: allRecipesFuture,
+      builder: (context, snapshot) {
+        final allRecipes = snapshot.data ?? const <Recipe>[];
 
-    // Put suggested recipe first, followed by others
-    final list = <Recipe>[];
-    if (suggested != null) {
-      list.add(suggested);
-      list.addAll(allRecipes.where((r) => r.title != suggested!.title));
-    } else {
-      list.addAll(allRecipes);
-    }
+        // Find the suggested recipe in the body if any
+        Recipe? suggested;
+        for (final r in allRecipes) {
+          if (notification.body.toLowerCase().contains(r.title.toLowerCase())) {
+            suggested = r;
+            break;
+          }
+        }
 
-    return Container(
-      height: 90,
-      margin: const EdgeInsets.only(top: 10, bottom: 8),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: list.length,
-        itemBuilder: (context, idx) {
-          final recipe = list[idx];
-          final isSuggested =
-              suggested != null && recipe.title == suggested.title;
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                PageTransitions.slideFromRight(
-                  RecipeDetailsScreen(recipe: recipe),
+        // Put suggested recipe first, followed by others
+        final list = <Recipe>[];
+        if (suggested != null) {
+          list.add(suggested);
+          list.addAll(allRecipes.where((r) => r.title != suggested!.title));
+        } else {
+          list.addAll(allRecipes);
+        }
+
+        return Container(
+          height: 90,
+          margin: const EdgeInsets.only(top: 10, bottom: 8),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: list.length,
+            itemBuilder: (context, idx) {
+              final recipe = list[idx];
+              final isSuggested =
+                  suggested != null && recipe.title == suggested.title;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    PageTransitions.slideFromRight(
+                      RecipeDetailsScreen(recipe: recipe),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 220,
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSuggested ? const Color(0xFFF0FDF4) : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSuggested
+                          ? const Color(0xFF86EFAC)
+                          : const Color(0xFFE2E8F0),
+                      width: isSuggested ? 1.5 : 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Recipe Image
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          recipe.imageUrl,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => Container(
+                            width: 70,
+                            height: 70,
+                            color: const Color(0xFFCBD5E1),
+                            child: const Icon(
+                              Icons.restaurant,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Recipe Info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isSuggested)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                margin: const EdgeInsets.only(bottom: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'RECOMMENDED',
+                                  style: TextStyle(
+                                    fontFamily: 'PlusJakartaSans',
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF15803D),
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              recipe.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${recipe.time} • ${recipe.difficulty}',
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontSize: 10,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
-            child: Container(
-              width: 220,
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isSuggested ? const Color(0xFFF0FDF4) : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSuggested
-                      ? const Color(0xFF86EFAC)
-                      : const Color(0xFFE2E8F0),
-                  width: isSuggested ? 1.5 : 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Recipe Image
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      recipe.imageUrl,
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, stack) => Container(
-                        width: 70,
-                        height: 70,
-                        color: const Color(0xFFCBD5E1),
-                        child: const Icon(
-                          Icons.restaurant,
-                          size: 24,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Recipe Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (isSuggested)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 1,
-                            ),
-                            margin: const EdgeInsets.only(bottom: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'RECOMMENDED',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF15803D),
-                              ),
-                            ),
-                          ),
-                        Text(
-                          recipe.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${recipe.time} • ${recipe.difficulty}',
-                          style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 10,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 

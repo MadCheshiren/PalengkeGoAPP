@@ -4,10 +4,10 @@ import 'package:palengkego/features/recipes/data/mock_recipe_repository.dart';
 
 void main() {
   group('MockRecipeRepository', () {
-    test('returns featured recipe first', () {
+    test('returns featured recipe first', () async {
       final repository = MockRecipeRepository();
 
-      final recipe = repository.getFeaturedRecipe();
+      final recipe = await repository.getFeaturedRecipe();
 
       expect(recipe.title, 'Sinigang na Hipon');
       expect(recipe.category, 'Seafood');
@@ -15,20 +15,20 @@ void main() {
       expect(recipe.backgroundColor, const Color(0xFFE0F2FE));
     });
 
-    test('returns all recipes in display order', () {
+    test('returns all recipes in display order', () async {
       final repository = MockRecipeRepository();
 
-      final recipes = repository.getRecipes();
+      final recipes = await repository.getRecipes();
 
       expect(recipes, hasLength(7));
       expect(recipes.first.title, 'Sinigang na Hipon');
       expect(recipes.last.title, 'Turon (Banana Spring Rolls)');
     });
 
-    test('returns more recipes without the featured recipe', () {
+    test('returns more recipes without the featured recipe', () async {
       final repository = MockRecipeRepository();
 
-      final recipes = repository.getMoreRecipes();
+      final recipes = await repository.getMoreRecipes();
 
       expect(recipes, hasLength(6));
       expect(
@@ -38,10 +38,10 @@ void main() {
       expect(recipes.first.title, 'Chicken Adobo');
     });
 
-    test('creates details map compatible with recipe details screen', () {
+    test('creates details map compatible with recipe details screen', () async {
       final repository = MockRecipeRepository();
 
-      final recipe = repository.getFeaturedRecipe();
+      final recipe = await repository.getFeaturedRecipe();
       final details = recipe.toDetailsMap();
 
       expect(details['name'], 'Sinigang na Hipon');

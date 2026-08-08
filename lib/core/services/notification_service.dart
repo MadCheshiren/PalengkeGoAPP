@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -5,6 +7,8 @@ import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
 import 'package:palengkego/features/recipes/data/mock_recipe_repository.dart';
+import 'package:palengkego/features/recipes/data/recipe_repository.dart';
+import 'package:palengkego/features/recipes/domain/recipe.dart';
 
 /// The audience this notification is aimed at.
 enum NotificationTarget { customer, vendor, both }
@@ -288,30 +292,41 @@ class NotificationService extends ChangeNotifier {
       );
       if (ordIndex != -1) {
         final order = SharedOrderStore.orders[ordIndex];
-        final recipe = _suggestRecipe(order.items);
-        if (recipe != null) {
-          Future.delayed(const Duration(milliseconds: 500), () {
-            final delayNow = DateTime.now();
-            addNotification(
-              AppNotification(
-                id: 'recipe_${delayNow.millisecondsSinceEpoch}',
-                type: NotificationType.recipe,
-                target: NotificationTarget.customer,
-                title: 'New recipe suggestion unlocked!',
-                body:
-                    'Since your order from ${order.vendorName} is complete, try making $recipe with your ingredients! (Tap to view available recipes)',
-                createdAt: delayNow,
-              ),
-            );
-          });
-        }
+        unawaited(_suggestNewRecipe(order.items, order.vendorName));
       }
     }
   }
 
-  static String? _suggestRecipe(List<OrderLineItem> items) {
-    final repo = MockRecipeRepository();
-    final allRecipes = repo.getRecipes();
+  /// Active recipe content source. The app root wires this to the
+  /// environment-selected repository (mock in dev, Supabase when configured).
+  static RecipeRepository recipeRepository = MockRecipeRepository();
+
+  Future<void> _suggestNewRecipe(
+    List<OrderLineItem> items,
+    String vendorName,
+  ) async {
+    final allRecipes = await recipeRepository.getRecipes();
+    final recipe = _suggestRecipe(allRecipes, items);
+    if (recipe == null) return;
+    await Future.delayed(const Duration(milliseconds: 500));
+    final delayNow = DateTime.now();
+    addNotification(
+      AppNotification(
+        id: 'recipe_${delayNow.millisecondsSinceEpoch}',
+        type: NotificationType.recipe,
+        target: NotificationTarget.customer,
+        title: 'New recipe suggestion unlocked!',
+        body:
+            'Since your order from $vendorName is complete, try making $recipe with your ingredients! (Tap to view available recipes)',
+        createdAt: delayNow,
+      ),
+    );
+  }
+
+  static String? _suggestRecipe(
+    List<Recipe> allRecipes,
+    List<OrderLineItem> items,
+  ) {
     final itemNames = items.map((i) => i.productName.toLowerCase()).toList();
 
     for (final recipe in allRecipes) {

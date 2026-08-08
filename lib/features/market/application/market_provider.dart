@@ -1,13 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/infrastructure/firebase_service.dart';
 import 'package:palengkego/core/services/data_refresh_signal.dart';
 import 'package:palengkego/features/market/domain/market_repository.dart';
+import 'package:palengkego/features/market/data/firebase_market_repository.dart';
 import 'package:palengkego/features/market/data/mock_market_repository.dart';
 import 'package:palengkego/features/market/domain/market_product.dart';
 import 'package:palengkego/features/market/domain/market_vendor.dart';
 
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
 
+/// Single explicit backend switch for the market catalog.
+///
+/// Firebase mode reads the live `vendorStalls` catalog (public read per
+/// `firestore.rules`); dev/test/mock mode serves [MockMarketRepository].
 final marketRepositoryProvider = Provider<MarketRepository>((ref) {
+  if (ref.watch(firebaseEnabledProvider)) {
+    return FirebaseMarketRepository(ref.watch(firestoreProvider));
+  }
   return MockMarketRepository();
 });
 

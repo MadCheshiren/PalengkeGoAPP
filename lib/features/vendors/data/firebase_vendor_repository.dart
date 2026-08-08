@@ -25,8 +25,19 @@ class FirebaseVendorRepository implements VendorRepository {
   Future<VendorProfile> getVendorProfile(String id) async {
     final doc = await _firestore.collection('vendorStalls').doc(id).get();
     if (!doc.exists) {
-      // Fallback to mock while Firestore is empty.
-      return _mockProfile(id);
+      // T6.5: a missing stall is a documented empty profile — never mock
+      // rows in a live get() path.
+      return VendorProfile(
+        id: id,
+        name: '',
+        category: '',
+        rating: 0,
+        reviewCount: 0,
+        isOpen: false,
+        stallLocation: '',
+        imageUrl: '',
+        avatarUrl: '',
+      );
     }
     final d = doc.data()!;
     return VendorProfile(
@@ -208,24 +219,6 @@ class FirebaseVendorRepository implements VendorRepository {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  VendorProfile _mockProfile(String id) {
-    final v = MockDataService.featuredVendors.firstWhere(
-      (v) => v['id'] == id,
-      orElse: () => MockDataService.featuredVendors.first,
-    );
-    return VendorProfile(
-      id: id,
-      name: v['name'] as String? ?? '',
-      category: v['category'] as String? ?? '',
-      rating: (v['rating'] as num?)?.toDouble() ?? 4.0,
-      reviewCount: 0,
-      isOpen: true,
-      stallLocation: v['stallNumber'] as String? ?? '',
-      imageUrl: v['imageUrl'] as String? ?? '',
-      avatarUrl: '',
-    );
-  }
 
   Map<String, dynamic> _productToFirestore(VendorProduct p) => {
     'vendorId': p.vendorId,

@@ -1,5 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/config/app_config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+/// True when Supabase credentials were supplied via dart-defines, matching
+/// the exact condition `main.dart` uses before calling
+/// [SupabaseService.initialize]. Guards [supabaseClientProvider] so it is
+/// only ever touched after successful initialization.
+final supabaseConfiguredProvider = Provider<bool>((ref) {
+  final config = ref.watch(appConfigProvider);
+  return config.supabaseUrl.isNotEmpty && config.supabaseAnonKey.isNotEmpty;
+});
 
 /// Provider for the Supabase Client.
 ///
