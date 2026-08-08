@@ -61,7 +61,6 @@ class FloatingNewOrderNotification extends ConsumerWidget {
                     Text(
                       '${pendingOrders.length} New Order${pendingOrders.length > 1 ? 's' : ''}!',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -70,11 +69,7 @@ class FloatingNewOrderNotification extends ConsumerWidget {
                     const SizedBox(height: 2),
                     const Text(
                       'Tap to review and accept',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.white),
                     ),
                   ],
                 ),

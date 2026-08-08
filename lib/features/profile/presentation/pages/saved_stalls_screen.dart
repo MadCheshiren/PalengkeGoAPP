@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +31,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
         : 'Stalls you block will appear here.';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -45,7 +46,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
+                        color: AppTheme.surfaceContainerLow,
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
@@ -54,7 +55,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                         width: 16,
                         height: 16,
                         colorFilter: const ColorFilter.mode(
-                          Color(0xFF0B372B),
+                          AppTheme.primaryGreen,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -64,10 +65,9 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                   const Text(
                     'Saved Stalls',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                 ],
@@ -81,7 +81,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                 width: 320,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0), // Lighter slate for track
+                  color: AppTheme.border, // Lighter slate for track
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Stack(
@@ -145,7 +145,6 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                               Text(
                                 emptyTitle,
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF1F2937),
@@ -155,7 +154,6 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                               Text(
                                 emptyMessage,
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 14,
                                   color: Color(0xFF6B7280),
                                 ),
@@ -206,12 +204,11 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 300),
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
               color: isSelected
-                  ? const Color(0xFF0B372B)
-                  : const Color(0xFF64748B),
+                  ? AppTheme.primaryGreen
+                  : AppTheme.textSecondary,
             ),
             child: Text(title),
           ),
@@ -279,7 +276,6 @@ class _BlockedStallCard extends ConsumerWidget {
                     Text(
                       'Unblock',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,

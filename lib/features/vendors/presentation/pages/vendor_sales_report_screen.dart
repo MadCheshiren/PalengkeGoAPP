@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -55,7 +56,7 @@ class _VendorSalesReportScreenState
       if (mounted) {
         AppServices.showSnackBar(
           'Sales report saved directly to: $path',
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
         );
       }
     } catch (e) {
@@ -89,7 +90,7 @@ class _VendorSalesReportScreenState
       if (mounted) {
         AppServices.showSnackBar(
           'Excel report saved directly to: $path',
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
         );
       }
     } catch (e) {
@@ -116,15 +117,14 @@ class _VendorSalesReportScreenState
           title: const Text(
             'Detailed Sales Report',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           backgroundColor: Colors.white,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Color(0xFF0B372B)),
+          iconTheme: const IconThemeData(color: AppTheme.primaryGreen),
         ),
         body: Column(
           children: [
@@ -192,7 +192,7 @@ class _VendorSalesReportScreenState
               ),
               label: const Text('Export Excel'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0B372B),
+                backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -231,7 +231,7 @@ class _VendorSalesReportScreenState
                   'Order #${order.id}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 Text(

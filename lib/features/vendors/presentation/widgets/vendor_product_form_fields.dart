@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
@@ -19,9 +20,9 @@ class VendorProductImagePicker extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Column(
           children: [
@@ -36,7 +37,7 @@ class VendorProductImagePicker extends StatelessWidget {
                   placeholder: const Icon(
                     Icons.broken_image_outlined,
                     size: 48,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.muted,
                   ),
                 ),
               )
@@ -50,7 +51,7 @@ class VendorProductImagePicker extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.add_photo_alternate_outlined,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   size: 28,
                 ),
               ),
@@ -58,21 +59,16 @@ class VendorProductImagePicker extends StatelessWidget {
               const Text(
                 'Upload Photo',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
               const SizedBox(height: 4),
               const Text(
                 'Tap to select a photo of the product',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 12,
-                  color: Color(0xFF9CA3AF),
-                ),
+                style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
               ),
             ],
             if (imageUrl.isNotEmpty) ...[
@@ -80,9 +76,8 @@ class VendorProductImagePicker extends StatelessWidget {
               Text(
                 'Tap to change image',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
-                  color: const Color(0xFF0B372B).withValues(alpha: 0.7),
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -109,9 +104,9 @@ class VendorProductUnitPicker extends StatelessWidget {
       height: 48,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: AppTheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -123,7 +118,7 @@ class VendorProductUnitPicker extends StatelessWidget {
                 curve: Curves.easeInOut,
                 decoration: BoxDecoration(
                   color: isPieceUnit == false
-                      ? const Color(0xFF0B372B)
+                      ? AppTheme.primaryGreen
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: isPieceUnit == false
@@ -140,14 +135,13 @@ class VendorProductUnitPicker extends StatelessWidget {
                 child: Text(
                   'Per Kilogram (kg)',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: isPieceUnit == false
                         ? FontWeight.w700
                         : FontWeight.w600,
                     color: isPieceUnit == false
                         ? Colors.white
-                        : const Color(0xFF64748B),
+                        : AppTheme.textSecondary,
                   ),
                 ),
               ),
@@ -161,7 +155,7 @@ class VendorProductUnitPicker extends StatelessWidget {
                 curve: Curves.easeInOut,
                 decoration: BoxDecoration(
                   color: isPieceUnit == true
-                      ? const Color(0xFF0B372B)
+                      ? AppTheme.primaryGreen
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: isPieceUnit == true
@@ -178,14 +172,13 @@ class VendorProductUnitPicker extends StatelessWidget {
                 child: Text(
                   'Per Piece (pc)',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: isPieceUnit == true
                         ? FontWeight.w700
                         : FontWeight.w600,
                     color: isPieceUnit == true
                         ? Colors.white
-                        : const Color(0xFF64748B),
+                        : AppTheme.textSecondary,
                   ),
                 ),
               ),
@@ -215,9 +208,9 @@ class VendorProductCategorySelector extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,7 +218,6 @@ class VendorProductCategorySelector extends StatelessWidget {
             Text(
               selectedCategory.isEmpty ? 'Select Category' : selectedCategory,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 color: selectedCategory.isEmpty
                     ? const Color(0xFF9CA3AF)
@@ -250,7 +242,6 @@ class VendorProductLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: Color(0xFF374151),
@@ -284,22 +275,14 @@ class VendorProductTextField extends StatelessWidget {
       textCapitalization: TextCapitalization.words,
       keyboardType: keyboardType,
       onChanged: onChanged,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 14,
-        color: Color(0xFF111827),
-      ),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
       decoration: InputDecoration(
         hintText: hint,
         prefixText: prefixText,
         suffixText: suffixText,
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF9CA3AF),
-        ),
+        hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppTheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -310,7 +293,7 @@ class VendorProductTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

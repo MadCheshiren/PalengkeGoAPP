@@ -149,7 +149,9 @@ class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
     try {
       await storage.write(
         key: _kDeliveryAddressKey,
-        value: const JsonEncoder().convert(nextState.deliveryAddress.toFirestore()),
+        value: const JsonEncoder().convert(
+          nextState.deliveryAddress.toFirestore(),
+        ),
       );
       final savedListStr = nextState.savedAddresses
           .map((a) => const JsonEncoder().convert(a.toFirestore()))

@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 /// Global keys for app-level UI services.
@@ -14,7 +15,7 @@ abstract class AppServices {
   /// Riverpod invalidation cascades that temporarily deactivate widget elements.
   static void showSnackBar(
     String message, {
-    Color backgroundColor = const Color(0xFF0B372B),
+    Color backgroundColor = AppTheme.primaryGreen,
     Duration duration = const Duration(seconds: 3),
   }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -24,10 +25,7 @@ abstract class AppServices {
           SnackBar(
             content: Text(
               message,
-              style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
             backgroundColor: backgroundColor,
             behavior: SnackBarBehavior.floating,

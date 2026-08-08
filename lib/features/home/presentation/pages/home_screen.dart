@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/animated_entrance.dart';
@@ -32,7 +33,7 @@ class HomeScreen extends ConsumerWidget {
             Container(
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
-              child: SearchField(),
+              child: const SearchField(),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -91,17 +92,14 @@ class HomeScreen extends ConsumerWidget {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                  ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
                                   child: Text(
                                     'Flash Deals',
                                     style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF0B372B),
+                                      color: AppTheme.primaryGreen,
                                     ),
                                   ),
                                 ),
@@ -154,11 +152,10 @@ class HomeScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               AppLocalizations.of(context).homePopularStalls,
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -171,13 +168,12 @@ class HomeScreen extends ConsumerWidget {
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: Text(
+                            child: const Text(
                               'View All',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF6D9773),
+                                color: AppTheme.accentGreen,
                               ),
                             ),
                           ),

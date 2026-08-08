@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:palengkego/core/config/categories.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,11 @@ class MarketScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
               child: const SearchField(isInline: true),
             ),
-            const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+            const Divider(
+              height: 1,
+              thickness: 1,
+              color: AppTheme.surfaceContainerLow,
+            ),
             Expanded(
               child: query.trim().isEmpty
                   ? const _StallBrowser()
@@ -127,7 +132,11 @@ class _StallBrowserState extends ConsumerState<_StallBrowser> {
                 )
               : const SizedBox.shrink(),
         ),
-        const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+        const Divider(
+          height: 1,
+          thickness: 1,
+          color: AppTheme.surfaceContainerLow,
+        ),
         Expanded(
           child: filteredVendorsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -144,10 +153,9 @@ class _StallBrowserState extends ConsumerState<_StallBrowser> {
                     const Text(
                       'Stalls',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -212,16 +220,14 @@ class _CombinedSearchResults extends ConsumerWidget {
                     const Text(
                       'Results',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     Text(
                       '${results.length} found',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
@@ -238,7 +244,7 @@ class _CombinedSearchResults extends ConsumerWidget {
                   height: 1,
                   indent: 72,
                   endIndent: 0,
-                  color: Color(0xFFF1F5F9),
+                  color: AppTheme.surfaceContainerLow,
                 ),
                 itemCount: results.length,
                 itemBuilder: (context, i) {
@@ -302,7 +308,6 @@ class _ProductTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF111827),
@@ -312,7 +317,6 @@ class _ProductTile extends StatelessWidget {
                   Text(
                     product.category,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       color: Color(0xFF6B7280),
                     ),
@@ -328,10 +332,9 @@ class _ProductTile extends StatelessWidget {
                 Text(
                   '₱${product.discountedPrice.toStringAsFixed(0)}/${product.unit}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 // Product badge
@@ -348,10 +351,9 @@ class _ProductTile extends StatelessWidget {
                   child: const Text(
                     'Product',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                 ),
@@ -416,7 +418,6 @@ class _VendorTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF111827),
@@ -425,11 +426,7 @@ class _VendorTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   const Text(
                     'Stall Holder',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      color: Color(0xFF6B7280),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                   ),
                 ],
               ),
@@ -442,7 +439,6 @@ class _VendorTile extends StatelessWidget {
                 Text(
                   vendor.category,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     color: Color(0xFF9CA3AF),
                   ),
@@ -460,7 +456,6 @@ class _VendorTile extends StatelessWidget {
                   child: const Text(
                     'Stall',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF16A34A),
@@ -504,7 +499,7 @@ class _EmptySearchState extends StatelessWidget {
             ),
             child: const Icon(
               Icons.search_off_rounded,
-              color: Color(0xFF6D9773),
+              color: AppTheme.accentGreen,
               size: 36,
             ),
           ),
@@ -512,20 +507,15 @@ class _EmptySearchState extends StatelessWidget {
           Text(
             query.isEmpty ? 'No stalls available' : 'No results for "$query"',
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'Try a different stall name, product, or category.',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
         ],
       ),
@@ -554,7 +544,9 @@ class _CategoryChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFF6F8F7),
+          color: isSelected
+              ? AppTheme.primaryGreen
+              : AppTheme.scaffoldBackground,
           borderRadius: BorderRadius.circular(999),
           boxShadow: isSelected
               ? const [
@@ -571,10 +563,9 @@ class _CategoryChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF6D9773),
+            color: isSelected ? Colors.white : AppTheme.accentGreen,
           ),
         ),
       ),
@@ -603,17 +594,16 @@ class _SubcategoryChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6D9773) : const Color(0xFFE8F5E9),
+          color: isSelected ? AppTheme.accentGreen : const Color(0xFFE8F5E9),
           borderRadius: BorderRadius.circular(999),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF0B372B),
+            color: isSelected ? Colors.white : AppTheme.primaryGreen,
           ),
         ),
       ),

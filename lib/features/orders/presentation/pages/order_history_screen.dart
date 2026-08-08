@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
@@ -78,7 +79,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
       loading: () => const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
         ),
       ),
       error: (err, stack) => const Scaffold(
@@ -120,7 +121,6 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
         child: Text(
           'My Orders',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF202020),

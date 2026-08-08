@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -78,7 +79,6 @@ class _VendorAccountDetailsScreenState
                         const Text(
                           'Personal Information',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF111827),
@@ -121,7 +121,6 @@ class _VendorAccountDetailsScreenState
                         const Text(
                           'Security',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF111827),
@@ -132,9 +131,9 @@ class _VendorAccountDetailsScreenState
                         // Change Password Expansion Card
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
+                            color: AppTheme.surface,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: AppTheme.border),
                           ),
                           child: Theme(
                             data: Theme.of(
@@ -144,7 +143,6 @@ class _VendorAccountDetailsScreenState
                               title: const Text(
                                 'Change Password',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF1F2937),
@@ -152,7 +150,7 @@ class _VendorAccountDetailsScreenState
                               ),
                               leading: const Icon(
                                 Icons.lock_outline_rounded,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                               onExpansionChanged: (expanded) {
                                 setState(() {
@@ -172,7 +170,7 @@ class _VendorAccountDetailsScreenState
                                         CrossAxisAlignment.start,
                                     children: [
                                       const Divider(
-                                        color: Color(0xFFE2E8F0),
+                                        color: AppTheme.border,
                                         height: 1,
                                       ),
                                       const SizedBox(height: 16),
@@ -253,14 +251,13 @@ class _VendorAccountDetailsScreenState
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   behavior: SnackBarBehavior.floating,
-                                  backgroundColor: const Color(0xFF0B372B),
+                                  backgroundColor: AppTheme.primaryGreen,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   content: const Text(
                                     'Account details successfully updated!',
                                     style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -274,14 +271,13 @@ class _VendorAccountDetailsScreenState
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Center(
                               child: Text(
                                 'Save Changes',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
@@ -307,7 +303,6 @@ class _VendorAccountDetailsScreenState
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: Color(0xFF475569),
@@ -324,26 +319,14 @@ class _VendorAccountDetailsScreenState
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 14,
-        color: Color(0xFF1E293B),
-      ),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
       decoration: InputDecoration(
         hintText: hint,
         prefixText: prefixText,
-        prefixStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF1E293B),
-        ),
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF94A3B8),
-        ),
+        prefixStyle: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppTheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -354,7 +337,7 @@ class _VendorAccountDetailsScreenState
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -389,18 +372,10 @@ class _VendorAccountDetailsScreenState
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 14,
-        color: Color(0xFF1E293B),
-      ),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF94A3B8),
-        ),
+        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
         filled: true,
         fillColor: Colors.white,
         suffixIcon: IconButton(
@@ -408,22 +383,22 @@ class _VendorAccountDetailsScreenState
             obscureText
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
-            color: const Color(0xFF64748B),
+            color: AppTheme.textSecondary,
             size: 20,
           ),
           onPressed: onToggleVisibility,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

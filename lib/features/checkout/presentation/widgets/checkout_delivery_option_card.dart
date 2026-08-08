@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class CheckoutDeliveryOptionCard extends StatelessWidget {
@@ -18,10 +19,9 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
         const Text(
           'Delivery Speed Option',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         const SizedBox(height: 10),
@@ -41,16 +41,16 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: !isPrioritySelected
-                          ? const Color(0xFF0B372B)
-                          : const Color(0xFFE2E8F0),
+                          ? AppTheme.primaryGreen
+                          : AppTheme.border,
                       width: !isPrioritySelected ? 2 : 1,
                     ),
                     boxShadow: !isPrioritySelected
                         ? [
                             BoxShadow(
-                              color: const Color(
-                                0xFF0B372B,
-                              ).withValues(alpha: 0.08),
+                              color: AppTheme.primaryGreen.withValues(
+                                alpha: 0.08,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -67,14 +67,14 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                             Icons.local_shipping_outlined,
                             size: 22,
                             color: !isPrioritySelected
-                                ? const Color(0xFF0B372B)
-                                : const Color(0xFF64748B),
+                                ? AppTheme.primaryGreen
+                                : AppTheme.textSecondary,
                           ),
                           if (!isPrioritySelected)
                             const Icon(
                               Icons.check_circle_rounded,
                               size: 18,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                         ],
                       ),
@@ -82,7 +82,6 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                       const Text(
                         'Standard',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF1E293B),
@@ -92,20 +91,18 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                       const Text(
                         '25 – 40 mins',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       const Text(
                         '₱50.00',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ],
@@ -129,7 +126,7 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                     border: Border.all(
                       color: isPrioritySelected
                           ? const Color(0xFFD97706)
-                          : const Color(0xFFE2E8F0),
+                          : AppTheme.border,
                       width: isPrioritySelected ? 2 : 1,
                     ),
                     boxShadow: isPrioritySelected
@@ -171,10 +168,9 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                                 child: const Text(
                                   'FAST',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 9,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFFB45309),
+                                    color: AppTheme.warning,
                                   ),
                                 ),
                               ),
@@ -192,7 +188,6 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                       const Text(
                         'Priority',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF1E293B),
@@ -202,30 +197,27 @@ class CheckoutDeliveryOptionCard extends StatelessWidget {
                       const Text(
                         '15 – 25 mins',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFFD97706),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Wrap(
+                      const Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
-                        children: const [
+                        children: [
                           Text(
                             '₱79.00',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                           SizedBox(width: 4),
                           Text(
                             '(+₱29)',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFFD97706),

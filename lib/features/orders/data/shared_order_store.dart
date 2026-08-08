@@ -12,7 +12,7 @@ import 'package:palengkego/features/orders/domain/order_line_item.dart';
 class SharedOrderStore {
   static final List<MarketOrder> orders = [];
   static final Map<String, List<OrderStatusHistory>> history = {};
-  static final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   static const _ordersKey = 'mock_orders';
   static const _historyKey = 'mock_order_history';

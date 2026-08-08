@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -81,19 +82,14 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
         title: Text(
           AppLocalizations.of(ctx).cartProceed,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         content: const Text(
           'Are you ready to checkout your selected items?',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            color: Color(0xFF475569),
-          ),
+          style: TextStyle(fontSize: 14, color: Color(0xFF475569)),
         ),
         actions: [
           TextButton(
@@ -101,10 +97,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
             child: Text(
               AppLocalizations.of(ctx).cancel,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF64748B),
+                color: AppTheme.textSecondary,
               ),
             ),
           ),
@@ -114,7 +109,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
               _proceedToCheckoutFlow();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0B372B),
+              backgroundColor: AppTheme.primaryGreen,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -122,7 +117,6 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
             child: Text(
               AppLocalizations.of(ctx).proceed,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
@@ -159,7 +153,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
     final deliveryAddress = preferences.deliveryAddress;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8F7),
+      backgroundColor: AppTheme.scaffoldBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -175,10 +169,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                       data: (items) => Text(
                         '${items.length} item${items.length == 1 ? '' : 's'}',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       loading: () => const SizedBox.shrink(),
@@ -194,7 +187,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                           const Icon(
                             Icons.location_on_outlined,
                             size: 18,
-                            color: Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -203,17 +196,16 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                 context,
                               ).cartDeliverTo(deliveryAddress.displayLine),
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: Color(0xFF64748B),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                           ),
                           const Icon(
                             Icons.chevron_right_rounded,
                             size: 20,
-                            color: Color(0xFF94A3B8),
+                            color: AppTheme.muted,
                           ),
                         ],
                       ),
@@ -225,7 +217,9 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
             Expanded(
               child: itemsAsync.when(
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+                  child: CircularProgressIndicator(
+                    color: AppTheme.primaryGreen,
+                  ),
                 ),
                 error: (err, _) => Center(
                   child: Text(
@@ -248,19 +242,17 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                           Text(
                             AppLocalizations.of(context).cartEmptyTitle,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             AppLocalizations.of(context).cartEmptyHint,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 13,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.muted,
                             ),
                           ),
                         ],
@@ -304,17 +296,16 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                     const Icon(
                                       Icons.storefront_outlined,
                                       size: 18,
-                                      color: Color(0xFF64748B),
+                                      color: AppTheme.textSecondary,
                                     ),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
                                         entry.key,
                                         style: const TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF0B372B),
+                                          color: AppTheme.primaryGreen,
                                         ),
                                       ),
                                     ),
@@ -325,7 +316,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                                         value: entry.value.every(
                                           (item) => item.selected,
                                         ),
-                                        activeColor: const Color(0xFF0B372B),
+                                        activeColor: AppTheme.primaryGreen,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             4,

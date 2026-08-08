@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -27,7 +28,6 @@ class RecipeIngredientsList extends StatelessWidget {
             const Text(
               'Ingredients',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1F2937),
@@ -37,16 +37,15 @@ class RecipeIngredientsList extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 '${ingredients.length} Items',
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ),
@@ -70,9 +69,7 @@ class RecipeIngredientsList extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isChecked
-                      ? const Color(0xFF0B372B)
-                      : const Color(0xFFE2E8F0),
+                  color: isChecked ? AppTheme.primaryGreen : AppTheme.border,
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -94,12 +91,12 @@ class RecipeIngredientsList extends StatelessWidget {
                         height: 24,
                         decoration: BoxDecoration(
                           color: isChecked
-                              ? const Color(0xFF0B372B)
+                              ? AppTheme.primaryGreen
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: isChecked
-                                ? const Color(0xFF0B372B)
+                                ? AppTheme.primaryGreen
                                 : const Color(0xFFCBD5E1),
                             width: 2,
                           ),
@@ -141,11 +138,10 @@ class RecipeIngredientsList extends StatelessWidget {
                                         child: Text(
                                           name,
                                           style: TextStyle(
-                                            fontFamily: 'PlusJakartaSans',
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                             color: isChecked
-                                                ? const Color(0xFF0B372B)
+                                                ? AppTheme.primaryGreen
                                                 : const Color(0xFF1F2937),
                                             decoration: isChecked
                                                 ? TextDecoration.lineThrough
@@ -197,7 +193,6 @@ class RecipeIngredientsList extends StatelessWidget {
                                     Text(
                                       description,
                                       style: const TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
                                         fontSize: 12,
                                         fontWeight: FontWeight.w400,
                                         color: Color(0xFF9CA3AF),
@@ -220,7 +215,7 @@ class RecipeIngredientsList extends StatelessWidget {
                                   errorBuilder: (_, _, _) => Container(
                                     width: 44,
                                     height: 44,
-                                    color: const Color(0xFFF1F5F9),
+                                    color: AppTheme.surfaceContainerLow,
                                     child: const Icon(
                                       Icons.image,
                                       size: 18,

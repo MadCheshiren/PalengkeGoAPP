@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -29,7 +30,6 @@ class OnboardingPhoneStep extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF374151),
@@ -41,18 +41,10 @@ class OnboardingPhoneStep extends StatelessWidget {
           keyboardType: keyboardType,
           maxLines: maxLines,
           inputFormatters: inputFormatters,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            color: Color(0xFF111827),
-          ),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              color: Color(0xFF9CA3AF),
-            ),
+            hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
             filled: true,
             fillColor: const Color(0xFFF3F4F6),
             border: OutlineInputBorder(
@@ -65,7 +57,10 @@ class OnboardingPhoneStep extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryGreen,
+                width: 1,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -106,7 +101,6 @@ class OnboardingPhoneStep extends StatelessWidget {
                 const Text(
                   '+63',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -131,11 +125,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                 ),
                 child: const Text(
                   'Send OTP',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 ),
               ),
             ),

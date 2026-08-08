@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
@@ -43,20 +44,18 @@ class CheckoutOrderItem extends StatelessWidget {
                 Text(
                   item.productName,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '$quantityLabel • $priceLabel',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -65,7 +64,6 @@ class CheckoutOrderItem extends StatelessWidget {
           Text(
             '₱${item.total.toStringAsFixed(0)}',
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),

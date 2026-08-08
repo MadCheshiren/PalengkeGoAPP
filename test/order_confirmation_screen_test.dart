@@ -41,7 +41,7 @@ void main() {
 
       // Add items from two different vendors to the shared cart
       cart.addToCart(
-        CartItem(
+        const CartItem(
           productId: 'm1',
           vendorName: 'Diosa Fruit Stand',
           productName: 'Sweet Mangoes',
@@ -51,7 +51,7 @@ void main() {
         ),
       );
       cart.addToCart(
-        CartItem(
+        const CartItem(
           productId: 'p1',
           vendorName: 'William Del Rosario Meat Shop',
           productName: 'Pork Belly',

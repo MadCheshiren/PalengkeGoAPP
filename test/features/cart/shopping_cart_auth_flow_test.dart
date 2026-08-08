@@ -30,7 +30,7 @@ void main() {
     MockCartRepository.clearTestState();
     repository = MockCartRepository()
       ..addToCart(
-        CartItem(
+        const CartItem(
           productId: 'm1',
           vendorName: 'Diosa Fruit Stand',
           productName: 'Sweet Mangoes',
@@ -48,11 +48,11 @@ void main() {
         authProvider.overrideWith(() => _TestAuthNotifier(user)),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         onGenerateRoute: AppRouter.onGenerateRoute,
-        home: const ShoppingCartScreen(),
+        home: ShoppingCartScreen(),
       ),
     );
   }

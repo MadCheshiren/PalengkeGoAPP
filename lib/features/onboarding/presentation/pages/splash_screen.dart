@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -135,7 +136,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B372B),
+      backgroundColor: AppTheme.primaryGreen,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _ctrl,
@@ -185,7 +186,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           'PalengkeGo',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 34,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -206,7 +206,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         'SKIP THE ROAM, ORDER FROM HOME',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.white.withValues(alpha: 0.55),

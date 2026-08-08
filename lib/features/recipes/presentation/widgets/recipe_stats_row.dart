@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
@@ -45,16 +46,15 @@ class RecipeStatsRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 20, color: const Color(0xFF0B372B)),
+            Icon(icon, size: 20, color: AppTheme.primaryGreen),
             const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
@@ -65,7 +65,6 @@ class RecipeStatsRow extends StatelessWidget {
             Text(
               value,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1F2937),

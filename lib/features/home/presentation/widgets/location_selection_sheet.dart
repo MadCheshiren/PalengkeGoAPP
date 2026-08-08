@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -60,7 +61,7 @@ class _LocationSelectionSheetState
       );
 
       if (mounted) {
-        final currentAddr = const DeliveryAddress(
+        const currentAddr = DeliveryAddress(
           primaryAddress: 'Triangulo, Naga City',
           streetAddress: 'Current GPS Location',
           label: 'Home',
@@ -137,7 +138,7 @@ class _LocationSelectionSheetState
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
+                  color: AppTheme.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -150,10 +151,9 @@ class _LocationSelectionSheetState
                 const Text(
                   'Where to?',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -163,20 +163,23 @@ class _LocationSelectionSheetState
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: AppTheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.public, size: 14, color: Color(0xFF64748B)),
+                      Icon(
+                        Icons.public,
+                        size: 14,
+                        color: AppTheme.textSecondary,
+                      ),
                       SizedBox(width: 4),
                       Text(
                         'PH',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -192,11 +195,11 @@ class _LocationSelectionSheetState
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.15),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.15),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -224,7 +227,6 @@ class _LocationSelectionSheetState
                           Text(
                             'Use current location',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -234,7 +236,6 @@ class _LocationSelectionSheetState
                           Text(
                             'Enable location services',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                               color: Colors.white70,
@@ -243,7 +244,10 @@ class _LocationSelectionSheetState
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded, color: Colors.white70),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.white70,
+                    ),
                   ],
                 ),
               ),
@@ -253,10 +257,9 @@ class _LocationSelectionSheetState
             const Text(
               'SAVED ADDRESSES',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF94A3B8),
+                color: AppTheme.muted,
                 letterSpacing: 1.2,
               ),
             ),
@@ -287,21 +290,21 @@ class _LocationSelectionSheetState
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFFF6F8F7)
+                            ? AppTheme.scaffoldBackground
                             : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF0B372B)
-                              : const Color(0xFFE2E8F0),
+                              ? AppTheme.primaryGreen
+                              : AppTheme.border,
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFF0B372B,
-                                  ).withValues(alpha: 0.08),
+                                  color: AppTheme.primaryGreen.withValues(
+                                    alpha: 0.08,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -315,15 +318,15 @@ class _LocationSelectionSheetState
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF0B372B)
-                                  : const Color(0xFFF1F5F9),
+                                  ? AppTheme.primaryGreen
+                                  : AppTheme.surfaceContainerLow,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               icon,
                               color: isSelected
                                   ? Colors.white
-                                  : const Color(0xFF64748B),
+                                  : AppTheme.textSecondary,
                               size: 20,
                             ),
                           ),
@@ -335,12 +338,11 @@ class _LocationSelectionSheetState
                                 Text(
                                   address.label,
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 15,
                                     fontWeight: isSelected
                                         ? FontWeight.w800
                                         : FontWeight.w700,
-                                    color: const Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -349,14 +351,13 @@ class _LocationSelectionSheetState
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: isSelected
-                                        ? const Color(
-                                            0xFF0B372B,
-                                          ).withValues(alpha: 0.7)
-                                        : const Color(0xFF64748B),
+                                        ? AppTheme.primaryGreen.withValues(
+                                            alpha: 0.7,
+                                          )
+                                        : AppTheme.textSecondary,
                                   ),
                                 ),
                               ],
@@ -367,7 +368,7 @@ class _LocationSelectionSheetState
                             icon: const Icon(
                               Icons.edit_outlined,
                               size: 20,
-                              color: Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                             ),
                             onPressed: () async {
                               final result = await Navigator.of(context)
@@ -390,7 +391,7 @@ class _LocationSelectionSheetState
                             const SizedBox(width: 4),
                             const Icon(
                               Icons.check_circle_rounded,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               size: 24,
                             ),
                           ],
@@ -428,7 +429,7 @@ class _LocationSelectionSheetState
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFE2E8F0),
+                    color: AppTheme.border,
                     width: 1.5,
                     style: BorderStyle.solid,
                   ),
@@ -438,17 +439,16 @@ class _LocationSelectionSheetState
                   children: [
                     Icon(
                       Icons.add_location_alt_rounded,
-                      color: Color(0xFF6D9773),
+                      color: AppTheme.accentGreen,
                       size: 20,
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Add new address',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ],
@@ -472,11 +472,11 @@ class _LocationSelectionSheetState
                         Navigator.pop(context);
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B372B),
+                  backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(
-                    0xFF0B372B,
-                  ).withValues(alpha: 0.5),
+                  disabledBackgroundColor: AppTheme.primaryGreen.withValues(
+                    alpha: 0.5,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -485,7 +485,6 @@ class _LocationSelectionSheetState
                 child: const Text(
                   'Confirm Location',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,

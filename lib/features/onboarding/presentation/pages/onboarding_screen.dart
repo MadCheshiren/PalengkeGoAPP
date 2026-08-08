@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -36,7 +37,7 @@ class OnboardingScreen extends ConsumerWidget {
                           'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600&h=600',
                           fit: BoxFit.cover,
                           placeholder: Container(
-                            color: const Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             child: Center(
                               child: Icon(
                                 Icons.storefront_outlined,
@@ -49,27 +50,25 @@ class OnboardingScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 48),
-                    Text(
+                    const Text(
                       'Browse your favorite wet\nmarket stalls anytime',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                         height: 1.3,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
+                    const Text(
                       'Find fresh produce and local goods from\nthe comfort of your home.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                         height: 1.5,
                       ),
                     ),
@@ -78,7 +77,7 @@ class OnboardingScreen extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(24, 0, 24, 32),
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -96,17 +95,16 @@ class OnboardingScreen extends ConsumerWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0B372B),
+                        backgroundColor: AppTheme.primaryGreen,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Get Started',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,

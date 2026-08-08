@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
 
@@ -28,7 +29,7 @@ class CheckoutDeliveryAddressCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
         boxShadow: const [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.02),
@@ -68,7 +69,7 @@ class CheckoutDeliveryAddressCard extends StatelessWidget {
                   child: Icon(
                     Icons.place_rounded,
                     size: 32,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
               ],
@@ -83,10 +84,10 @@ class CheckoutDeliveryAddressCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5F9),
+                      color: AppTheme.surfaceContainerLow,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, color: const Color(0xFF64748B), size: 20),
+                    child: Icon(icon, color: AppTheme.textSecondary, size: 20),
                   ),
                   const SizedBox(width: 16),
                 ],
@@ -99,20 +100,18 @@ class CheckoutDeliveryAddressCard extends StatelessWidget {
                             ? deliveryAddress.label
                             : 'Delivery Address',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         deliveryAddress.displayLine,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -135,10 +134,9 @@ class CheckoutDeliveryAddressCard extends StatelessWidget {
                   child: const Text(
                     'Change',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                 ),

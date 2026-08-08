@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +31,7 @@ class ProfileScreen extends ConsumerWidget {
     final hasVendorStall = ref.watch(hasVendorStallProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -45,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
+                        color: AppTheme.surfaceContainerLow,
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
@@ -54,7 +55,7 @@ class ProfileScreen extends ConsumerWidget {
                         width: 16,
                         height: 16,
                         colorFilter: const ColorFilter.mode(
-                          Color(0xFF0B372B),
+                          AppTheme.primaryGreen,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -64,10 +65,9 @@ class ProfileScreen extends ConsumerWidget {
                   const Text(
                     'Profile',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                 ],
@@ -92,7 +92,7 @@ class ProfileScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: const Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                   width: 2,
                                 ),
                               ),
@@ -104,10 +104,9 @@ class ProfileScreen extends ConsumerWidget {
                             child: Text(
                               'Guest User',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                           ),
@@ -116,7 +115,6 @@ class ProfileScreen extends ConsumerWidget {
                             child: Text(
                               'Log in to view your profile and orders',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
                                 color: Color(0xFF6B7280),
@@ -166,7 +164,7 @@ class ProfileScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                                 width: 2,
                               ),
                             ),
@@ -184,10 +182,9 @@ class ProfileScreen extends ConsumerWidget {
                           child: Text(
                             profile.displayName,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                         ),
@@ -196,7 +193,6 @@ class ProfileScreen extends ConsumerWidget {
                           child: Text(
                             profile.email,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
                               color: Color(0xFF6B7280),
@@ -218,10 +214,9 @@ class ProfileScreen extends ConsumerWidget {
                                     const Text(
                                       'My Favorites',
                                       style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF0B372B),
+                                        color: AppTheme.primaryGreen,
                                       ),
                                     ),
                                     Container(
@@ -238,10 +233,9 @@ class ProfileScreen extends ConsumerWidget {
                                       child: Text(
                                         '${vendors.length}',
                                         style: const TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          color: Color(0xFF0B372B),
+                                          color: AppTheme.primaryGreen,
                                         ),
                                       ),
                                     ),
@@ -305,9 +299,8 @@ class ProfileScreen extends ConsumerWidget {
                                                       child: const Icon(
                                                         Icons
                                                             .storefront_outlined,
-                                                        color: Color(
-                                                          0xFF6D9773,
-                                                        ),
+                                                        color: AppTheme
+                                                            .accentGreen,
                                                       ),
                                                     ),
                                                   ),
@@ -328,7 +321,8 @@ class ProfileScreen extends ConsumerWidget {
                                                         'PlusJakartaSans',
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w600,
-                                                    color: Color(0xFF0B372B),
+                                                    color:
+                                                        AppTheme.primaryGreen,
                                                   ),
                                                 ),
                                               ),
@@ -464,7 +458,7 @@ class ProfileScreen extends ConsumerWidget {
                     child: Padding(
                       padding: EdgeInsets.only(top: 40),
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -484,7 +478,7 @@ class ProfileScreen extends ConsumerWidget {
       child: const Icon(
         Icons.person_rounded,
         size: 48,
-        color: Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
       ),
     );
   }
@@ -521,7 +515,7 @@ class ProfileScreen extends ConsumerWidget {
                 width: 22,
                 height: 22,
                 colorFilter: ColorFilter.mode(
-                  isLogout ? const Color(0xFFEF4444) : const Color(0xFF0B372B),
+                  isLogout ? const Color(0xFFEF4444) : AppTheme.primaryGreen,
                   BlendMode.srcIn,
                 ),
               )
@@ -531,14 +525,13 @@ class ProfileScreen extends ConsumerWidget {
                 size: 22,
                 color: isLogout
                     ? const Color(0xFFEF4444)
-                    : const Color(0xFF0B372B),
+                    : AppTheme.primaryGreen,
               ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: isLogout
@@ -567,27 +560,18 @@ class ProfileScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Log Out',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: const Text(
           'Are you sure you want to log out?',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            color: Color(0xFF6B7280),
-          ),
+          style: TextStyle(color: Color(0xFF6B7280)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Cancel',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                color: Color(0xFF6B7280),
-              ),
+              style: TextStyle(color: Color(0xFF6B7280)),
             ),
           ),
           ElevatedButton(
@@ -609,10 +593,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             child: const Text(
               'Log Out',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],

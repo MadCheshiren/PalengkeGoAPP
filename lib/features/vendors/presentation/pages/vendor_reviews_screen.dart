@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -138,16 +139,15 @@ class _VendorReviewsScreenState extends ConsumerState<VendorReviewsScreen> {
           child: const Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 20,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         title: Text(
           widget.vendorId != null ? 'Stall Reviews' : 'Customer Reviews',
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 17,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         centerTitle: false,
@@ -240,10 +240,9 @@ class _RatingSummaryCard extends StatelessWidget {
               Text(
                 avg.toStringAsFixed(1),
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 48,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   height: 1,
                 ),
               ),
@@ -253,7 +252,6 @@ class _RatingSummaryCard extends StatelessWidget {
               Text(
                 '$total ${total == 1 ? "review" : "reviews"}',
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF9CA3AF),
@@ -276,7 +274,6 @@ class _RatingSummaryCard extends StatelessWidget {
                       Text(
                         '$star',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF6B7280),
@@ -296,7 +293,7 @@ class _RatingSummaryCard extends StatelessWidget {
                             value: fraction,
                             backgroundColor: const Color(0xFFE5E7EB),
                             valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF0B372B),
+                              AppTheme.primaryGreen,
                             ),
                             minHeight: 6,
                           ),
@@ -309,7 +306,6 @@ class _RatingSummaryCard extends StatelessWidget {
                           '$count',
                           textAlign: TextAlign.end,
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF9CA3AF),
@@ -362,12 +358,12 @@ class _FilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // List of (filter, label) pairs as explicit objects to avoid record syntax.
     final filterDefs = <MapEntry<_ReviewFilter, String>>[
-      MapEntry(_ReviewFilter.all, 'All'),
-      MapEntry(_ReviewFilter.five, '5★'),
-      MapEntry(_ReviewFilter.four, '4★'),
-      MapEntry(_ReviewFilter.three, '3★'),
-      MapEntry(_ReviewFilter.two, '2★'),
-      MapEntry(_ReviewFilter.one, '1★'),
+      const MapEntry(_ReviewFilter.all, 'All'),
+      const MapEntry(_ReviewFilter.five, '5★'),
+      const MapEntry(_ReviewFilter.four, '4★'),
+      const MapEntry(_ReviewFilter.three, '3★'),
+      const MapEntry(_ReviewFilter.two, '2★'),
+      const MapEntry(_ReviewFilter.one, '1★'),
     ];
 
     return SingleChildScrollView(
@@ -391,11 +387,11 @@ class _FilterRow extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF0B372B) : Colors.white,
+                  color: isSelected ? AppTheme.primaryGreen : Colors.white,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF0B372B)
+                        ? AppTheme.primaryGreen
                         : const Color(0xFFE5E7EB),
                   ),
                 ),
@@ -405,7 +401,6 @@ class _FilterRow extends StatelessWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: isSelected
@@ -429,7 +424,6 @@ class _FilterRow extends StatelessWidget {
                         child: Text(
                           '$count',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: isSelected
@@ -459,10 +453,10 @@ class _ReviewCard extends StatelessWidget {
 
   Color _avatarColor(String name) {
     const colors = [
-      Color(0xFF0B372B),
+      AppTheme.primaryGreen,
       Color(0xFF1D4ED8),
       Color(0xFF7C3AED),
-      Color(0xFFB45309),
+      AppTheme.warning,
       Color(0xFF065F46),
       Color(0xFF9D174D),
       Color(0xFF1E40AF),
@@ -519,7 +513,6 @@ class _ReviewCard extends StatelessWidget {
                 child: Text(
                   initial,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -538,7 +531,6 @@ class _ReviewCard extends StatelessWidget {
                             review.customerName,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF111827),
@@ -549,7 +541,6 @@ class _ReviewCard extends StatelessWidget {
                         Text(
                           _relativeDate(review.date),
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF9CA3AF),
@@ -580,8 +571,8 @@ class _ReviewCard extends StatelessWidget {
                 : const _ReviewTag(
                     icon: Icons.storefront_outlined,
                     label: 'Stall review',
-                    bg: Color(0xFFF8FAFC),
-                    fg: Color(0xFF64748B),
+                    bg: AppTheme.surface,
+                    fg: AppTheme.textSecondary,
                   ),
           ),
 
@@ -589,7 +580,6 @@ class _ReviewCard extends StatelessWidget {
           Text(
             review.comment,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 13,
               fontWeight: FontWeight.w400,
               color: Color(0xFF374151),
@@ -633,7 +623,6 @@ class _ReviewTag extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: fg,
@@ -699,14 +688,13 @@ class _EmptyAllReviews extends StatelessWidget {
               child: const Icon(
                 Icons.rate_review_outlined,
                 size: 36,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
             const SizedBox(height: 20),
             const Text(
               'No reviews yet',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -717,7 +705,6 @@ class _EmptyAllReviews extends StatelessWidget {
               'When customers leave feedback on\nyour stall or products, they appear here.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
                 color: Color(0xFF9CA3AF),
@@ -770,7 +757,6 @@ class _EmptyFiltered extends StatelessWidget {
             Text(
               'No $_label reviews',
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF6B7280),

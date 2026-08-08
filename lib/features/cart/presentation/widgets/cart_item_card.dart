@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -41,7 +42,7 @@ class CartItemCard extends StatelessWidget {
             height: 20,
             child: Checkbox(
               value: item.selected,
-              activeColor: const Color(0xFF0B372B),
+              activeColor: AppTheme.primaryGreen,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -53,7 +54,7 @@ class CartItemCard extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppTheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(10),
             ),
             child: ClipRRect(
@@ -66,7 +67,7 @@ class CartItemCard extends StatelessWidget {
                 placeholder: const Icon(
                   Icons.image_outlined,
                   size: 28,
-                  color: Color(0xFF94A3B8),
+                  color: AppTheme.muted,
                 ),
               ),
             ),
@@ -81,7 +82,6 @@ class CartItemCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF101828),
@@ -91,7 +91,6 @@ class CartItemCard extends StatelessWidget {
                 Text(
                   item.quantityLabel,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     color: Color(0xFF6B7280),
                   ),
@@ -105,10 +104,9 @@ class CartItemCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -196,7 +194,7 @@ class _QuantityStepper extends StatelessWidget {
     return Container(
       height: 30,
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: AppTheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -237,7 +235,6 @@ class _QuantityStepper extends StatelessWidget {
               maxLines: 1,
               softWrap: false,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF101828),
@@ -269,7 +266,7 @@ class _QuantityStepper extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: quantity < maxQuantity
-                    ? const Color(0xFF0B372B)
+                    ? AppTheme.primaryGreen
                     : const Color(0xFFD1D5DB),
                 borderRadius: BorderRadius.circular(8),
               ),

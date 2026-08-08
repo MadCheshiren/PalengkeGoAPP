@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/infrastructure/firebase_service.dart';
@@ -88,9 +89,9 @@ class LicenseRenewalProcessor extends Notifier<void> {
         const SnackBar(
           content: Text(
             'Renewal request submitted! Awaiting MEPO Approval.',
-            style: TextStyle(fontFamily: 'PlusJakartaSans'),
+            style: TextStyle(),
           ),
-          backgroundColor: Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           duration: Duration(seconds: 4),
         ),
       );

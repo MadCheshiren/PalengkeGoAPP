@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 
@@ -42,34 +43,29 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
             children: [
               Icon(
                 Icons.check_circle_rounded,
-                color: Color(0xFF22C55E),
+                color: AppTheme.statusOpen,
                 size: 24,
               ),
               SizedBox(width: 8),
               Text(
                 'Report Submitted',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
           ),
           content: Text(
             'Thank you for reaching out. Our support team has received your ticket regarding "$_selectedTopic" and will review it shortly.',
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              color: Color(0xFF475569),
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Color(0xFF475569), fontSize: 14),
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0B372B),
+                backgroundColor: AppTheme.primaryGreen,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -77,7 +73,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
               child: const Text(
                 'OK',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -110,7 +105,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                     const Text(
                       'Frequently Asked Questions',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -150,7 +144,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                     const Text(
                       'Contact Support',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -176,7 +169,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                     const Text(
                       'Report a Problem',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -187,9 +179,9 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: AppTheme.border),
                       ),
                       child: Form(
                         key: _reportFormKey,
@@ -199,7 +191,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                             const Text(
                               'Topic',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF334155),
@@ -235,7 +226,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                                       child: Text(
                                         t,
                                         style: const TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 14,
                                           color: Color(0xFF1E293B),
                                         ),
@@ -253,7 +243,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                             const Text(
                               'Describe the Issue',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF334155),
@@ -270,16 +259,14 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                                 return null;
                               },
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 color: Color(0xFF1E293B),
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Explain the issue in detail...',
                                 hintStyle: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 13,
-                                  color: Color(0xFF94A3B8),
+                                  color: AppTheme.muted,
                                 ),
                                 filled: true,
                                 fillColor: Colors.white,
@@ -304,7 +291,7 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                               child: ElevatedButton(
                                 onPressed: _submitReport,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0B372B),
+                                  backgroundColor: AppTheme.primaryGreen,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 14,
                                   ),
@@ -315,7 +302,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                                 child: const Text(
                                   'Submit Report',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14,
                                     color: Colors.white,
@@ -342,19 +328,18 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          iconColor: const Color(0xFF0B372B),
-          collapsedIconColor: const Color(0xFF64748B),
+          iconColor: AppTheme.primaryGreen,
+          collapsedIconColor: AppTheme.textSecondary,
           title: Text(
             question,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF1E293B),
@@ -368,7 +353,6 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                 child: Text(
                   answer,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     height: 1.5,
                     color: Color(0xFF475569),
@@ -390,19 +374,19 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF0B372B).withValues(alpha: 0.08),
+              color: AppTheme.primaryGreen.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF0B372B), size: 20),
+            child: Icon(icon, color: AppTheme.primaryGreen, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -412,19 +396,17 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
               ],

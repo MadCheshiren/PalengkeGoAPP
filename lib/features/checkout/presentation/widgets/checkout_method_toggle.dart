@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
 
@@ -72,9 +73,7 @@ class _ToggleButton extends StatelessWidget {
             Icon(
               icon,
               size: 14,
-              color: selected
-                  ? const Color(0xFF0B372B)
-                  : const Color(0xFF64748B),
+              color: selected ? AppTheme.primaryGreen : AppTheme.textSecondary,
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -83,12 +82,11 @@ class _ToggleButton extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: selected
-                      ? const Color(0xFF0B372B)
-                      : const Color(0xFF64748B),
+                      ? AppTheme.primaryGreen
+                      : AppTheme.textSecondary,
                 ),
               ),
             ),

@@ -42,7 +42,6 @@ class OrderDetailsItemsList extends StatelessWidget {
                     Text(
                       item.productName,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF1F2937),
@@ -52,7 +51,6 @@ class OrderDetailsItemsList extends StatelessWidget {
                     Text(
                       item.quantityLabel,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: Color(0xFF6B7280),
@@ -67,7 +65,6 @@ class OrderDetailsItemsList extends StatelessWidget {
                   Text(
                     '₱${item.total.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1F2937),
@@ -76,7 +73,6 @@ class OrderDetailsItemsList extends StatelessWidget {
                   Text(
                     '₱${item.unitPrice.toStringAsFixed(0)}/${item.unit}',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w400,
                       color: Color(0xFF9CA3AF),

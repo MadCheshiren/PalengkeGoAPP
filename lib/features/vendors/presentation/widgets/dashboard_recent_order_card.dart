@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class DashboardRecentOrderCard extends StatelessWidget {
@@ -27,7 +28,7 @@ class DashboardRecentOrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,19 +43,17 @@ class DashboardRecentOrderCard extends StatelessWidget {
                     Text(
                       orderId,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
-                        color: Color(0xFF94A3B8),
+                        color: AppTheme.muted,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       customer,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ],
@@ -63,10 +62,9 @@ class DashboardRecentOrderCard extends StatelessWidget {
               Text(
                 total,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
@@ -74,20 +72,12 @@ class DashboardRecentOrderCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             items,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 12,
-              color: Color(0xFF64748B),
-            ),
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 4),
           Text(
             time,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 11,
-              color: Color(0xFF94A3B8),
-            ),
+            style: const TextStyle(fontSize: 11, color: AppTheme.muted),
           ),
           const SizedBox(height: 12),
           GestureDetector(
@@ -96,14 +86,13 @@ class DashboardRecentOrderCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
                 child: Text(
                   primaryActionText,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,

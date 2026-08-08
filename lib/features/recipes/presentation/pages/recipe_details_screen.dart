@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/recipes/presentation/widgets/recipe_hero_card.dart';
 import 'package:palengkego/features/recipes/presentation/widgets/recipe_ingredients_list.dart';
@@ -52,7 +53,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
         scaffoldMessenger.clearSnackBars();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppTheme.surface,
         bottomNavigationBar: hasIngredients
             ? _AddToCartBar(
                 recipe: recipeObject,
@@ -78,7 +79,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: AppTheme.surfaceContainerLow,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -91,17 +92,16 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                           child: const Icon(
                             Icons.arrow_back_ios_new_rounded,
                             size: 18,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                       ),
                       const Text(
                         'Recipe Details',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                       GestureDetector(
@@ -116,9 +116,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                                 isSaved
                                     ? 'Removed "${recipeObject.title}" from Cookbook.'
                                     : 'Added "${recipeObject.title}" to Cookbook.',
-                                style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                ),
+                                style: const TextStyle(),
                               ),
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
@@ -134,7 +132,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                           decoration: BoxDecoration(
                             color: isSaved
                                 ? const Color(0xFFFEE2E2)
-                                : const Color(0xFFF1F5F9),
+                                : AppTheme.surfaceContainerLow,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -151,7 +149,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                             size: 20,
                             color: isSaved
                                 ? const Color(0xFFEF4444)
-                                : const Color(0xFF0B372B),
+                                : AppTheme.primaryGreen,
                           ),
                         ),
                       ),
@@ -200,7 +198,6 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                     const Text(
                       'Procedure',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1F2937),
@@ -243,7 +240,7 @@ class _AddToCartBar extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+        border: Border(top: BorderSide(color: AppTheme.surfaceContainerLow)),
         boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.06),
@@ -320,7 +317,6 @@ class _AddToCartBar extends ConsumerWidget {
                                   ? 'Added $itemsAdded items, but some were missing:'
                                   : 'Missing ingredients not found in market:',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
@@ -328,10 +324,7 @@ class _AddToCartBar extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               notFound.join(', '),
-                              style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                color: Color(0xFFFCA5A5),
-                              ),
+                              style: const TextStyle(color: Color(0xFFFCA5A5)),
                             ),
                           ],
                         ),
@@ -357,10 +350,10 @@ class _AddToCartBar extends ConsumerWidget {
                       SnackBar(
                         content: Text(
                           '$itemsAdded ingredient${itemsAdded == 1 ? '' : 's'} added to cart!',
-                          style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+                          style: const TextStyle(),
                         ),
                         behavior: SnackBarBehavior.floating,
-                        backgroundColor: const Color(0xFF0B372B),
+                        backgroundColor: AppTheme.primaryGreen,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -389,25 +382,21 @@ class _AddToCartBar extends ConsumerWidget {
             missingIngredients.isEmpty
                 ? 'All ingredients ready!'
                 : 'Add ${missingIngredients.length} Ingredients to Cart',
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: missingIngredients.isEmpty
-                ? const Color(0xFFE2E8F0)
-                : const Color(0xFF0B372B),
+                ? AppTheme.border
+                : AppTheme.primaryGreen,
             foregroundColor: missingIngredients.isEmpty
-                ? const Color(0xFF64748B)
+                ? AppTheme.textSecondary
                 : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
             elevation: 0,
-            disabledBackgroundColor: const Color(0xFFE2E8F0),
-            disabledForegroundColor: const Color(0xFF64748B),
+            disabledBackgroundColor: AppTheme.border,
+            disabledForegroundColor: AppTheme.textSecondary,
           ),
         ),
       ),

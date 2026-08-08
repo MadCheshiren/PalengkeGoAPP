@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
@@ -37,7 +38,6 @@ class DashboardSalesCard extends ConsumerWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     color: textColor.withValues(alpha: 0.8),
                   ),
@@ -58,10 +58,9 @@ class DashboardSalesCard extends ConsumerWidget {
                       child: Text(
                         badge,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 8,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFB45309),
+                          color: AppTheme.warning,
                         ),
                       ),
                     ),
@@ -72,7 +71,6 @@ class DashboardSalesCard extends ConsumerWidget {
             Text(
               value,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: textColor,
@@ -113,7 +111,7 @@ class DashboardSalesCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -122,13 +120,12 @@ class DashboardSalesCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
+              const Flexible(
                 child: Text(
                   'Today\'s Sales',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Colors.white70,
@@ -148,7 +145,6 @@ class DashboardSalesCard extends ConsumerWidget {
                     Text(
                       'Report',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -173,7 +169,6 @@ class DashboardSalesCard extends ConsumerWidget {
               child: Text(
                 currencyFormatter.format(todaysSales),
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -193,7 +188,7 @@ class DashboardSalesCard extends ConsumerWidget {
                         ? '1 Order'
                         : '$pendingOrdersCount Orders',
                     color: const Color(0xFFFFF7ED),
-                    textColor: const Color(0xFFB45309),
+                    textColor: AppTheme.warning,
                     badge: pendingOrdersCount > 0 ? 'ACTION REQUIRED' : null,
                   ),
                 ),
@@ -205,7 +200,7 @@ class DashboardSalesCard extends ConsumerWidget {
                         ? '1 Order'
                         : '$completedOrdersCount Orders',
                     color: const Color(0xFFF0FDF4),
-                    textColor: const Color(0xFF166534),
+                    textColor: AppTheme.success,
                   ),
                 ),
               ],

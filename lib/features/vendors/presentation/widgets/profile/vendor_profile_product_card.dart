@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/utils/unit_helper.dart';
@@ -61,7 +62,7 @@ class VendorProfileProductCard extends StatelessWidget {
                         child: Icon(
                           Icons.image_outlined,
                           size: 40,
-                          color: Color(0xFF94A3B8),
+                          color: AppTheme.muted,
                         ),
                       ),
                     // Low Stock badge (≤10% of initial, or ≤10 absolute if initial unknown)
@@ -88,7 +89,6 @@ class VendorProfileProductCard extends StatelessWidget {
                           child: const Text(
                             'LOW STOCK',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               color: Colors.white,
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
@@ -113,7 +113,6 @@ class VendorProfileProductCard extends StatelessWidget {
                           child: Text(
                             '-${product.discountPercentage!.toInt()}%',
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -136,7 +135,6 @@ class VendorProfileProductCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -152,7 +150,6 @@ class VendorProfileProductCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFF6B7280),
@@ -172,7 +169,6 @@ class VendorProfileProductCard extends StatelessWidget {
                         child: const Text(
                           'Out of stock',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFFDC2626),
@@ -193,7 +189,6 @@ class VendorProfileProductCard extends StatelessWidget {
                         child: Text(
                           'Only ${product.stockQuantity % 1 == 0 ? product.stockQuantity.toInt().toString() : product.stockQuantity.toStringAsFixed(2)} left',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFFDC2626),
@@ -214,10 +209,9 @@ class VendorProfileProductCard extends StatelessWidget {
                             Text(
                               '₱$price/${UnitHelper.getUnitString(UnitHelper.isPieceProduct(product))}',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
-                                color: Color(0xFF94A3B8),
+                                color: AppTheme.muted,
                                 decoration: TextDecoration.lineThrough,
                               ),
                               maxLines: 1,
@@ -226,10 +220,9 @@ class VendorProfileProductCard extends StatelessWidget {
                           Text(
                             '₱${product.discountedPrice.toInt()}/${UnitHelper.getUnitString(UnitHelper.isPieceProduct(product))}',
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -277,7 +270,7 @@ class VendorProfileProductCard extends StatelessWidget {
                         height: 32,
                         decoration: BoxDecoration(
                           color: product.stockQuantity > 0
-                              ? const Color(0xFF0B372B)
+                              ? AppTheme.primaryGreen
                               : const Color(0xFFD1D5DB),
                           shape: BoxShape.circle,
                         ),

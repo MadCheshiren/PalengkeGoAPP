@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -136,18 +137,18 @@ class _SearchFieldState extends ConsumerState<SearchField> {
         duration: const Duration(milliseconds: 200),
         height: 46,
         decoration: BoxDecoration(
-          color: _focus.hasFocus ? Colors.white : const Color(0xFFF6F8F7),
+          color: _focus.hasFocus ? Colors.white : AppTheme.scaffoldBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _focus.hasFocus
-                ? const Color(0xFF0B372B).withValues(alpha: 0.3)
+                ? AppTheme.primaryGreen.withValues(alpha: 0.3)
                 : Colors.transparent,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
               color: _focus.hasFocus
-                  ? const Color(0xFF0B372B).withValues(alpha: 0.08)
+                  ? AppTheme.primaryGreen.withValues(alpha: 0.08)
                   : const Color(0xFF000000).withValues(alpha: 0.04),
               offset: const Offset(0, 2),
               blurRadius: _focus.hasFocus ? 12 : 4,
@@ -166,8 +167,8 @@ class _SearchFieldState extends ConsumerState<SearchField> {
                   key: ValueKey(_focus.hasFocus),
                   size: 18,
                   color: _focus.hasFocus
-                      ? const Color(0xFF0B372B)
-                      : const Color(0xFF6D9773),
+                      ? AppTheme.primaryGreen
+                      : AppTheme.accentGreen,
                 ),
               ),
             ),
@@ -180,7 +181,6 @@ class _SearchFieldState extends ConsumerState<SearchField> {
                 onSubmitted: _handleSubmit,
                 textAlignVertical: TextAlignVertical.center,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF111827),
@@ -188,10 +188,9 @@ class _SearchFieldState extends ConsumerState<SearchField> {
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).searchHint,
                   hintStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.muted,
                   ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -273,7 +272,7 @@ class _SearchDropdown extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0B372B).withValues(alpha: 0.10),
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.10),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -330,9 +329,9 @@ class _SearchDropdown extends ConsumerWidget {
                               horizontal: 16,
                             ),
                             decoration: const BoxDecoration(
-                              color: Color(0xFFF8FAFC),
+                              color: AppTheme.surface,
                               border: Border(
-                                top: BorderSide(color: Color(0xFFE2E8F0)),
+                                top: BorderSide(color: AppTheme.border),
                               ),
                             ),
                             child: Row(
@@ -341,7 +340,7 @@ class _SearchDropdown extends ConsumerWidget {
                                 const Icon(
                                   Icons.grid_view_rounded,
                                   size: 14,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 ),
                                 const SizedBox(width: 6),
                                 Expanded(
@@ -350,17 +349,16 @@ class _SearchDropdown extends ConsumerWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0B372B),
+                                      color: AppTheme.primaryGreen,
                                     ),
                                   ),
                                 ),
                                 const Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 14,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 ),
                               ],
                             ),
@@ -393,7 +391,6 @@ class _SearchDropdown extends ConsumerWidget {
             child: Text(
               'No results for "$q"',
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 color: Color(0xFF9CA3AF),
                 fontWeight: FontWeight.w500,
@@ -420,8 +417,8 @@ class _ProductResultTile extends ConsumerWidget {
 
     return InkWell(
       onTap: onTap,
-      splashColor: const Color(0xFF0B372B).withValues(alpha: 0.06),
-      highlightColor: const Color(0xFF0B372B).withValues(alpha: 0.03),
+      splashColor: AppTheme.primaryGreen.withValues(alpha: 0.06),
+      highlightColor: AppTheme.primaryGreen.withValues(alpha: 0.03),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -458,7 +455,6 @@ class _ProductResultTile extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF111827),
@@ -474,7 +470,6 @@ class _ProductResultTile extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       color: Color(0xFF6B7280),
                       fontWeight: FontWeight.w400,
@@ -492,17 +487,15 @@ class _ProductResultTile extends ConsumerWidget {
                 Text(
                   '₱${product.discountedPrice.toStringAsFixed(0)}/${product.unit}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   product.category,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     color: Color(0xFF9CA3AF),
                     fontWeight: FontWeight.w400,
@@ -533,8 +526,8 @@ class _VendorResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      splashColor: const Color(0xFF0B372B).withValues(alpha: 0.06),
-      highlightColor: const Color(0xFF0B372B).withValues(alpha: 0.03),
+      splashColor: AppTheme.primaryGreen.withValues(alpha: 0.06),
+      highlightColor: AppTheme.primaryGreen.withValues(alpha: 0.03),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -571,17 +564,15 @@ class _VendorResultTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF111827),
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
+                  const Text(
                     'Stall Holder',
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: TextStyle(
                       fontSize: 12,
                       color: Color(0xFF6B7280),
                       fontWeight: FontWeight.w400,
@@ -599,7 +590,6 @@ class _VendorResultTile extends StatelessWidget {
                 Text(
                   vendor.category,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     color: Color(0xFF9CA3AF),
                     fontWeight: FontWeight.w400,

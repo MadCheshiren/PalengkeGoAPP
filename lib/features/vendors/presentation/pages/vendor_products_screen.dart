@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
@@ -33,7 +34,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
         : ref.watch(vendorProductsProvider(_vendorId!));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -45,17 +46,16 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search products...',
                   hintStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.muted,
                   ),
                   prefixIcon: const Icon(
                     Icons.search,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.muted,
                     size: 20,
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF6F8F7),
+                  fillColor: AppTheme.scaffoldBackground,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -68,7 +68,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                       width: 1,
                     ),
                   ),
@@ -112,10 +112,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                           child: Text(
                             'No products match this filter yet.',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                         );
@@ -139,7 +138,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     },
                     loading: () => const Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     error: (error, _) => Center(child: Text('Error: $error')),
@@ -158,7 +157,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         width: 56,
                         height: 56,
                         decoration: const BoxDecoration(
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -186,17 +185,14 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
           Text(
             label,
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected
-                  ? const Color(0xFF0B372B)
-                  : const Color(0xFF94A3B8),
+              color: isSelected ? AppTheme.primaryGreen : AppTheme.muted,
             ),
           ),
           const SizedBox(height: 4),
           if (isSelected)
-            Container(width: 40, height: 2, color: const Color(0xFF0B372B)),
+            Container(width: 40, height: 2, color: AppTheme.primaryGreen),
         ],
       ),
     );
@@ -222,7 +218,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
           boxShadow: const [
             BoxShadow(
               color: Color.fromRGBO(16, 24, 40, 0.04),
@@ -259,7 +255,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                               child: Icon(
                                 Icons.image_outlined,
                                 size: 40,
-                                color: Color(0xFF94A3B8),
+                                color: AppTheme.muted,
                               ),
                             ),
                         ],
@@ -287,7 +283,6 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         child: const Text(
                           'LOW STOCK',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             color: Colors.white,
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -313,7 +308,6 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         child: Text(
                           '${product.discountPercentage!.toInt()}% OFF',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             color: Colors.white,
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -342,7 +336,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                       child: const Icon(
                         Icons.edit_rounded,
                         size: 14,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -359,10 +353,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -370,7 +363,6 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     Text(
                       '${formatCurrency.format(product.price)}/$unitLabel',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF9CA3AF),
@@ -380,10 +372,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                   Text(
                     '${formatCurrency.format(product.discountedPrice)}/$unitLabel',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -397,10 +388,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                                     ? 'In Stock'
                                     : 'Out of Stock'),
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
                             color: product.isActive
-                                ? const Color(0xFF22C55E)
+                                ? AppTheme.statusOpen
                                 : const Color(0xFFEF4444),
                           ),
                         ),
@@ -436,10 +426,10 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                                   );
                                 }
                               : null,
-                          activeThumbColor: const Color(0xFF0B372B),
-                          activeTrackColor: const Color(
-                            0xFF0B372B,
-                          ).withValues(alpha: 0.25),
+                          activeThumbColor: AppTheme.primaryGreen,
+                          activeTrackColor: AppTheme.primaryGreen.withValues(
+                            alpha: 0.25,
+                          ),
                         ),
                       ),
                     ],

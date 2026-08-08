@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
@@ -29,14 +30,13 @@ class RecipeStepsList extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       '$number',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -45,11 +45,7 @@ class RecipeStepsList extends StatelessWidget {
                   ),
                 ),
                 if (number < steps.length)
-                  Container(
-                    width: 2,
-                    height: 60,
-                    color: const Color(0xFFE2E8F0),
-                  ),
+                  Container(width: 2, height: 60, color: AppTheme.border),
               ],
             ),
             const SizedBox(width: 16),
@@ -74,7 +70,6 @@ class RecipeStepsList extends StatelessWidget {
                     Text(
                       step.title,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1F2937),
@@ -84,7 +79,6 @@ class RecipeStepsList extends StatelessWidget {
                     Text(
                       step.description,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                         color: Color(0xFF6B7280),

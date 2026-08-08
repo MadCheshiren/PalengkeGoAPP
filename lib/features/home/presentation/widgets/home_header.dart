@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
@@ -47,11 +48,10 @@ class HomeHeader extends ConsumerWidget {
                           Flexible(
                             child: Text(
                               AppLocalizations.of(context).homeDeliveryTo,
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: Color(0xFF6D9773),
+                                color: AppTheme.accentGreen,
                                 letterSpacing: 0.6,
                               ),
                               maxLines: 1,
@@ -62,7 +62,7 @@ class HomeHeader extends ConsumerWidget {
                           const Icon(
                             Icons.keyboard_arrow_down,
                             size: 16,
-                            color: Color(0xFF6D9773),
+                            color: AppTheme.accentGreen,
                           ),
                         ],
                       ),
@@ -77,10 +77,9 @@ class HomeHeader extends ConsumerWidget {
                                 ? currentAddress.primaryAddress
                                 : '${currentAddress.label} • ${currentAddress.primaryAddress}',
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               letterSpacing: -0.6,
                               height: 1.1,
                             ),
@@ -139,8 +138,8 @@ class HomeHeader extends ConsumerWidget {
                   child: Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF6F8F7),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.scaffoldBackground,
                       shape: BoxShape.circle,
                     ),
                     child: ClipOval(
@@ -150,7 +149,7 @@ class HomeHeader extends ConsumerWidget {
                           fit: BoxFit.cover,
                           placeholder: const Icon(
                             Icons.person,
-                            color: Color(0xFF94A3B8),
+                            color: AppTheme.muted,
                             size: 24,
                           ),
                         ),
@@ -158,7 +157,7 @@ class HomeHeader extends ConsumerWidget {
                             const CircularProgressIndicator(strokeWidth: 2),
                         error: (_, _) => const Icon(
                           Icons.person,
-                          color: Color(0xFF94A3B8),
+                          color: AppTheme.muted,
                           size: 24,
                         ),
                       ),
@@ -253,7 +252,7 @@ class _ShakingNotificationIconState extends State<_ShakingNotificationIcon>
                 ? Icons.notifications_rounded
                 : Icons.notifications_none_rounded,
             size: 24,
-            color: const Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
           if (widget.unreadCount > 0)
             Positioned(
@@ -272,7 +271,6 @@ class _ShakingNotificationIconState extends State<_ShakingNotificationIcon>
                 child: Text(
                   '${widget.unreadCount}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,

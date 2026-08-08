@@ -15,9 +15,7 @@ void main() {
     MockCartRepository.clearTestState();
   });
 
-  Widget buildCard({
-    required VendorProduct product,
-  }) {
+  Widget buildCard({required VendorProduct product}) {
     return ProviderScope(
       overrides: [cartRepositoryProvider.overrideWithValue(cartRepository)],
       child: MaterialApp(
@@ -52,9 +50,7 @@ void main() {
     testWidgets(
       'out-of-stock product shows disabled state and does not open cart sheet',
       (tester) async {
-        await tester.pumpWidget(
-          buildCard(product: product(stockQuantity: 0)),
-        );
+        await tester.pumpWidget(buildCard(product: product(stockQuantity: 0)));
 
         expect(find.text('Out of stock'), findsOneWidget);
 
@@ -69,9 +65,7 @@ void main() {
     testWidgets(
       'low-stock product shows remaining stock and opens add-to-cart sheet',
       (tester) async {
-        await tester.pumpWidget(
-          buildCard(product: product(stockQuantity: 3)),
-        );
+        await tester.pumpWidget(buildCard(product: product(stockQuantity: 3)));
 
         expect(find.text('Only 3 left'), findsOneWidget);
 

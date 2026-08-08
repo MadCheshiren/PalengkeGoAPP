@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class SalesReportScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -28,13 +29,13 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                       width: 32,
                       height: 32,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFF6F8F7),
+                        color: AppTheme.scaffoldBackground,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 16,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -42,7 +43,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                   const Text(
                     'Sales Report',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -67,7 +67,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,10 +75,9 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                     Text(
                       _selectedTab == 'Weekly' ? '₱12,450.00' : '₱48,200.00',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -87,7 +86,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           ? 'Total Sales this week'
                           : 'Total Sales this month',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         color: Color(0xFF6B7280),
                       ),
@@ -102,7 +100,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               const Text(
                 'Top Selling Items',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -129,13 +126,12 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFF3F4F6),
+          color: isSelected ? AppTheme.primaryGreen : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF6B7280),
@@ -167,7 +163,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 height: 100 * values[index],
                 decoration: BoxDecoration(
                   color: index == (tab == 'Weekly' ? 5 : 3)
-                      ? const Color(0xFF0B372B)
+                      ? AppTheme.primaryGreen
                       : const Color(0xFFD5E7DE),
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -175,11 +171,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               const SizedBox(height: 8),
               Text(
                 labels[index],
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 10,
-                  color: Color(0xFF9CA3AF),
-                ),
+                style: const TextStyle(fontSize: 10, color: Color(0xFF9CA3AF)),
               ),
             ],
           );
@@ -194,7 +186,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -202,17 +194,16 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppTheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
             child: Text(
               '#$rank',
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
           ),
@@ -224,7 +215,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 Text(
                   name,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -234,7 +224,6 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                 Text(
                   sold,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     color: Color(0xFF6B7280),
                   ),
@@ -245,10 +234,9 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           Text(
             revenue,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
         ],

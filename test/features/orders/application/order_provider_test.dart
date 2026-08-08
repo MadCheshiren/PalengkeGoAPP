@@ -16,10 +16,7 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    expect(
-      container.read(orderServiceProvider.notifier),
-      isA<OrderService>(),
-    );
+    expect(container.read(orderServiceProvider.notifier), isA<OrderService>());
 
     final orders = await container.read(orderServiceProvider.future);
     expect(orders, isEmpty);

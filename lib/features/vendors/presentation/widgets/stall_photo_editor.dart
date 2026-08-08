@@ -1,4 +1,5 @@
 // import 'dart:io'; (removed)
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/utils/image_picker_helper.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -60,7 +61,7 @@ class StallPhotoEditor extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFD5E7DE),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    border: Border.all(color: AppTheme.border),
                     image: bannerImage != null && bannerImage!.isNotEmpty
                         ? DecorationImage(
                             image: adaptiveImageProvider(bannerImage)!,
@@ -78,16 +79,15 @@ class StallPhotoEditor extends StatelessWidget {
                               Icon(
                                 Icons.add_photo_alternate_outlined,
                                 size: 32,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                               SizedBox(height: 4),
                               Text(
                                 'Add Cover Photo',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 ),
                               ),
                             ],
@@ -149,7 +149,7 @@ class StallPhotoEditor extends StatelessWidget {
                               ? const Icon(
                                   Icons.storefront_rounded,
                                   size: 38,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 )
                               : null,
                         ),
@@ -163,7 +163,7 @@ class StallPhotoEditor extends StatelessWidget {
                             width: 28,
                             height: 28,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
                             ),
@@ -190,9 +190,9 @@ class StallPhotoEditor extends StatelessWidget {
             height: 160,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppTheme.border),
               image: thumbnailImage != null && thumbnailImage!.isNotEmpty
                   ? DecorationImage(
                       image: adaptiveImageProvider(thumbnailImage)!,
@@ -210,25 +210,23 @@ class StallPhotoEditor extends StatelessWidget {
                         Icon(
                           Icons.image_outlined,
                           size: 32,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                         SizedBox(height: 4),
                         Text(
                           'Add Market Thumbnail',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                         SizedBox(height: 4),
                         Text(
                           'This shows on the market stalls list',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
-                            color: Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ],

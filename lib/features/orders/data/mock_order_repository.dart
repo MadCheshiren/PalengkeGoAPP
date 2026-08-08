@@ -67,14 +67,14 @@ class MockOrderRepository implements OrderRepository {
         final productIndex = MockDataService.products.indexWhere(
           (p) => p['name'] == item.productName && p['vendorId'] == vendorId,
         );
-if (productIndex == -1) continue;
+        if (productIndex == -1) continue;
         deductStock(
           // Seed products carry no stockQuantity; the mock treats an absent
           // value as 15.0 (same default as MockDataService stock helpers).
           stockQuantity:
               (MockDataService.products[productIndex]['stockQuantity'] as num?)
-                      ?.toDouble() ??
-                  15.0,
+                  ?.toDouble() ??
+              15.0,
           requestedQuantity: item.quantity,
           unit: MockDataService.products[productIndex]['unit'] as String? ?? '',
           productName: item.productName,

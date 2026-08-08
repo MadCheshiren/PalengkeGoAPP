@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 
@@ -46,16 +47,15 @@ class LoginRequiredSheet extends StatelessWidget {
             const Icon(
               Icons.account_circle_outlined,
               size: 64,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
             const SizedBox(height: 16),
             Text(
               title,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
             const SizedBox(height: 8),
@@ -63,9 +63,8 @@ class LoginRequiredSheet extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
-                color: Color(0xFF64748B),
+                color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 32),
@@ -84,7 +83,7 @@ class LoginRequiredSheet extends StatelessWidget {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B372B),
+                  backgroundColor: AppTheme.primaryGreen,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50),
                   ),
@@ -92,7 +91,6 @@ class LoginRequiredSheet extends StatelessWidget {
                 child: const Text(
                   'Log In',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -116,7 +114,7 @@ class LoginRequiredSheet extends StatelessWidget {
                   }
                 },
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF0B372B)),
+                  side: const BorderSide(color: AppTheme.primaryGreen),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50),
                   ),
@@ -124,10 +122,9 @@ class LoginRequiredSheet extends StatelessWidget {
                 child: const Text(
                   'Register',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
               ),

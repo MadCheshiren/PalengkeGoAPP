@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
 
@@ -27,12 +28,12 @@ class CheckoutFooter extends StatelessWidget {
           child: ElevatedButton(
             onPressed: enabled ? onPlaceOrder : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0B372B),
+              backgroundColor: AppTheme.primaryGreen,
               foregroundColor: Colors.white,
               disabledBackgroundColor: const Color(0xFFCBD5E1),
               disabledForegroundColor: Colors.white70,
               elevation: 6,
-              shadowColor: const Color(0xFF0B372B).withValues(alpha: 0.18),
+              shadowColor: AppTheme.primaryGreen.withValues(alpha: 0.18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -46,7 +47,6 @@ class CheckoutFooter extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),

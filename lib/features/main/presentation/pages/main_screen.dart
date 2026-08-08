@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
@@ -155,40 +156,26 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: Row(
+            title: const Row(
               children: [
-                const Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.green,
-                  size: 28,
-                ),
-                const SizedBox(width: 10),
-                const Text(
+                Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
+                SizedBox(width: 10),
+                Text(
                   'Application Approved!',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
             content: const Text(
               'Congratulations! Your application has been approved by MEPO. Your stall is now active and ready for business.',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                color: Color(0xFF475569),
-              ),
+              style: TextStyle(fontSize: 14, color: Color(0xFF475569)),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
                 child: const Text(
                   'Dismiss',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    color: Color(0xFF64748B),
-                  ),
+                  style: TextStyle(color: AppTheme.textSecondary),
                 ),
               ),
               ElevatedButton(
@@ -215,7 +202,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B372B),
+                  backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -223,10 +210,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 ),
                 child: const Text(
                   'Manage Stall',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ],

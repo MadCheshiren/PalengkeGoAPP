@@ -64,7 +64,7 @@ void main() {
     MockCartRepository.clearTestState();
     cartRepository = MockCartRepository()
       ..addToCart(
-        CartItem(
+        const CartItem(
           productId: 'm1',
           vendorName: 'Diosa Fruit Stand',
           productName: 'Sweet Mangoes',

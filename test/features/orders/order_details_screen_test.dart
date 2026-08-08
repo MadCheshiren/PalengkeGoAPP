@@ -21,25 +21,25 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // ---------------------------------------------------------------------------
 
 MarketOrder _order(String id) => MarketOrder(
-      id: id,
-      vendorName: 'Diosa Fruit Stand',
-      vendorImage: '',
-      status: OrderStatus.pending,
-      paymentStatus: PaymentStatus.pending,
-      fulfillmentMethod: FulfillmentMethod.pickup,
-      placedAt: DateTime.now(),
-      deliveryFee: 0,
-      serviceFee: 15,
-      items: const [
-        OrderLineItem(
-          productId: 'p1',
-          productName: 'Pineapple',
-          quantity: 1,
-          unitPrice: 55,
-          unit: 'pc',
-        ),
-      ],
-    );
+  id: id,
+  vendorName: 'Diosa Fruit Stand',
+  vendorImage: '',
+  status: OrderStatus.pending,
+  paymentStatus: PaymentStatus.pending,
+  fulfillmentMethod: FulfillmentMethod.pickup,
+  placedAt: DateTime.now(),
+  deliveryFee: 0,
+  serviceFee: 15,
+  items: const [
+    OrderLineItem(
+      productId: 'p1',
+      productName: 'Pineapple',
+      quantity: 1,
+      unitPrice: 55,
+      unit: 'pc',
+    ),
+  ],
+);
 
 Widget _buildWidget(ProviderContainer container, MarketOrder order) {
   return UncontrolledProviderScope(

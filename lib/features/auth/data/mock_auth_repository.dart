@@ -108,7 +108,7 @@ class MockAuthRepository implements AuthRepository {
   Future<AppUser> signInWithGoogle() async {
     // Mock: simulate a Google OAuth login as a customer.
     await Future.delayed(const Duration(milliseconds: 400));
-    _currentUser = AppUser(
+    _currentUser = const AppUser(
       uid: 'google-mock-001',
       email: 'google.user@gmail.com',
       displayName: 'Google User',

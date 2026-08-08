@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
@@ -44,7 +45,7 @@ class OrderConfirmationScreen extends ConsumerWidget {
                       width: 80,
                       height: 80,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -62,10 +63,9 @@ class OrderConfirmationScreen extends ConsumerWidget {
                           : 'Order Placed\nSuccessfully!',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                         height: 1.2,
                       ),
                     ),
@@ -77,7 +77,6 @@ class OrderConfirmationScreen extends ConsumerWidget {
                           ? 'Order Numbers: ${orders.map((o) => o.id).join(', ')}'
                           : 'Order Number: ${orders.isNotEmpty ? orders.first.id : ''}',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
@@ -139,7 +138,7 @@ class OrderConfirmationScreen extends ConsumerWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0B372B),
+                        backgroundColor: AppTheme.primaryGreen,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -150,7 +149,6 @@ class OrderConfirmationScreen extends ConsumerWidget {
                             ? 'View Active Orders'
                             : (isPickup ? 'Track Stall' : 'Track My Order'),
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -172,8 +170,8 @@ class OrderConfirmationScreen extends ConsumerWidget {
                         );
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF0B372B),
-                        side: const BorderSide(color: Color(0xFF0B372B)),
+                        foregroundColor: AppTheme.primaryGreen,
+                        side: const BorderSide(color: AppTheme.primaryGreen),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -181,7 +179,6 @@ class OrderConfirmationScreen extends ConsumerWidget {
                       child: const Text(
                         'Back to Home',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),

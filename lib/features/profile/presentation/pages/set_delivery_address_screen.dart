@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -111,9 +112,9 @@ class _SetDeliveryAddressScreenState
       backgroundColor: Colors.white,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final bottomSheetHeight = 420.0; // Approximate height of bottom sheet
-          final headerHeight = 60.0; // SafeArea + padding
-          final visibleMapTop = headerHeight;
+          const bottomSheetHeight = 420.0; // Approximate height of bottom sheet
+          const headerHeight = 60.0; // SafeArea + padding
+          const visibleMapTop = headerHeight;
           final visibleMapBottom = constraints.maxHeight - bottomSheetHeight;
           final visibleMapCenter = (visibleMapTop + visibleMapBottom) / 2;
           final pinTopPosition =
@@ -160,10 +161,9 @@ class _SetDeliveryAddressScreenState
                       child: const Text(
                         'Move pin to adjust',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -172,14 +172,14 @@ class _SetDeliveryAddressScreenState
                     const Icon(
                       Icons.location_on,
                       size: 48,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                     // Pin shadow
                     Container(
                       width: 20,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0B372B).withValues(alpha: 0.3),
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -212,7 +212,7 @@ class _SetDeliveryAddressScreenState
                           child: const Icon(
                             Icons.arrow_back_ios_new_rounded,
                             size: 18,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                       ),
@@ -220,10 +220,9 @@ class _SetDeliveryAddressScreenState
                       const Text(
                         'Set Delivery Address',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ],
@@ -279,9 +278,9 @@ class _SetDeliveryAddressScreenState
                                     height: 5,
                                     margin: const EdgeInsets.only(bottom: 16),
                                     decoration: BoxDecoration(
-                                      color: const Color(
-                                        0xFF94A3B8,
-                                      ).withValues(alpha: 0.5),
+                                      color: AppTheme.muted.withValues(
+                                        alpha: 0.5,
+                                      ),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
@@ -309,9 +308,8 @@ class _SetDeliveryAddressScreenState
                                         width: 44,
                                         height: 44,
                                         decoration: BoxDecoration(
-                                          color: const Color(
-                                            0xFF0B372B,
-                                          ).withValues(alpha: 0.1),
+                                          color: AppTheme.primaryGreen
+                                              .withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
@@ -319,7 +317,7 @@ class _SetDeliveryAddressScreenState
                                         child: const Icon(
                                           Icons.near_me,
                                           size: 24,
-                                          color: Color(0xFF0B372B),
+                                          color: AppTheme.primaryGreen,
                                         ),
                                       ),
                                       const SizedBox(width: 12),
@@ -331,10 +329,9 @@ class _SetDeliveryAddressScreenState
                                             const Text(
                                               'PIN DROPPED NEAR',
                                               style: TextStyle(
-                                                fontFamily: 'PlusJakartaSans',
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w600,
-                                                color: Color(0xFF94A3B8),
+                                                color: AppTheme.muted,
                                                 letterSpacing: 0.5,
                                               ),
                                             ),
@@ -350,14 +347,12 @@ class _SetDeliveryAddressScreenState
                                                 border: InputBorder.none,
                                                 hintText: 'Enter City/Area',
                                                 hintStyle: TextStyle(
-                                                  fontFamily: 'PlusJakartaSans',
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w400,
-                                                  color: Color(0xFF94A3B8),
+                                                  color: AppTheme.muted,
                                                 ),
                                               ),
                                               style: const TextStyle(
-                                                fontFamily: 'PlusJakartaSans',
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w700,
                                                 color: Color(0xFF1F2937),
@@ -406,7 +401,7 @@ class _SetDeliveryAddressScreenState
                                       icon: Icon(
                                         _selectedCustomIcon ??
                                             Icons.add_reaction_outlined,
-                                        color: const Color(0xFF0B372B),
+                                        color: AppTheme.primaryGreen,
                                       ),
                                       onPressed: () => _showIconPicker(context),
                                     ),
@@ -472,7 +467,7 @@ class _SetDeliveryAddressScreenState
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0B372B),
+                                      backgroundColor: AppTheme.primaryGreen,
                                       foregroundColor: Colors.white,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
@@ -482,7 +477,6 @@ class _SetDeliveryAddressScreenState
                                     child: const Text(
                                       'Confirm Address',
                                       style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -531,10 +525,9 @@ class _SetDeliveryAddressScreenState
             const Text(
               'Select Label Icon',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
             const SizedBox(height: 16),
@@ -554,15 +547,13 @@ class _SetDeliveryAddressScreenState
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF0B372B)
-                          : const Color(0xFFF1F5F9),
+                          ? AppTheme.primaryGreen
+                          : AppTheme.surfaceContainerLow,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF64748B),
+                      color: isSelected ? Colors.white : AppTheme.textSecondary,
                       size: 24,
                     ),
                   ),
@@ -590,9 +581,7 @@ class _SetDeliveryAddressScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF0B372B).withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -609,12 +598,11 @@ class _SetDeliveryAddressScreenState
             leading: const Icon(
               Icons.location_city_rounded,
               size: 18,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
             title: Text(
               '$barangay, Naga City',
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1E293B),
@@ -688,7 +676,7 @@ class _SetDeliveryAddressScreenState
               avatar: Icon(
                 label['icon'] as IconData,
                 size: 16,
-                color: isSelected ? Colors.white : const Color(0xFF0B372B),
+                color: isSelected ? Colors.white : AppTheme.primaryGreen,
               ),
               selected: isSelected,
               onSelected: (selected) {
@@ -704,20 +692,17 @@ class _SetDeliveryAddressScreenState
                   }
                 });
               },
-              selectedColor: const Color(0xFF0B372B),
+              selectedColor: AppTheme.primaryGreen,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF0B372B),
-                fontFamily: 'PlusJakartaSans',
+                color: isSelected ? Colors.white : AppTheme.primaryGreen,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
-              backgroundColor: const Color(0xFFF8FAFC),
+              backgroundColor: AppTheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
-                  color: isSelected
-                      ? Colors.transparent
-                      : const Color(0xFFE2E8F0),
+                  color: isSelected ? Colors.transparent : AppTheme.border,
                 ),
               ),
               showCheckmark: false,
@@ -732,10 +717,9 @@ class _SetDeliveryAddressScreenState
     return Text(
       label,
       style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF64748B),
+        color: AppTheme.textSecondary,
         letterSpacing: 0.5,
       ),
     );
@@ -750,9 +734,9 @@ class _SetDeliveryAddressScreenState
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: TextFormField(
         controller: controller,
@@ -761,16 +745,11 @@ class _SetDeliveryAddressScreenState
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF94A3B8),
+            color: AppTheme.muted,
           ),
-          prefixIcon: Icon(
-            prefixIcon,
-            size: 20,
-            color: const Color(0xFF94A3B8),
-          ),
+          prefixIcon: Icon(prefixIcon, size: 20, color: AppTheme.muted),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -804,7 +783,7 @@ class MapGridPainter extends CustomPainter {
 
     // Draw some "roads" as thicker lines
     final roadPaint = Paint()
-      ..color = const Color(0xFFE2E8F0)
+      ..color = AppTheme.border
       ..strokeWidth = 3;
 
     // Main roads

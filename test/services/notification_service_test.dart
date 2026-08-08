@@ -19,17 +19,21 @@ void main() {
       expect(service.all, isNotEmpty);
     });
 
-    test('customerUnreadCount only counts customer/both-targeted notifications',
-        () {
-      // All demo notifications should be either customer, vendor, or both.
-      // Just verify the count is a non-negative integer.
-      expect(service.customerUnreadCount, greaterThanOrEqualTo(0));
-    });
+    test(
+      'customerUnreadCount only counts customer/both-targeted notifications',
+      () {
+        // All demo notifications should be either customer, vendor, or both.
+        // Just verify the count is a non-negative integer.
+        expect(service.customerUnreadCount, greaterThanOrEqualTo(0));
+      },
+    );
 
-    test('vendorUnreadCount only counts vendor/both-targeted notifications',
-        () {
-      expect(service.vendorUnreadCount, greaterThanOrEqualTo(0));
-    });
+    test(
+      'vendorUnreadCount only counts vendor/both-targeted notifications',
+      () {
+        expect(service.vendorUnreadCount, greaterThanOrEqualTo(0));
+      },
+    );
 
     test('markAsRead reduces unread customer count', () {
       // Find a customer-visible unread notification

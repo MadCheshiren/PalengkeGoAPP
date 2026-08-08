@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
@@ -42,7 +43,7 @@ class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen>
     return AuthGuard(
       allowedRoles: {UserRole.vendor},
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppTheme.surface,
         body: SafeArea(
           child: Column(
             children: [
@@ -51,17 +52,15 @@ class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TabBar(
                   controller: _tabController,
-                  labelColor: const Color(0xFF0B372B),
+                  labelColor: AppTheme.primaryGreen,
                   unselectedLabelColor: const Color(0xFF9CA3AF),
-                  indicatorColor: const Color(0xFF0B372B),
+                  indicatorColor: AppTheme.primaryGreen,
                   indicatorWeight: 2,
                   labelStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                   unselectedLabelStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -112,10 +111,9 @@ class _VendorOrdersTab extends ConsumerWidget {
             child: Text(
               'No orders in this tab yet.',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF64748B),
+                color: AppTheme.textSecondary,
               ),
             ),
           );
@@ -145,7 +143,7 @@ class _VendorOrdersTab extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +165,6 @@ class _VendorOrdersTab extends ConsumerWidget {
                               child: Text(
                                 order.statusLabel,
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: statusColor,
@@ -178,9 +175,8 @@ class _VendorOrdersTab extends ConsumerWidget {
                             Text(
                               order.isPickup ? 'Pick-Up' : 'Delivery',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
-                                color: Color(0xFF64748B),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                           ],
@@ -188,10 +184,9 @@ class _VendorOrdersTab extends ConsumerWidget {
                         Text(
                           formatCurrency.format(order.total),
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                       ],
@@ -205,7 +200,6 @@ class _VendorOrdersTab extends ConsumerWidget {
                             Text(
                               'Order ${order.id}',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF111827),
@@ -225,21 +219,20 @@ class _VendorOrdersTab extends ConsumerWidget {
                                     color: const Color(0xFFF59E0B),
                                   ),
                                 ),
-                                child: Row(
-                                  children: const [
+                                child: const Row(
+                                  children: [
                                     Icon(
                                       Icons.bolt_rounded,
                                       size: 12,
-                                      color: Color(0xFFB45309),
+                                      color: AppTheme.warning,
                                     ),
                                     SizedBox(width: 2),
                                     Text(
                                       'PRIORITY',
                                       style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
                                         fontSize: 10,
                                         fontWeight: FontWeight.w800,
-                                        color: Color(0xFFB45309),
+                                        color: AppTheme.warning,
                                       ),
                                     ),
                                   ],
@@ -251,9 +244,8 @@ class _VendorOrdersTab extends ConsumerWidget {
                         Text(
                           DateFormat('MMM d, hh:mm a').format(order.placedAt),
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 11,
-                            color: Color(0xFF94A3B8),
+                            color: AppTheme.muted,
                           ),
                         ),
                       ],
@@ -262,20 +254,18 @@ class _VendorOrdersTab extends ConsumerWidget {
                     Text(
                       order.customerName,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
-                    const Divider(height: 16, color: Color(0xFFE2E8F0)),
+                    const Divider(height: 16, color: AppTheme.border),
                     Text(
                       'Items (${order.items.length})',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -285,9 +275,8 @@ class _VendorOrdersTab extends ConsumerWidget {
                         child: Text(
                           '• ${item.quantityLabel} ${item.productName}',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 12,
-                            color: Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ),
@@ -318,17 +307,15 @@ class _VendorOrdersTab extends ConsumerWidget {
                                   const Text(
                                     'Special Instructions:',
                                     style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFFB45309),
+                                      color: AppTheme.warning,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     order.notes!,
                                     style: const TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 13,
                                       color: Color(0xFF78350F),
                                       height: 1.4,
@@ -358,18 +345,18 @@ class _VendorOrdersTab extends ConsumerWidget {
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
       case OrderStatus.pending:
-        return const Color(0xFFFFB902);
+        return AppTheme.starRating;
       case OrderStatus.preparing:
         return const Color(0xFF3B82F6);
       case OrderStatus.ready:
-        return const Color(0xFF22C55E);
+        return AppTheme.statusOpen;
       case OrderStatus.completed:
-        return const Color(0xFF22C55E);
+        return AppTheme.statusOpen;
       case OrderStatus.cancelled:
       case OrderStatus.rejected:
         return const Color(0xFFEF4444);
       default:
-        return const Color(0xFF64748B);
+        return AppTheme.textSecondary;
     }
   }
 }
@@ -438,7 +425,6 @@ class _VendorOrderActions extends ConsumerWidget {
                       title: const Text(
                         'Accept Order & Set Prep Time',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -450,9 +436,8 @@ class _VendorOrderActions extends ConsumerWidget {
                           const Text(
                             'Enter estimated preparation time in minutes:',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
-                              color: Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -480,7 +465,7 @@ class _VendorOrderActions extends ConsumerWidget {
                             'Accept',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                         ),
@@ -527,8 +512,8 @@ class _VendorOrderActions extends ConsumerWidget {
             child: _buildActionButton(
               label: 'Edit Time',
               isPrimary: false,
-              backgroundColor: const Color(0xFFF1F5F9),
-              textColor: const Color(0xFF64748B),
+              backgroundColor: AppTheme.surfaceContainerLow,
+              textColor: AppTheme.textSecondary,
               icon: Icons.access_time_outlined,
               onTap: () async {
                 final messenger = ScaffoldMessenger.of(context);
@@ -540,7 +525,6 @@ class _VendorOrderActions extends ConsumerWidget {
                       title: const Text(
                         'Estimated Prep Time (mins)',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
@@ -602,8 +586,8 @@ class _VendorOrderActions extends ConsumerWidget {
             child: _buildActionButton(
               label: 'Mark Ready',
               isPrimary: false,
-              backgroundColor: const Color(0xFFF1F5F9),
-              textColor: const Color(0xFF64748B),
+              backgroundColor: AppTheme.surfaceContainerLow,
+              textColor: AppTheme.textSecondary,
               icon: Icons.inventory_2_outlined,
               onTap: () => _runAction(
                 context,
@@ -649,10 +633,10 @@ class _VendorOrderActions extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isPrimary
-              ? const Color(0xFF0B372B)
+              ? AppTheme.primaryGreen
               : (backgroundColor ?? Colors.white),
           borderRadius: BorderRadius.circular(12),
-          border: isPrimary ? null : Border.all(color: const Color(0xFFE2E8F0)),
+          border: isPrimary ? null : Border.all(color: AppTheme.border),
         ),
         child: Center(
           child: icon != null
@@ -662,16 +646,15 @@ class _VendorOrderActions extends ConsumerWidget {
                     Icon(
                       icon,
                       size: 16,
-                      color: textColor ?? const Color(0xFF64748B),
+                      color: textColor ?? AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       label,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: textColor ?? const Color(0xFF0B372B),
+                        color: textColor ?? AppTheme.primaryGreen,
                       ),
                     ),
                   ],
@@ -679,12 +662,11 @@ class _VendorOrderActions extends ConsumerWidget {
               : Text(
                   label,
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: isPrimary
                         ? Colors.white
-                        : (textColor ?? const Color(0xFF0B372B)),
+                        : (textColor ?? AppTheme.primaryGreen),
                   ),
                 ),
         ),
