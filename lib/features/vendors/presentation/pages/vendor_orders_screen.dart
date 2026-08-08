@@ -10,6 +10,7 @@ import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_order_details_screen.dart';
+import 'package:palengkego/features/vendors/presentation/widgets/vendor_order_status_badge.dart';
 
 import '../widgets/vendor_screen_header.dart';
 
@@ -124,7 +125,6 @@ class _VendorOrdersTab extends ConsumerWidget {
           itemCount: orders.length,
           itemBuilder: (context, index) {
             final order = orders[index];
-            final statusColor = _getStatusColor(order.status);
             final formatCurrency = NumberFormat.currency(
               symbol: '₱',
               decimalDigits: 2,
@@ -153,24 +153,7 @@ class _VendorOrdersTab extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                order.statusLabel,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ),
+                            VendorOrderStatusBadge(status: order.status),
                             const SizedBox(width: 8),
                             Text(
                               order.isPickup ? 'Pick-Up' : 'Delivery',
@@ -340,24 +323,6 @@ class _VendorOrdersTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(child: Text('Error: $error')),
     );
-  }
-
-  Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.pending:
-        return AppTheme.starRating;
-      case OrderStatus.preparing:
-        return const Color(0xFF3B82F6);
-      case OrderStatus.ready:
-        return AppTheme.statusOpen;
-      case OrderStatus.completed:
-        return AppTheme.statusOpen;
-      case OrderStatus.cancelled:
-      case OrderStatus.rejected:
-        return const Color(0xFFEF4444);
-      default:
-        return AppTheme.textSecondary;
-    }
   }
 }
 
