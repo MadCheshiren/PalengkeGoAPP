@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
@@ -22,7 +23,7 @@ class VendorNotificationsScreen extends ConsumerWidget {
           final unreadCount = notifService.vendorUnreadCount;
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF8FAFC),
+            backgroundColor: AppTheme.surface,
             body: SafeArea(
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -42,14 +43,14 @@ class VendorNotificationsScreen extends ConsumerWidget {
                                   width: 40,
                                   height: 40,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFFF1F5F9),
+                                    color: AppTheme.surfaceContainerLow,
                                     shape: BoxShape.circle,
                                   ),
                                   alignment: Alignment.center,
                                   child: const Icon(
                                     Icons.arrow_back_ios_new_rounded,
                                     size: 16,
-                                    color: Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                   ),
                                 ),
                               ),
@@ -57,10 +58,9 @@ class VendorNotificationsScreen extends ConsumerWidget {
                               const Text(
                                 'Notifications',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 ),
                               ),
                             ],
@@ -82,10 +82,9 @@ class VendorNotificationsScreen extends ConsumerWidget {
                                 child: const Text(
                                   'Mark all read',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                   ),
                                 ),
                               ),
@@ -164,7 +163,7 @@ class _EmptyVendorNotifications extends StatelessWidget {
             ),
             child: const Icon(
               Icons.check_circle_rounded,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
               size: 36,
             ),
           ),
@@ -172,20 +171,15 @@ class _EmptyVendorNotifications extends StatelessWidget {
           const Text(
             'All alerts cleared!',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'New order alerts will appear here.',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
         ],
       ),
@@ -221,9 +215,9 @@ class _VendorNotificationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(
-                0xFF0B372B,
-              ).withValues(alpha: isRead ? 0.04 : 0.12),
+              color: AppTheme.primaryGreen.withValues(
+                alpha: isRead ? 0.04 : 0.12,
+              ),
               blurRadius: isRead ? 6 : 16,
               offset: const Offset(0, 2),
             ),
@@ -256,14 +250,13 @@ class _VendorNotificationCard extends StatelessWidget {
                         child: Text(
                           notification.title,
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
                             fontWeight: isRead
                                 ? FontWeight.w500
                                 : FontWeight.w700,
                             color: isRead
                                 ? const Color(0xFF6B7280)
-                                : const Color(0xFF0B372B),
+                                : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
                         ),
@@ -286,7 +279,6 @@ class _VendorNotificationCard extends StatelessWidget {
                   Text(
                     notification.body,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
@@ -314,7 +306,6 @@ class _VendorNotificationCard extends StatelessWidget {
                         child: Text(
                           _relativeTime(notification.createdAt),
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: isRead
@@ -339,7 +330,6 @@ class _VendorNotificationCard extends StatelessWidget {
                             child: Text(
                               'Mark read',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: config.accent,
@@ -425,7 +415,6 @@ class _VendorProTip extends StatelessWidget {
                 Text(
                   'Stall Holder Pro-Tip',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF0369A1),
@@ -435,7 +424,6 @@ class _VendorProTip extends StatelessWidget {
                 Text(
                   'Keeping your inventory updated reduces order cancellations and builds buyer trust.',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF075985),
@@ -482,12 +470,12 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
     final horizontalPadding = 16.0 * (1.0 - progress);
     final isAllCaughtUp = unreadCount == 0;
     final bannerColor = isAllCaughtUp
-        ? const Color(0xFF6D9773)
-        : const Color(0xFF0B372B);
+        ? AppTheme.accentGreen
+        : AppTheme.primaryGreen;
 
     return SizedBox.expand(
       child: Container(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: Container(
@@ -524,7 +512,6 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                           ? 'STALL OPERATIONAL STATUS'
                           : 'URGENT NOTIFICATIONS',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: Color(0xB2FFFFFF),
@@ -537,7 +524,6 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                           ? 'All alerts cleared! Nice job.'
                           : '$unreadCount critical tasks require attention',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,

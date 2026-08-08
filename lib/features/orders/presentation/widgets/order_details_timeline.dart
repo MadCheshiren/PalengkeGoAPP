@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 
@@ -33,7 +34,7 @@ class OrderDetailsTimeline extends StatelessWidget {
                   height: 24,
                   decoration: BoxDecoration(
                     color: isCompleted || isActive
-                        ? const Color(0xFF0B372B)
+                        ? AppTheme.primaryGreen
                         : const Color(0xFFE5E7EB),
                     shape: BoxShape.circle,
                   ),
@@ -52,7 +53,7 @@ class OrderDetailsTimeline extends StatelessWidget {
                     width: 2,
                     height: 40,
                     color: isCompleted
-                        ? const Color(0xFF0B372B)
+                        ? AppTheme.primaryGreen
                         : const Color(0xFFE5E7EB),
                   ),
               ],
@@ -65,7 +66,6 @@ class OrderDetailsTimeline extends StatelessWidget {
                   Text(
                     step.label,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: isCompleted || isActive
@@ -78,13 +78,12 @@ class OrderDetailsTimeline extends StatelessWidget {
                     Text(
                       step.subtitle,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: isCompleted
                             ? const Color(0xFF6B7280)
                             : isActive
-                            ? const Color(0xFF0B372B)
+                            ? AppTheme.primaryGreen
                             : const Color(0xFF9CA3AF),
                       ),
                     ),
@@ -114,7 +113,7 @@ class OrderDetailsTimeline extends StatelessWidget {
     }
 
     return [
-      _TimelineStep.completed('Order Placed', 'Order was submitted'),
+      const _TimelineStep.completed('Order Placed', 'Order was submitted'),
       _TimelineStep(
         label: 'Stall Holder Confirmation',
         subtitle: 'Waiting for stall holder confirmation',

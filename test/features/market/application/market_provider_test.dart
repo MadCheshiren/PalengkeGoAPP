@@ -17,49 +17,58 @@ void main() {
       );
     });
 
-    test('searchProductsProvider returns no results for an empty query', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'searchProductsProvider returns no results for an empty query',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      await container.read(allProductsProvider.future);
+        await container.read(allProductsProvider.future);
 
-      expect(await container.read(searchProductsProvider('').future), isEmpty);
-      expect(
-        await container.read(searchProductsProvider('   ').future),
-        isEmpty,
-      );
-    });
+        expect(
+          await container.read(searchProductsProvider('').future),
+          isEmpty,
+        );
+        expect(
+          await container.read(searchProductsProvider('   ').future),
+          isEmpty,
+        );
+      },
+    );
 
-    test('searchProductsProvider filters products by name and category', () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'searchProductsProvider filters products by name and category',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      await container.read(allProductsProvider.future);
+        await container.read(allProductsProvider.future);
 
-      final mangoResults = await container.read(
-        searchProductsProvider('mango').future,
-      );
-      final fruitResults = await container.read(
-        searchProductsProvider('fruit').future,
-      );
+        final mangoResults = await container.read(
+          searchProductsProvider('mango').future,
+        );
+        final fruitResults = await container.read(
+          searchProductsProvider('fruit').future,
+        );
 
-      expect(mangoResults, isNotEmpty);
-      expect(
-        mangoResults.every(
-          (product) => product.name.toLowerCase().contains('mango'),
-        ),
-        isTrue,
-      );
-      expect(fruitResults, isNotEmpty);
-      expect(
-        fruitResults.every(
-          (product) =>
-              product.name.toLowerCase().contains('fruit') ||
-              product.category.toLowerCase().contains('fruit'),
-        ),
-        isTrue,
-      );
-    });
+        expect(mangoResults, isNotEmpty);
+        expect(
+          mangoResults.every(
+            (product) => product.name.toLowerCase().contains('mango'),
+          ),
+          isTrue,
+        );
+        expect(fruitResults, isNotEmpty);
+        expect(
+          fruitResults.every(
+            (product) =>
+                product.name.toLowerCase().contains('fruit') ||
+                product.category.toLowerCase().contains('fruit'),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('searchProductsProvider caps results for the dropdown', () async {
       final container = ProviderContainer();

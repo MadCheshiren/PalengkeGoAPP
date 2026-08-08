@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,7 +95,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             width: 20,
             height: 20,
             colorFilter: const ColorFilter.mode(
-              Color(0xFF0B372B),
+              AppTheme.primaryGreen,
               BlendMode.srcIn,
             ),
           ),
@@ -103,10 +104,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         title: const Text(
           'Edit Profile',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         centerTitle: true,
@@ -114,7 +114,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: SafeArea(
         child: _initialProfile == null
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+                child: CircularProgressIndicator(color: AppTheme.primaryGreen),
               )
             : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -143,9 +143,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               height: 110,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFFF1F5F9),
+                                color: AppTheme.surfaceContainerLow,
                                 border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
+                                  color: AppTheme.border,
                                   width: 1,
                                 ),
                                 boxShadow: [
@@ -164,7 +164,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                         placeholder: const Icon(
                                           Icons.person_rounded,
                                           size: 48,
-                                          color: Color(0xFF94A3B8),
+                                          color: AppTheme.muted,
                                         ),
                                       )
                                     : AdaptiveImage(
@@ -173,7 +173,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                         placeholder: const Icon(
                                           Icons.person_rounded,
                                           size: 48,
-                                          color: Color(0xFF94A3B8),
+                                          color: AppTheme.muted,
                                         ),
                                       ),
                               ),
@@ -185,7 +185,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 width: 34,
                                 height: 34,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: Colors.white,
@@ -253,8 +253,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           const Text(
                             'Phone Number',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              color: Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                               fontWeight: FontWeight.w500,
                               fontSize: 13,
                             ),
@@ -266,10 +265,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               vertical: 16,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
+                              color: AppTheme.surface,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: AppTheme.border,
                                 width: 1.5,
                               ),
                             ),
@@ -278,7 +277,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 const Icon(
                                   Icons.phone_outlined,
                                   size: 22,
-                                  color: Color(0xFF94A3B8),
+                                  color: AppTheme.muted,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -287,7 +286,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                         ? 'No phone number'
                                         : _phoneController.text,
                                     style: const TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                       color: Color(0xFF1E293B),
@@ -317,7 +315,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                       Text(
                                         'Verified',
                                         style: TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
                                           color: Color(0xFF10B981),
@@ -336,10 +333,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   child: const Text(
                                     'Change',
                                     style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0B372B),
+                                      color: AppTheme.primaryGreen,
                                     ),
                                   ),
                                 ),
@@ -381,13 +377,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _saveChanges,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0B372B),
+                            backgroundColor: AppTheme.primaryGreen,
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            disabledBackgroundColor: const Color(0xFF94A3B8),
+                            disabledBackgroundColor: AppTheme.muted,
                           ),
                           child: _isLoading
                               ? const SizedBox(
@@ -403,7 +399,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               : const Text(
                                   'Save Changes',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 0.3,
@@ -433,7 +428,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       keyboardType: keyboardType,
       validator: validator,
       style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 15,
         fontWeight: FontWeight.w500,
         color: Color(0xFF1E293B),
@@ -441,29 +435,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          color: Color(0xFF64748B),
+          color: AppTheme.textSecondary,
           fontWeight: FontWeight.w500,
         ),
         floatingLabelStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          color: Color(0xFF0B372B),
+          color: AppTheme.primaryGreen,
           fontWeight: FontWeight.w600,
         ),
-        prefixIcon: Icon(prefixIcon, size: 22, color: const Color(0xFF94A3B8)),
+        prefixIcon: Icon(prefixIcon, size: 22, color: AppTheme.muted),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppTheme.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+          borderSide: const BorderSide(color: AppTheme.border, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1.5),
+          borderSide: const BorderSide(
+            color: AppTheme.primaryGreen,
+            width: 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -488,7 +483,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
+        border: Border.all(color: AppTheme.surfaceContainerLow, width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -517,17 +512,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           Text(
             label,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
+              color: AppTheme.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: Color(0xFF1E293B),

@@ -155,7 +155,6 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
                             Text(
                               review.customerName,
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF374151),
@@ -171,7 +170,6 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
                             Text(
                               '${review.rating}',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF111827),
@@ -185,7 +183,6 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                             color: Color(0xFF6B7280),

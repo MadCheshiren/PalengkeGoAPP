@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -36,7 +37,7 @@ class VendorAccountScreen extends ConsumerWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   border: Border.all(color: const Color(0xFFD5E7DE), width: 3),
                   image:
                       stall.avatarImage != null && stall.avatarImage!.isNotEmpty
@@ -58,20 +59,18 @@ class VendorAccountScreen extends ConsumerWidget {
               Text(
                 stall.name,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 stall.location,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                 ),
               ),
             ],
@@ -88,17 +87,16 @@ class VendorAccountScreen extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.verified_rounded,
-                  color: Color(0xFF22C55E),
+                  color: AppTheme.statusOpen,
                   size: 14,
                 ),
                 SizedBox(width: 4),
                 Text(
                   'Verified Stall Holder',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF166534),
+                    color: AppTheme.success,
                   ),
                 ),
               ],
@@ -112,7 +110,7 @@ class VendorAccountScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppTheme.border),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -127,7 +125,7 @@ class VendorAccountScreen extends ConsumerWidget {
                   value: '152',
                   label: 'Orders',
                   icon: Icons.receipt_long_rounded,
-                  iconColor: Color(0xFF22C55E),
+                  iconColor: AppTheme.statusOpen,
                 ),
                 _StatItem(
                   value: '28',
@@ -262,7 +260,6 @@ class VendorAccountScreen extends ConsumerWidget {
                   Text(
                     'Log Out',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFFEF4444),
@@ -293,7 +290,7 @@ class VendorAccountScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Row(
           children: [
@@ -301,11 +298,11 @@ class VendorAccountScreen extends ConsumerWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Icon(icon, color: const Color(0xFF0B372B), size: 22),
+              child: Icon(icon, color: AppTheme.primaryGreen, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -315,7 +312,6 @@ class VendorAccountScreen extends ConsumerWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF1F2937),
@@ -325,10 +321,9 @@ class VendorAccountScreen extends ConsumerWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF94A3B8),
+                      color: AppTheme.muted,
                     ),
                   ),
                 ],
@@ -337,7 +332,7 @@ class VendorAccountScreen extends ConsumerWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: Color(0xFF94A3B8),
+              color: AppTheme.muted,
             ),
           ],
         ),
@@ -352,27 +347,18 @@ class VendorAccountScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Log Out',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: const Text(
           'Are you sure you want to log out of your stall holder account?',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            color: Color(0xFF6B7280),
-          ),
+          style: TextStyle(color: Color(0xFF6B7280)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
               'Cancel',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                color: Color(0xFF6B7280),
-              ),
+              style: TextStyle(color: Color(0xFF6B7280)),
             ),
           ),
           ElevatedButton(
@@ -394,10 +380,7 @@ class VendorAccountScreen extends ConsumerWidget {
             ),
             child: const Text(
               'Log Out',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -428,20 +411,18 @@ class _StatItem extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF94A3B8),
+            color: AppTheme.muted,
           ),
         ),
       ],

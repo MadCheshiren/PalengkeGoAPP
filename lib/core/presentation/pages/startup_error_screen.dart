@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 /// Shown instead of the app when startup configuration is invalid for the
@@ -12,6 +13,7 @@ class StartupErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
       home: Scaffold(
         backgroundColor: const Color(0xFFFCFCFD),
         body: Center(
@@ -23,14 +25,13 @@ class StartupErrorScreen extends StatelessWidget {
                 const Icon(
                   Icons.error_outline_rounded,
                   size: 48,
-                  color: Color(0xFFB42318),
+                  color: AppTheme.error,
                 ),
                 const SizedBox(height: 16),
                 const Text(
                   'Startup configuration error',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF101828),
@@ -41,7 +42,6 @@ class StartupErrorScreen extends StatelessWidget {
                   message,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     height: 1.4,
                     color: Color(0xFF475467),

@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -15,8 +16,8 @@ class BackButtonWidget extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
+        decoration: const BoxDecoration(
+          color: Color(0xFFF3F4F6),
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
@@ -25,7 +26,7 @@ class BackButtonWidget extends StatelessWidget {
           width: 16,
           height: 16,
           colorFilter: const ColorFilter.mode(
-            Color(0xFF0B372B),
+            AppTheme.primaryGreen,
             BlendMode.srcIn,
           ),
         ),

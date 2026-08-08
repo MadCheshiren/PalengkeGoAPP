@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -134,7 +135,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
         final serviceFeeAmount = order.serviceFee;
         final totalAmount = order.total;
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: AppTheme.surface,
           bottomNavigationBar:
               (order.status == OrderStatus.pending &&
                   _timeRemaining > Duration.zero)
@@ -149,7 +150,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                           _showCancelDialog();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0B372B),
+                          backgroundColor: AppTheme.primaryGreen,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
@@ -158,7 +159,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                         child: Text(
                           'Cancel Order (${_timeRemaining.inMinutes.toString().padLeft(2, '0')}:${(_timeRemaining.inSeconds % 60).toString().padLeft(2, '0')})',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
@@ -191,13 +191,13 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                             width: 40,
                             height: 40,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
+                              color: AppTheme.surfaceContainerLow,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.arrow_back_ios_new_rounded,
                               size: 18,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                         ),
@@ -205,7 +205,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                         Text(
                           'Order #${order.id}',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1F2937),
@@ -253,7 +252,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                             const Text(
                               'Items List',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF1F2937),
@@ -262,10 +260,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                             Text(
                               '${order.items.length} Items',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                           ],
@@ -343,10 +340,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                           const Text(
                             'Stall Holder Actions',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -394,7 +390,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
       },
       loading: () => const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
         ),
       ),
       error: (err, stack) =>
@@ -428,7 +424,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: textColor,
@@ -493,24 +488,18 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
           ),
           title: const Text(
             'Cancel Order?',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w700),
           ),
           content: const Text(
             'Are you sure you want to cancel this order? This action cannot be undone.',
-            style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+            style: TextStyle(fontSize: 14),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text(
                 'No, Keep It',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  color: Color(0xFF6B7280),
-                ),
+                style: TextStyle(color: Color(0xFF6B7280)),
               ),
             ),
             ElevatedButton(
@@ -524,7 +513,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
               child: const Text(
                 'Yes, Cancel',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
@@ -634,10 +622,7 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text(
         'Cancel Orders',
-        style: TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontWeight: FontWeight.w700,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w700),
       ),
       content: SizedBox(
         width: double.maxFinite,
@@ -647,7 +632,7 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
           children: [
             const Text(
               'Select the active orders you wish to cancel. This action cannot be undone.',
-              style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: 14),
+              style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             Row(
@@ -655,15 +640,11 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
               children: [
                 const Text(
                   'Select All',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 Checkbox(
                   value: allSelected,
-                  activeColor: const Color(0xFF0B372B),
+                  activeColor: AppTheme.primaryGreen,
                   onChanged: (_) => _toggleAll(),
                 ),
               ],
@@ -680,11 +661,10 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
                   return CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
                     controlAffinity: ListTileControlAffinity.trailing,
-                    activeColor: const Color(0xFF0B372B),
+                    activeColor: AppTheme.primaryGreen,
                     title: Text(
                       order.vendorName,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -693,10 +673,7 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
                     ),
                     subtitle: Text(
                       'Order ${order.id} • ₱${order.total.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                      ),
+                      style: const TextStyle(fontSize: 12),
                     ),
                     value: isSelected,
                     onChanged: (val) {
@@ -720,10 +697,7 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text(
             'Cancel',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(color: Color(0xFF6B7280)),
           ),
         ),
         ElevatedButton(
@@ -741,11 +715,7 @@ class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
           ),
           child: const Text(
             'Confirm',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
           ),
         ),
       ],

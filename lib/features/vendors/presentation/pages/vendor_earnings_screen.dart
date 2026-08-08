@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
@@ -81,7 +82,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
     return AuthGuard(
       allowedRoles: {UserRole.vendor},
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppTheme.surface,
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -97,13 +98,13 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                         width: 32,
                         height: 32,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFF6F8F7),
+                          color: AppTheme.scaffoldBackground,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.arrow_back_ios_new_rounded,
                           size: 16,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -111,7 +112,6 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                     const Text(
                       'Earnings',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -130,7 +130,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                         child: const Icon(
                           Icons.file_download_outlined,
                           size: 20,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -185,7 +185,6 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                     const Text(
                       'Daily Sales',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -206,7 +205,6 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.end,
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF9CA3AF),
@@ -251,7 +249,6 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
               const Text(
                 'Export Sales Report',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -265,10 +262,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                 ),
                 title: const Text(
                   'Export as PDF',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -278,14 +272,11 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
               ListTile(
                 leading: const Icon(
                   Icons.table_chart,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
                 title: const Text(
                   'Export as Excel',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -325,7 +316,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('PDF saved directly to: $path'),
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           duration: const Duration(seconds: 4),
         ),
       );
@@ -363,7 +354,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Excel saved directly to: $path'),
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           duration: const Duration(seconds: 4),
         ),
       );
@@ -384,13 +375,12 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFF3F4F6),
+          color: isSelected ? AppTheme.primaryGreen : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF6B7280),
@@ -421,7 +411,7 @@ class _EarningsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -430,17 +420,15 @@ class _EarningsCard extends StatelessWidget {
           const Text(
             'Total Earnings',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF6D9773),
+              color: AppTheme.accentGreen,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             total,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 28,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -455,17 +443,16 @@ class _EarningsCard extends StatelessWidget {
                     : Icons.arrow_downward_rounded,
                 size: 12,
                 color: isPositive
-                    ? const Color(0xFF6D9773)
+                    ? AppTheme.accentGreen
                     : const Color(0xFFEF4444),
               ),
               const SizedBox(width: 4),
               Text(
                 change,
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   color: isPositive
-                      ? const Color(0xFF6D9773)
+                      ? AppTheme.accentGreen
                       : const Color(0xFFEF4444),
                 ),
               ),
@@ -563,13 +550,12 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             _topLabel(),
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -589,8 +575,8 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                           height: barH.clamp(4, _maxBarHeight),
                           decoration: BoxDecoration(
                             color: isHighlighted
-                                ? const Color(0xFF0B372B)
-                                : const Color(0xFFE2E8F0),
+                                ? AppTheme.primaryGreen
+                                : AppTheme.border,
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
@@ -601,13 +587,12 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                     Text(
                       widget.labels[i],
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 9,
                         fontWeight: isHighlighted
                             ? FontWeight.w700
                             : FontWeight.w400,
                         color: isHighlighted
-                            ? const Color(0xFF0B372B)
+                            ? AppTheme.primaryGreen
                             : const Color(0xFF9CA3AF),
                       ),
                     ),

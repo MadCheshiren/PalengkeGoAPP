@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -86,7 +87,6 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                 'Rate ${widget.order.vendorName}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -97,7 +97,6 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                 'How was your experience?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF6B7280),
@@ -134,10 +133,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                 maxLines: 4,
                 decoration: InputDecoration(
                   hintText: 'Share more details about your experience...',
-                  hintStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    color: Color(0xFF9CA3AF),
-                  ),
+                  hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
                   filled: true,
                   fillColor: const Color(0xFFF9FAFB),
                   border: OutlineInputBorder(
@@ -150,7 +146,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF0B372B)),
+                    borderSide: const BorderSide(color: AppTheme.primaryGreen),
                   ),
                 ),
               ),
@@ -246,7 +242,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                           const SnackBar(
                             content: Text(
                               'Thank you for your rating!',
-                              style: TextStyle(fontFamily: 'PlusJakartaSans'),
+                              style: TextStyle(),
                             ),
                           ),
                         );
@@ -264,7 +260,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0B372B),
+                    backgroundColor: AppTheme.primaryGreen,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -273,11 +269,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                   ),
                   child: const Text(
                     'Submit Rating',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

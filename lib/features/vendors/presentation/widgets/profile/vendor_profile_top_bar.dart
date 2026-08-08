@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/block_vendor_dialog.dart';
@@ -25,10 +26,9 @@ class VendorProfileTopBar extends StatelessWidget {
             const Text(
               'Stall Holder Profile',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
             Align(
@@ -104,10 +104,10 @@ class VendorProfileTopBar extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: const BoxDecoration(
-          color: Color(0xFFF6F8F7),
+          color: AppTheme.scaffoldBackground,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 16, color: const Color(0xFF0B372B)),
+        child: Icon(icon, size: 16, color: AppTheme.primaryGreen),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/infrastructure/firebase_service.dart';
@@ -68,9 +69,9 @@ class KycProcessor extends Notifier<void> {
         const SnackBar(
           content: Text(
             'Stall Holder Registration Successful! 🎉 Welcome!',
-            style: TextStyle(fontFamily: 'PlusJakartaSans'),
+            style: TextStyle(),
           ),
-          backgroundColor: Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           duration: Duration(seconds: 4),
         ),
       );

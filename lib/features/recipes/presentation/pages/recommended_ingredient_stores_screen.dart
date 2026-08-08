@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -72,10 +73,10 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                           errorBuilder: (_, _, _) => Container(
                             width: 64,
                             height: 64,
-                            color: const Color(0xFFF1F5F9),
+                            color: AppTheme.surfaceContainerLow,
                             child: const Icon(
                               Icons.restaurant,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.muted,
                             ),
                           ),
                         ),
@@ -98,7 +99,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                               'Stall: ${item.vendor.name}',
                               style: const TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF64748B),
+                                color: AppTheme.textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -108,7 +109,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                           ],
@@ -133,9 +134,9 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: AppTheme.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: AppTheme.border),
                         ),
                         child: Row(
                           children: [
@@ -156,7 +157,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                             IconButton(
                               onPressed: () => setModalState(() => quantity++),
                               icon: const Icon(Icons.add, size: 18),
-                              color: const Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ],
                         ),
@@ -195,7 +196,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              backgroundColor: const Color(0xFF0B372B),
+                              backgroundColor: AppTheme.primaryGreen,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -222,7 +223,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0B372B),
+                        backgroundColor: AppTheme.primaryGreen,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -255,7 +256,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
     final cartItems = ref.watch(cartItemsProvider).value ?? [];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -319,7 +320,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
       ),
       body: recommendationsAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
         ),
         error: (err, stack) =>
             Center(child: Text('Error loading recommendations: $err')),
@@ -328,7 +329,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
             return const Center(
               child: Text(
                 'No stalls found for this ingredient yet.',
-                style: TextStyle(color: Color(0xFF64748B)),
+                style: TextStyle(color: AppTheme.textSecondary),
               ),
             );
           }

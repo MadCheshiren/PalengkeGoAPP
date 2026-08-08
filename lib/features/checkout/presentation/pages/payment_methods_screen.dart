@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -82,7 +83,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               const Text(
                 'Link GCash Account',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -92,7 +92,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               const Text(
                 'Mobile Number',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF374151),
@@ -109,7 +108,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   hintText: 'xxx xxx xxxx',
                   prefixText: '+63 ',
                   prefixStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -162,13 +160,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
                     Navigator.pop(
                       context,
-                      PaymentSelectionResult(method: 'gcash'),
+                      const PaymentSelectionResult(method: 'gcash'),
                     );
                   },
                   child: const Text(
                     'Next',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -207,7 +204,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     const Text(
                       'Select Payment Method',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -286,10 +282,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+          color: isSelected ? const Color(0xFFF0FDF4) : AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: isSelected
-              ? Border.all(color: const Color(0xFF0B372B), width: 2)
+              ? Border.all(color: AppTheme.primaryGreen, width: 2)
               : null,
         ),
         child: Row(
@@ -311,7 +307,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -321,7 +316,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       color: Color(0xFF6B7280),
                     ),
@@ -334,7 +328,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 width: 24,
                 height: 24,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.check, size: 16, color: Colors.white),

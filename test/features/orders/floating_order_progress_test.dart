@@ -20,25 +20,25 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // ---------------------------------------------------------------------------
 
 MarketOrder _order(String id, String vendorName) => MarketOrder(
-      id: id,
-      vendorName: vendorName,
-      vendorImage: '',
-      status: OrderStatus.pending,
-      paymentStatus: PaymentStatus.pending,
-      fulfillmentMethod: FulfillmentMethod.pickup,
-      placedAt: DateTime.now(),
-      deliveryFee: 0,
-      serviceFee: 15,
-      items: const [
-        OrderLineItem(
-          productId: 'p1',
-          productName: 'Carrots',
-          quantity: 1,
-          unitPrice: 50,
-          unit: 'kg',
-        ),
-      ],
-    );
+  id: id,
+  vendorName: vendorName,
+  vendorImage: '',
+  status: OrderStatus.pending,
+  paymentStatus: PaymentStatus.pending,
+  fulfillmentMethod: FulfillmentMethod.pickup,
+  placedAt: DateTime.now(),
+  deliveryFee: 0,
+  serviceFee: 15,
+  items: const [
+    OrderLineItem(
+      productId: 'p1',
+      productName: 'Carrots',
+      quantity: 1,
+      unitPrice: 50,
+      unit: 'kg',
+    ),
+  ],
+);
 
 Widget _buildWidget(ProviderContainer container) {
   return UncontrolledProviderScope(
@@ -80,9 +80,10 @@ void main() {
       final container = _buildContainer();
       // All seeded orders are completed → no active orders.
       SharedOrderStore.orders.addAll([
-        _order('#1', 'Aling Nena Vegetables').copyWith(
-          status: OrderStatus.completed,
-        ),
+        _order(
+          '#1',
+          'Aling Nena Vegetables',
+        ).copyWith(status: OrderStatus.completed),
       ]);
 
       await tester.pumpWidget(_buildWidget(container));
@@ -188,27 +189,26 @@ void main() {
       },
     );
 
-    testWidgets(
-      'tray hides Cancel buttons when cancel window has passed',
-      (tester) async {
-        final container = _buildContainer();
-        SharedOrderStore.orders.addAll([
-          _order('#1', 'Diosa Fruit Stand').copyWith(
-            placedAt: DateTime.now().subtract(const Duration(minutes: 10)),
-          ),
-          _order('#2', "Paul's Meat Shop").copyWith(
-            placedAt: DateTime.now().subtract(const Duration(minutes: 10)),
-          ),
-        ]);
+    testWidgets('tray hides Cancel buttons when cancel window has passed', (
+      tester,
+    ) async {
+      final container = _buildContainer();
+      SharedOrderStore.orders.addAll([
+        _order('#1', 'Diosa Fruit Stand').copyWith(
+          placedAt: DateTime.now().subtract(const Duration(minutes: 10)),
+        ),
+        _order('#2', "Paul's Meat Shop").copyWith(
+          placedAt: DateTime.now().subtract(const Duration(minutes: 10)),
+        ),
+      ]);
 
-        await tester.pumpWidget(_buildWidget(container));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('2 active orders'));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(_buildWidget(container));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2 active orders'));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Cancel'), findsNothing);
-      },
-    );
+      expect(find.text('Cancel'), findsNothing);
+    });
   });
 }
 

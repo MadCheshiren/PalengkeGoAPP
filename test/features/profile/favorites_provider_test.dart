@@ -104,7 +104,9 @@ void main() {
   });
 
   group('favoriteVendorsProvider', () {
-    Future<List<MarketVendor>> readFavorites(ProviderContainer container) async {
+    Future<List<MarketVendor>> readFavorites(
+      ProviderContainer container,
+    ) async {
       // Ensure the underlying async vendor data is resolved first.
       await container.read(allVendorsProvider.future);
       return container.read(favoriteVendorsProvider).value ?? [];

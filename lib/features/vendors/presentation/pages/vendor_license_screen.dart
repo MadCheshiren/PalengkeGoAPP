@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
@@ -34,7 +35,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
     return AuthGuard(
       allowedRoles: {UserRole.vendor},
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppTheme.surface,
         body: SafeArea(
           child: Column(
             children: [
@@ -50,7 +51,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                             _buildStatusCard(status, activeRenewal, stall),
                         loading: () => const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                         error: (err, _) => Text('Error: $err'),
@@ -60,7 +61,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                       const Text(
                         'Renewal History',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF0F172A),
@@ -71,7 +71,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                         data: (history) => _buildHistoryList(history),
                         loading: () => const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                         error: (err, _) => Text('Error: $err'),
@@ -106,7 +106,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
     switch (status) {
       case LicenseStatus.active:
         cardColor = const Color(0xFFF0FDF4);
-        iconColor = const Color(0xFF22C55E);
+        iconColor = AppTheme.statusOpen;
         icon = Icons.check_circle_rounded;
         statusText = 'Active';
         break;
@@ -153,7 +153,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
         border: Border.all(
           color: status == LicenseStatus.suspended
               ? cardColor
-              : const Color(0xFFE2E8F0),
+              : AppTheme.border,
         ),
         boxShadow: const [
           BoxShadow(
@@ -185,7 +185,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   Text(
                     statusText,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       color: status == LicenseStatus.suspended
@@ -198,7 +197,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                     Text(
                       'Expires in $daysLeft days',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFF59E0B),
@@ -241,11 +239,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                     Expanded(
                       child: Text(
                         'Renewal request submitted. Awaiting MEPO approval.',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          color: Color(0xFFB45309),
-                        ),
+                        style: TextStyle(fontSize: 12, color: AppTheme.warning),
                       ),
                     ),
                   ],
@@ -264,16 +258,16 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
         Text(
           label,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF64748B),
+            color: isDark
+                ? AppTheme.surfaceContainerLow
+                : AppTheme.textSecondary,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: isDark ? Colors.white : const Color(0xFF0F172A),
@@ -288,10 +282,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
       return const Center(
         child: Text(
           'No renewal history found.',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            color: Color(0xFF64748B),
-          ),
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
       );
     }
@@ -311,7 +302,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: AppTheme.border),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -322,7 +313,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   Text(
                     '$start - $end',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF0F172A),
@@ -332,10 +322,9 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   Text(
                     formatCurrency.format(r.amountPaid),
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -366,7 +355,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
         break;
       case LicenseRenewalStatus.approved:
         bg = const Color(0xFFF0FDF4);
-        fg = const Color(0xFF22C55E);
+        fg = AppTheme.statusOpen;
         text = 'Approved';
         break;
       case LicenseRenewalStatus.rejected:
@@ -375,8 +364,8 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
         text = 'Rejected';
         break;
       case LicenseRenewalStatus.expired:
-        bg = const Color(0xFFF1F5F9);
-        fg = const Color(0xFF64748B);
+        bg = AppTheme.surfaceContainerLow;
+        fg = AppTheme.textSecondary;
         text = 'Expired';
         break;
     }
@@ -389,12 +378,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
       ),
       child: Text(
         text,
-        style: TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: fg,
-        ),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }
@@ -416,7 +400,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
         child: ElevatedButton(
           onPressed: () => _showPaymentSheet(stall),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0B372B),
+            backgroundColor: AppTheme.primaryGreen,
             minimumSize: const Size(double.infinity, 54),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -425,7 +409,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
           child: const Text(
             'Renew License',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -466,7 +449,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   const Text(
                     'Renew License',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF0F172A),
@@ -476,9 +458,8 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   const Text(
                     'Your renewal will be valid for 1 year.',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
-                      color: Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -487,7 +468,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: AppTheme.surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -496,7 +477,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                         const Text(
                           'Annual Fee',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF0F172A),
@@ -505,10 +485,9 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                         Text(
                           formatCurrency.format(5000), // Configurable in future
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                       ],
@@ -519,7 +498,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   const Text(
                     'Payment Method',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF0F172A),
@@ -559,7 +537,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                   const Text(
                     'Renewal Documents',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF0F172A),
@@ -580,9 +557,9 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: AppTheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: AppTheme.border),
                       ),
                       child: Row(
                         children: [
@@ -591,8 +568,8 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                                 ? Icons.check_circle_rounded
                                 : Icons.cloud_upload_outlined,
                             color: _hasUploadedDoc
-                                ? const Color(0xFF0B372B)
-                                : const Color(0xFF64748B),
+                                ? AppTheme.primaryGreen
+                                : AppTheme.textSecondary,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
@@ -602,7 +579,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                                   ? 'Document attached'
                                   : 'Attach available documents',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF334155),
@@ -624,15 +600,14 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                           );
                           setState(() => _documentsToFollowUp = val ?? false);
                         },
-                        activeColor: const Color(0xFF0B372B),
+                        activeColor: AppTheme.primaryGreen,
                       ),
                       const Expanded(
                         child: Text(
                           'I don\'t have all documents yet (to follow up)',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 13,
-                            color: Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ),
@@ -653,15 +628,13 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                             title: const Text(
                               'Renewal Documents Required',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                             content: const Text(
                               'Please attach at least one document or check "I don\'t have all documents yet" before proceeding.',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 color: Color(0xFF475569),
                               ),
@@ -670,17 +643,14 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                               ElevatedButton(
                                 onPressed: () => Navigator.pop(dialogCtx),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0B372B),
+                                  backgroundColor: AppTheme.primaryGreen,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                                 child: const Text(
                                   'OK',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontFamily: 'PlusJakartaSans',
-                                  ),
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
                             ],
@@ -692,7 +662,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                       _processRenewal(stall);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0B372B),
+                      backgroundColor: AppTheme.primaryGreen,
                       minimumSize: const Size(double.infinity, 54),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -703,7 +673,6 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
                           ? 'Request Renewal & Pay in Person'
                           : 'Pay & Renew',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -734,9 +703,7 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
           color: isSelected ? const Color(0xFFF0FDF4) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF22C55E)
-                : const Color(0xFFE2E8F0),
+            color: isSelected ? AppTheme.statusOpen : AppTheme.border,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -744,25 +711,23 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected
-                  ? const Color(0xFF166534)
-                  : const Color(0xFF64748B),
+              color: isSelected ? AppTheme.success : AppTheme.textSecondary,
             ),
             const SizedBox(width: 12),
             Text(
               title,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? const Color(0xFF166534)
-                    : const Color(0xFF0F172A),
+                color: isSelected ? AppTheme.success : const Color(0xFF0F172A),
               ),
             ),
             const Spacer(),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded, color: Color(0xFF22C55E)),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: AppTheme.statusOpen,
+              ),
           ],
         ),
       ),
@@ -791,14 +756,14 @@ class _VendorLicenseScreenState extends ConsumerState<VendorLicenseScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Payment Successful! Awaiting MEPO Approval.'),
-            backgroundColor: Color(0xFF0B372B),
+            backgroundColor: AppTheme.primaryGreen,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Renewal request submitted successfully.'),
-            backgroundColor: Color(0xFF0B372B),
+            backgroundColor: AppTheme.primaryGreen,
           ),
         );
       }

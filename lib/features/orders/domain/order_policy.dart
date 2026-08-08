@@ -15,7 +15,7 @@ double deductStock({
   String productName = 'Product',
 }) {
   if (requestedQuantity <= 0) {
-    throw OrderFailure(
+    throw const OrderFailure(
       OrderFailureType.invalidQuantity,
       message: 'Order quantity must be greater than zero.',
     );

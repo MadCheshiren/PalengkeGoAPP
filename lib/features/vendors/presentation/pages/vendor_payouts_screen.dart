@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -56,16 +57,15 @@ class VendorPayoutsScreen extends StatelessWidget {
             child: const Icon(
               Icons.arrow_back_ios_new_rounded,
               size: 20,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           title: const Text(
             'Payout History',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           centerTitle: false,
@@ -95,7 +95,6 @@ class VendorPayoutsScreen extends StatelessWidget {
                 child: Text(
                   'All Payouts',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF9CA3AF),
@@ -137,7 +136,7 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -149,17 +148,15 @@ class _SummaryCard extends StatelessWidget {
                 const Text(
                   'Total Paid Out',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF6D9773),
+                    color: AppTheme.accentGreen,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   '₱${totalPaid.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -179,7 +176,6 @@ class _SummaryCard extends StatelessWidget {
                 Text(
                   '$count',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -188,10 +184,9 @@ class _SummaryCard extends StatelessWidget {
                 const Text(
                   'payouts',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF6D9773),
+                    color: AppTheme.accentGreen,
                   ),
                 ),
               ],
@@ -232,7 +227,7 @@ class _PayoutCard extends StatelessWidget {
             alignment: Alignment.center,
             child: const Icon(
               Icons.account_balance_rounded,
-              color: Color(0xFF166534),
+              color: AppTheme.success,
               size: 22,
             ),
           ),
@@ -246,7 +241,6 @@ class _PayoutCard extends StatelessWidget {
                 Text(
                   payout.method,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -256,7 +250,6 @@ class _PayoutCard extends StatelessWidget {
                 Text(
                   payout.date,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                     color: Color(0xFF9CA3AF),
@@ -273,10 +266,9 @@ class _PayoutCard extends StatelessWidget {
               Text(
                 '₱${payout.amount.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
               const SizedBox(height: 4),
@@ -286,13 +278,12 @@ class _PayoutCard extends StatelessWidget {
                   color: const Color(0xFFF0FDF4),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(
+                child: const Text(
                   'Completed',
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF166534),
+                    color: AppTheme.success,
                   ),
                 ),
               ),

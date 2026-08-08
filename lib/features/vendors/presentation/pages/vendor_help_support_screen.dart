@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -44,34 +45,29 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
             children: [
               Icon(
                 Icons.check_circle_rounded,
-                color: Color(0xFF22C55E),
+                color: AppTheme.statusOpen,
                 size: 24,
               ),
               SizedBox(width: 8),
               Text(
                 'Report Submitted',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
           ),
           content: Text(
             'Thank you for reporting. Our support team has received your ticket regarding "$_selectedTopic" and will review it shortly.',
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              color: Color(0xFF475569),
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Color(0xFF475569), fontSize: 14),
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0B372B),
+                backgroundColor: AppTheme.primaryGreen,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -79,7 +75,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
               child: const Text(
                 'OK',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -114,7 +109,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                       const Text(
                         'Frequently Asked Questions',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF111827),
@@ -155,7 +149,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                       const Text(
                         'Contact Support',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF111827),
@@ -182,7 +175,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                       const Text(
                         'Report a Problem',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF111827),
@@ -194,9 +186,9 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: AppTheme.surface,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: AppTheme.border),
                         ),
                         child: Form(
                           key: _reportFormKey,
@@ -206,7 +198,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                               const Text(
                                 'Topic',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF475569),
@@ -235,14 +226,13 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                       Text(
                                         _selectedTopic,
                                         style: const TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 13,
                                           color: Color(0xFF1F2937),
                                         ),
                                       ),
                                       const Icon(
                                         Icons.keyboard_arrow_down_rounded,
-                                        color: Color(0xFF64748B),
+                                        color: AppTheme.textSecondary,
                                         size: 18,
                                       ),
                                     ],
@@ -253,7 +243,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                               const Text(
                                 'Describe the Issue',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF475569),
@@ -264,16 +253,14 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                 controller: _reportController,
                                 maxLines: 4,
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 13,
                                   color: Color(0xFF1F2937),
                                 ),
                                 decoration: InputDecoration(
                                   hintText: 'Explain the issue in detail...',
                                   hintStyle: const TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 13,
-                                    color: Color(0xFF94A3B8),
+                                    color: AppTheme.muted,
                                   ),
                                   filled: true,
                                   fillColor: Colors.white,
@@ -292,7 +279,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: const BorderSide(
-                                      color: Color(0xFF0B372B),
+                                      color: AppTheme.primaryGreen,
                                       width: 1,
                                     ),
                                   ),
@@ -317,14 +304,13 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                     vertical: 12,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Center(
                                     child: Text(
                                       'Submit Report',
                                       style: TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white,
@@ -353,19 +339,18 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          iconColor: const Color(0xFF0B372B),
-          collapsedIconColor: const Color(0xFF64748B),
+          iconColor: AppTheme.primaryGreen,
+          collapsedIconColor: AppTheme.textSecondary,
           title: Text(
             question,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF1F2937),
@@ -377,7 +362,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
               child: Text(
                 answer,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   color: Color(0xFF475569),
                   height: 1.5,
@@ -400,7 +384,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -408,10 +392,10 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppTheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFF0B372B), size: 18),
+            child: Icon(icon, color: AppTheme.primaryGreen, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -421,17 +405,15 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1E293B),
@@ -462,7 +444,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                 child: Text(
                   'Select Topic',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
@@ -474,7 +455,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                   title: Text(
                     topic,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       color: Color(0xFF1E293B),
                     ),
@@ -482,7 +462,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                   trailing: _selectedTopic == topic
                       ? const Icon(
                           Icons.check_rounded,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         )
                       : null,
                   onTap: () {

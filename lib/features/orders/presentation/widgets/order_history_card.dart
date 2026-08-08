@@ -80,7 +80,6 @@ class OrderHistoryCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF23342F),
@@ -91,7 +90,6 @@ class OrderHistoryCard extends StatelessWidget {
                         Text(
                           'Order ${order.id}',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF8EB0A3),
@@ -113,7 +111,6 @@ class OrderHistoryCard extends StatelessWidget {
                   child: Text(
                     order.statusLabel,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: statusStyle.foreground,
@@ -131,7 +128,6 @@ class OrderHistoryCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Color(0xFF89A89D),
@@ -146,7 +142,6 @@ class OrderHistoryCard extends StatelessWidget {
                 child: Text(
                   _formatDateTime(order.placedAt),
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF9AB4AA),
@@ -156,7 +151,6 @@ class OrderHistoryCard extends StatelessWidget {
               Text(
                 'PHP ${order.total.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF264A3D),
@@ -235,7 +229,6 @@ class OrderHistoryCard extends StatelessWidget {
                 label,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),

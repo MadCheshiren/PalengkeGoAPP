@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/vendors/domain/vendor_profile.dart';
@@ -32,7 +33,7 @@ class VendorProfileHeroSection extends StatelessWidget {
             child: AdaptiveImage(
               profile.imageUrl,
               fit: BoxFit.cover,
-              placeholder: AdaptiveImage(
+              placeholder: const AdaptiveImage(
                 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800',
                 fit: BoxFit.cover,
               ),
@@ -68,12 +69,12 @@ class VendorProfileHeroSection extends StatelessWidget {
                   profile.avatarUrl,
                   fit: BoxFit.cover,
                   placeholder: Container(
-                    color: const Color(0xFFF6F8F7),
+                    color: AppTheme.scaffoldBackground,
                     alignment: Alignment.center,
                     child: const Icon(
                       Icons.person_outline_rounded,
                       size: 40,
-                      color: Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ),
@@ -89,7 +90,7 @@ class VendorProfileHeroSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: profile.isOpen
                     ? const Color(0xFFDCFCE7)
-                    : const Color(0xFFF1F5F9),
+                    : AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
                   color: profile.isOpen
@@ -101,12 +102,11 @@ class VendorProfileHeroSection extends StatelessWidget {
               child: Text(
                 profile.isOpen ? 'Open Now' : 'Closed',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: profile.isOpen
-                      ? const Color(0xFF166534)
-                      : const Color(0xFF64748B),
+                      ? AppTheme.success
+                      : AppTheme.textSecondary,
                   height: 1,
                 ),
               ),

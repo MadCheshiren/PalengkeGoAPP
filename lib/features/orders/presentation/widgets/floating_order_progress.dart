@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/config/fee_config.dart';
@@ -68,7 +69,7 @@ class _SingleOrderPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B),
+          color: AppTheme.primaryGreen,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -104,7 +105,6 @@ class _SingleOrderPill extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -113,11 +113,7 @@ class _SingleOrderPill extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     order.statusLabel,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -147,7 +143,7 @@ class _MultiOrderPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B),
+          color: AppTheme.primaryGreen,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -175,7 +171,7 @@ class _MultiOrderPill extends StatelessWidget {
                           color: _avatarColor(i),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             width: 2,
                           ),
                         ),
@@ -185,7 +181,6 @@ class _MultiOrderPill extends StatelessWidget {
                               ? shown[i].vendorName[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -205,7 +200,6 @@ class _MultiOrderPill extends StatelessWidget {
                   Text(
                     '${orders.length} active orders',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -216,11 +210,7 @@ class _MultiOrderPill extends StatelessWidget {
                     orders.map((o) => o.statusLabel).toSet().join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -315,7 +305,7 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: AppTheme.border,
                     borderRadius: BorderRadius.circular(99),
                   ),
                 ),
@@ -328,7 +318,6 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
                     const Text(
                       'Active Orders',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -347,10 +336,9 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
                       child: Text(
                         '${_orders.length}',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -389,7 +377,6 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
                           child: Text(
                             'All orders completed.',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               color: Color(0xFF9CA3AF),
                             ),
@@ -438,9 +425,9 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
         SnackBar(
           content: Text(
             'Order from ${order.vendorName} cancelled.',
-            style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+            style: const TextStyle(),
           ),
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -451,10 +438,7 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.message,
-            style: const TextStyle(fontFamily: 'PlusJakartaSans'),
-          ),
+          content: Text(e.message, style: const TextStyle()),
           backgroundColor: const Color(0xFFB3261E),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -486,7 +470,7 @@ class _OrderTrayRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -512,7 +496,6 @@ class _OrderTrayRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -522,7 +505,6 @@ class _OrderTrayRow extends StatelessWidget {
                 Text(
                   '${order.items.length} item${order.items.length == 1 ? '' : 's'} · ${order.statusLabel}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     color: Color(0xFF6B7280),
                   ),
@@ -550,7 +532,6 @@ class _OrderTrayRow extends StatelessWidget {
                     child: const Text(
                       'Cancel',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFEF4444),
@@ -568,13 +549,12 @@ class _OrderTrayRow extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     'View',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,

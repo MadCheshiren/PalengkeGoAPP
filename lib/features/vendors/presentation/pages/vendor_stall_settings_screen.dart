@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/config/categories.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,13 +32,13 @@ class _VendorStallSettingsScreenState
   final List<String> _categories = AppCategories.stall;
 
   final List<DaySchedule> _schedules = [
-    DaySchedule(name: 'Monday'),
-    DaySchedule(name: 'Tuesday'),
-    DaySchedule(name: 'Wednesday'),
-    DaySchedule(name: 'Thursday'),
-    DaySchedule(name: 'Friday'),
-    DaySchedule(name: 'Saturday'),
-    DaySchedule(name: 'Sunday'),
+    const DaySchedule(name: 'Monday'),
+    const DaySchedule(name: 'Tuesday'),
+    const DaySchedule(name: 'Wednesday'),
+    const DaySchedule(name: 'Thursday'),
+    const DaySchedule(name: 'Friday'),
+    const DaySchedule(name: 'Saturday'),
+    const DaySchedule(name: 'Sunday'),
   ];
 
   String? _bannerImage;
@@ -89,15 +90,11 @@ class _VendorStallSettingsScreenState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF0B372B),
+        backgroundColor: AppTheme.primaryGreen,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: const Text(
           "Applied Monday's hours to all days",
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 13,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.white),
         ),
       ),
     );
@@ -121,17 +118,13 @@ class _VendorStallSettingsScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           content: const Text(
             'Stall settings and operating hours saved!',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       );

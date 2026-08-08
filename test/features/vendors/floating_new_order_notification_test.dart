@@ -50,9 +50,7 @@ Widget _buildWidget(ProviderContainer container, VoidCallback onViewOrders) {
     child: MaterialApp(
       home: Scaffold(
         body: Stack(
-          children: [
-            FloatingNewOrderNotification(onViewOrders: onViewOrders),
-          ],
+          children: [FloatingNewOrderNotification(onViewOrders: onViewOrders)],
         ),
       ),
     ),
@@ -64,9 +62,9 @@ ProviderContainer _buildContainer() {
     overrides: [
       orderRepositoryProvider.overrideWithValue(MockOrderRepository()),
       authProvider.overrideWith(_TestAuthNotifier.new),
-      notificationServiceProvider.overrideWithValue(NotificationService(
-        isTest: true,
-      )),
+      notificationServiceProvider.overrideWithValue(
+        NotificationService(isTest: true),
+      ),
     ],
   );
   addTearDown(container.dispose);

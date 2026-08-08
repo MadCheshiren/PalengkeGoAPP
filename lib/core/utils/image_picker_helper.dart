@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +80,6 @@ class ImagePickerHelper {
               const Text(
                 'Select Attachment',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -135,7 +135,7 @@ class _SourceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = isDestructive
         ? const Color(0xFFEF4444)
-        : const Color(0xFF0B372B);
+        : AppTheme.primaryGreen;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -159,7 +159,6 @@ class _SourceTile extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: color,

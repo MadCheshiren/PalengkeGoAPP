@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
@@ -88,7 +89,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                   const Text(
                     'Recipes',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF1B4332),
@@ -115,7 +115,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                         width: 20,
                         height: 20,
                         colorFilter: const ColorFilter.mode(
-                          Color(0xFF0B372B),
+                          AppTheme.primaryGreen,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -134,7 +134,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       child: Text(
                         'Cook with fresh ingredients\nfrom your local market',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFF6B7280),
@@ -162,14 +161,13 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                               child: const Icon(
                                 Icons.lock_outline_rounded,
                                 size: 48,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                             const SizedBox(height: 24),
                             const Text(
                               'Locked Recipes',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF1E293B),
@@ -180,9 +178,8 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                               'Purchase fresh ingredients like Mango, Chicken, Pork, or Vegetables from Diosa Fruit Stand or other stalls to unlock delicious local recipes!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
-                                color: Color(0xFF64748B),
+                                color: AppTheme.textSecondary,
                                 height: 1.5,
                               ),
                             ),
@@ -210,21 +207,20 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? const Color(0xFF0B372B)
-                                        : const Color(0xFFF1F5F9),
+                                        ? AppTheme.primaryGreen
+                                        : AppTheme.surfaceContainerLow,
                                     borderRadius: BorderRadius.circular(50),
                                   ),
                                   child: Text(
                                     cat,
                                     style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 13,
                                       fontWeight: isSelected
                                           ? FontWeight.w700
                                           : FontWeight.w600,
                                       color: isSelected
                                           ? Colors.white
-                                          : const Color(0xFF64748B),
+                                          : AppTheme.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -240,7 +236,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                           child: Text(
                             'Featured Recipe',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF1F2937),
@@ -265,7 +260,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                           child: Text(
                             'More Recipes',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF1F2937),
@@ -302,9 +296,8 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                             child: Text(
                               'No recipes found in this category.',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
-                                color: Color(0xFF64748B),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                           ),
@@ -408,7 +401,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                         isSaved
                             ? 'Removed "${recipe.title}" from Cookbook.'
                             : 'Added "${recipe.title}" to Cookbook.',
-                        style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+                        style: const TextStyle(),
                       ),
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
@@ -452,13 +445,12 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF22C55E),
+                      color: AppTheme.statusOpen,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       recipe.category,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -469,7 +461,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                   Text(
                     recipe.title,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -487,7 +478,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       Text(
                         recipe.time,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.white70,
@@ -503,7 +493,6 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       Text(
                         recipe.difficulty,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.white70,
@@ -590,21 +579,19 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                 children: [
                   Text(
                     recipe.title,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1F2937),
+                      color: Color(0xFF1F2937),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     recipe.category,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF6B7280),
+                      color: Color(0xFF6B7280),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -618,11 +605,10 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       const SizedBox(width: 4),
                       Text(
                         recipe.time,
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF6B7280),
+                          color: Color(0xFF6B7280),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -634,11 +620,10 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       const SizedBox(width: 4),
                       Text(
                         recipe.difficulty,
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF6B7280),
+                          color: Color(0xFF6B7280),
                         ),
                       ),
                     ],
@@ -665,7 +650,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                       isSaved
                           ? 'Removed "${recipe.title}" from Cookbook.'
                           : 'Added "${recipe.title}" to Cookbook.',
-                      style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+                      style: const TextStyle(),
                     ),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(

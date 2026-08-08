@@ -29,7 +29,6 @@ class OrderHistoryEmptyState extends StatelessWidget {
           Text(
             'No ${currentTab.label.toLowerCase()} orders yet',
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xFF35554A),
@@ -39,7 +38,6 @@ class OrderHistoryEmptyState extends StatelessWidget {
           const Text(
             'Placed orders will show up here automatically.',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Color(0xFF9AB4AA),

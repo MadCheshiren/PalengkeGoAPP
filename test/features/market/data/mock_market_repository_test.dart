@@ -51,13 +51,16 @@ void main() {
       expect(products.first.name, 'Sweet Mangoes');
     });
 
-    test('returns no discounted products when no active discounts exist', () async {
-      final repository = MockMarketRepository();
+    test(
+      'returns no discounted products when no active discounts exist',
+      () async {
+        final repository = MockMarketRepository();
 
-      final products = await repository.getDiscountedProducts();
+        final products = await repository.getDiscountedProducts();
 
-      expect(products, isEmpty);
-    });
+        expect(products, isEmpty);
+      },
+    );
 
     test('returns every vendor product for product search', () async {
       final repository = MockMarketRepository();

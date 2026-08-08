@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,7 +122,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8F7),
+      backgroundColor: AppTheme.scaffoldBackground,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
@@ -137,7 +138,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 child: IconButton(
                   icon: const Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
@@ -155,26 +156,24 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       // Header text
                       Image.asset('assets/images/logonobg.png', height: 80),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Create an Account',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 30,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                           height: 1.2,
                           letterSpacing: -0.75,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Join PalengkeGo for fresh market delivery.',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                           height: 1.43,
                         ),
                         textAlign: TextAlign.center,
@@ -339,7 +338,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                 _termsAccepted = val ?? false;
                               });
                             },
-                            activeColor: const Color(0xFF0B372B),
+                            activeColor: AppTheme.primaryGreen,
                           ),
                           Expanded(
                             child: GestureDetector(
@@ -371,7 +370,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                           child: const Text(
                                             'Close',
                                             style: TextStyle(
-                                              color: Color(0xFF0B372B),
+                                              color: AppTheme.primaryGreen,
                                             ),
                                           ),
                                         ),
@@ -381,21 +380,20 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                 }
                               },
                               child: RichText(
-                                text: TextSpan(
+                                text: const TextSpan(
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 14,
                                     fontWeight: FontWeight.w400,
-                                    color: const Color(0xFF64748B),
+                                    color: AppTheme.textSecondary,
                                   ),
                                   children: [
-                                    const TextSpan(
+                                    TextSpan(
                                       text: 'By registering, you agree to our ',
                                     ),
                                     TextSpan(
                                       text: 'Terms & Privacy Policy',
                                       style: TextStyle(
-                                        color: const Color(0xFF0B372B),
+                                        color: AppTheme.primaryGreen,
                                         fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -439,10 +437,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF64748B),
+            color: AppTheme.textSecondary,
           ),
         ),
         const SizedBox(height: 6),
@@ -458,34 +455,29 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             hintText: hintText,
             prefixText: prefixText,
             filled: true,
-            fillColor: const Color(0xFFF8FAFC),
+            fillColor: AppTheme.surface,
             hintStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: Color(0xFF94A3B8),
+              color: AppTheme.muted,
             ),
-            prefixIcon: Icon(
-              prefixIcon,
-              size: 18,
-              color: const Color(0xFF94A3B8),
-            ),
+            prefixIcon: Icon(prefixIcon, size: 18, color: AppTheme.muted),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 14,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: const BorderSide(color: AppTheme.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: const BorderSide(color: AppTheme.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
                 width: 1.5,
               ),
             ),
@@ -500,11 +492,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 width: 1.5,
               ),
             ),
-            errorStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 11,
-              color: Color(0xFFEF4444),
-            ),
+            errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
           ),
         ),
       ],
@@ -524,11 +512,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF334155),
+            color: Color(0xFF334155),
           ),
         ),
         const SizedBox(height: 6),
@@ -542,19 +529,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             hintText: hintText,
             filled: true,
             fillColor: Colors.white,
-            hintStyle: TextStyle(
-              fontFamily: 'PlusJakartaSans',
+            hintStyle: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF94A3B8),
+              color: AppTheme.muted,
             ),
             prefixIcon: const Padding(
               padding: EdgeInsets.only(left: 12),
-              child: Icon(
-                Icons.lock_outline,
-                size: 16,
-                color: Color(0xFF94A3B8),
-              ),
+              child: Icon(Icons.lock_outline, size: 16, color: AppTheme.muted),
             ),
             prefixIconConstraints: const BoxConstraints(
               minWidth: 40,
@@ -566,7 +548,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
                 size: 18,
-                color: const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
               ),
               onPressed: onToggleVisibility,
             ),
@@ -576,16 +558,16 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: const BorderSide(color: AppTheme.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: const BorderSide(color: AppTheme.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
                 width: 1.5,
               ),
             ),
@@ -600,11 +582,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 width: 1.5,
               ),
             ),
-            errorStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 11,
-              color: Color(0xFFEF4444),
-            ),
+            errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
           ),
         ),
       ],
@@ -626,9 +604,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B).withValues(alpha: 0.05),
+          color: AppTheme.primaryGreen.withValues(alpha: 0.05),
           border: Border.all(
-            color: const Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
             width: 1,
             style: BorderStyle.solid,
           ),
@@ -640,13 +618,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF0B372B).withValues(alpha: 0.1),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.location_on_outlined,
                 size: 20,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
             const SizedBox(width: 12),
@@ -656,22 +634,20 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 Text(
                   _selectedAddress?.primaryAddress ??
                       'Set Your Delivery Address',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 if (_selectedAddress != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     _selectedAddress!.streetAddress,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -681,7 +657,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 12,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ],
         ),
@@ -695,7 +671,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.8),
         border: const Border(
-          top: BorderSide(color: Color(0xFFF1F5F9), width: 1),
+          top: BorderSide(color: AppTheme.surfaceContainerLow, width: 1),
         ),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12),
@@ -715,13 +691,13 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.2),
                       offset: const Offset(0, 4),
                       blurRadius: 6,
                       spreadRadius: -4,
                     ),
                     BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.2),
                       offset: const Offset(0, 10),
                       blurRadius: 15,
                       spreadRadius: -3,
@@ -731,15 +707,15 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0B372B),
+                    backgroundColor: AppTheme.primaryGreen,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
-                    disabledBackgroundColor: const Color(
-                      0xFF0B372B,
-                    ).withValues(alpha: 0.5),
+                    disabledBackgroundColor: AppTheme.primaryGreen.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -750,20 +726,19 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             strokeWidth: 2.0,
                           ),
                         )
-                      : Row(
+                      : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               'Register Account',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Icon(
+                            SizedBox(width: 8),
+                            Icon(
                               Icons.arrow_forward_rounded,
                               size: 16,
                               color: Colors.white,
@@ -779,20 +754,17 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 },
                 child: Center(
                   child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                      ),
+                    text: const TextSpan(
+                      style: TextStyle(fontSize: 14),
                       children: [
-                        const TextSpan(
+                        TextSpan(
                           text: 'Already have an account? ',
                           style: TextStyle(color: Color(0xFF475569)),
                         ),
                         TextSpan(
                           text: 'Log In',
                           style: TextStyle(
-                            color: const Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             fontWeight: FontWeight.w700,
                           ),
                         ),

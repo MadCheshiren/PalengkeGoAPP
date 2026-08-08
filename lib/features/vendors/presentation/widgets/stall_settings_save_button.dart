@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class StallSettingsSaveButton extends StatelessWidget {
@@ -13,14 +14,13 @@ class StallSettingsSaveButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B),
+          color: AppTheme.primaryGreen,
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Center(
           child: Text(
             'Save Changes',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Colors.white,

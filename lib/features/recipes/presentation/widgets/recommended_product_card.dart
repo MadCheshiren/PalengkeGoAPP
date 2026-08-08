@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
 
@@ -23,7 +24,7 @@ class RecommendedProductCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(color: AppTheme.border, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -38,7 +39,7 @@ class RecommendedProductCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          splashColor: const Color(0xFF0B372B).withValues(alpha: 0.08),
+          splashColor: AppTheme.primaryGreen.withValues(alpha: 0.08),
           highlightColor: Colors.transparent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,11 +58,11 @@ class RecommendedProductCard extends StatelessWidget {
                         product.imageUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (_, _, _) => Container(
-                          color: const Color(0xFFF1F5F9),
+                          color: AppTheme.surfaceContainerLow,
                           child: const Icon(
                             Icons.restaurant_menu,
                             size: 36,
-                            color: Color(0xFF94A3B8),
+                            color: AppTheme.muted,
                           ),
                         ),
                       ),
@@ -118,7 +119,7 @@ class RecommendedProductCard extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 9,
-                          backgroundColor: const Color(0xFFE2E8F0),
+                          backgroundColor: AppTheme.border,
                           backgroundImage: NetworkImage(vendor.imageUrl),
                           onBackgroundImageError: (_, _) {},
                         ),
@@ -185,7 +186,7 @@ class RecommendedProductCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                         Container(
@@ -194,7 +195,7 @@ class RecommendedProductCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: AppTheme.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
@@ -205,7 +206,7 @@ class RecommendedProductCard extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF64748B),
+                                  color: AppTheme.textSecondary,
                                 ),
                               ),
                             ],

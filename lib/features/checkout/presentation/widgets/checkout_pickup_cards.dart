@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
@@ -17,7 +18,6 @@ class CheckoutPickupHeader extends StatelessWidget {
         const Text(
           'Pick-Up Details',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Color(0xFF111827),
@@ -33,10 +33,9 @@ class CheckoutPickupHeader extends StatelessWidget {
           child: const Text(
             'READY IN 15-25M',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: Color(0xFFB45309),
+              color: AppTheme.warning,
             ),
           ),
         ),
@@ -82,7 +81,7 @@ class CheckoutPickupCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppTheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
             ),
             child: ClipRRect(
@@ -92,7 +91,7 @@ class CheckoutPickupCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 placeholder: const Icon(
                   Icons.storefront_rounded,
-                  color: Color(0xFF94A3B8),
+                  color: AppTheme.muted,
                 ),
               ),
             ),
@@ -105,20 +104,18 @@ class CheckoutPickupCard extends StatelessWidget {
                 Text(
                   vendorName,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -133,17 +130,15 @@ class CheckoutPickupCard extends StatelessWidget {
                     Text(
                       '$vendorRating',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     const SizedBox(width: 4),
                     const Text(
                       '(100+ reviews)',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: Color(0xFF6B7280),
@@ -174,7 +169,11 @@ class CheckoutReadyTimeCard extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Icon(Icons.access_time_rounded, size: 18, color: Color(0xFF0B372B)),
+          Icon(
+            Icons.access_time_rounded,
+            size: 18,
+            color: AppTheme.primaryGreen,
+          ),
           SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -183,7 +182,6 @@ class CheckoutReadyTimeCard extends StatelessWidget {
                 Text(
                   'ESTIMATED READY TIME',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF6B7280),
@@ -194,20 +192,18 @@ class CheckoutReadyTimeCard extends StatelessWidget {
                 Text(
                   'Ready by: 15-25 minutes',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
                   '* Initial estimate. The actual preparation time will be set by the vendor once they accept your order.',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                     height: 1.3,
                   ),
                 ),

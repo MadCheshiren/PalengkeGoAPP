@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/config/categories.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -236,10 +237,9 @@ class _VendorAddProductScreenState
             Text(
               _isEditMode ? 'Product Updated!' : 'Product Added!',
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
             const SizedBox(height: 8),
@@ -247,7 +247,6 @@ class _VendorAddProductScreenState
               '"$productName" has been ${_isEditMode ? 'updated in' : 'added to'} your inventory and is now visible to customers.',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 color: Color(0xFF6B7280),
                 height: 1.5,
@@ -264,7 +263,7 @@ class _VendorAddProductScreenState
                       .pop(); // close add/edit screen (pre-captured, never stale)
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B372B),
+                  backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -273,11 +272,7 @@ class _VendorAddProductScreenState
                 ),
                 child: const Text(
                   'Back to Products',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -316,7 +311,6 @@ class _VendorAddProductScreenState
         title: const Text(
           'Delete Product?',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w700,
             color: Color(0xFF111827),
           ),
@@ -324,7 +318,6 @@ class _VendorAddProductScreenState
         content: Text(
           'Are you sure you want to delete "$productName"? This will remove it from your inventory and the customer view immediately.',
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             color: Color(0xFF6B7280),
             height: 1.5,
@@ -336,7 +329,6 @@ class _VendorAddProductScreenState
             child: const Text(
               'Cancel',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF6B7280),
               ),
@@ -354,10 +346,7 @@ class _VendorAddProductScreenState
             ),
             child: const Text(
               'Delete',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -398,7 +387,6 @@ class _VendorAddProductScreenState
                     const Text(
                       'General Information',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -529,16 +517,14 @@ class _VendorAddProductScreenState
                               const Text(
                                 'Discounted Price:',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 13,
-                                  color: Color(0xFF166534),
+                                  color: AppTheme.success,
                                 ),
                               ),
                               const Spacer(),
                               Text(
                                 '₱${_calculatedDiscountedPrice!.toStringAsFixed(0)}',
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF15803D),
@@ -574,7 +560,6 @@ class _VendorAddProductScreenState
                             Text(
                               'In Stock',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF111827),
@@ -584,7 +569,6 @@ class _VendorAddProductScreenState
                             Text(
                               'Available for customers to buy',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
                                 color: Color(0xFF9CA3AF),
                               ),
@@ -595,10 +579,10 @@ class _VendorAddProductScreenState
                           value: _inStock,
                           onChanged: (value) =>
                               setState(() => _inStock = value),
-                          activeThumbColor: const Color(0xFF0B372B),
-                          activeTrackColor: const Color(
-                            0xFF0B372B,
-                          ).withValues(alpha: 0.3),
+                          activeThumbColor: AppTheme.primaryGreen,
+                          activeTrackColor: AppTheme.primaryGreen.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ],
                     ),
@@ -612,7 +596,7 @@ class _VendorAddProductScreenState
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _saveProduct,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0B372B),
+                          backgroundColor: AppTheme.primaryGreen,
                           disabledBackgroundColor: const Color(0xFF9CA3AF),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
@@ -632,7 +616,6 @@ class _VendorAddProductScreenState
                             : Text(
                                 _isEditMode ? 'Update Product' : 'Save Product',
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -656,7 +639,6 @@ class _VendorAddProductScreenState
                           label: const Text(
                             'Delete Product',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFFEF4444),
@@ -704,7 +686,6 @@ class _VendorAddProductScreenState
                   child: Text(
                     'Select Category',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -717,19 +698,18 @@ class _VendorAddProductScreenState
                     trailing: isSelected
                         ? const Icon(
                             Icons.check_rounded,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           )
                         : null,
                     title: Text(
                       category,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : FontWeight.w400,
                         color: isSelected
-                            ? const Color(0xFF0B372B)
+                            ? AppTheme.primaryGreen
                             : const Color(0xFF374151),
                       ),
                     ),
@@ -768,7 +748,6 @@ class _VendorAddProductScreenState
                   child: Text(
                     'Select Subcategory',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -781,19 +760,18 @@ class _VendorAddProductScreenState
                     trailing: isSelected
                         ? const Icon(
                             Icons.check_rounded,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           )
                         : null,
                     title: Text(
                       subCategory,
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : FontWeight.w400,
                         color: isSelected
-                            ? const Color(0xFF0B372B)
+                            ? AppTheme.primaryGreen
                             : const Color(0xFF374151),
                       ),
                     ),

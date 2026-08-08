@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +29,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -39,16 +40,15 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                 const Icon(
                   Icons.storefront_outlined,
                   size: 20,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
                 const SizedBox(width: 8),
                 const Text(
                   'Pick-Up Information',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 const Spacer(),
@@ -58,13 +58,12 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     stall,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -77,7 +76,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
             const Text(
               'STALL DETAILS',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
@@ -88,7 +86,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
             Text(
               order.vendorName,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -97,11 +94,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
             const SizedBox(height: 2),
             Text(
               '$stall, $section',
-              style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 12,
-                color: Color(0xFF6B7280),
-              ),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 16),
             Row(
@@ -120,7 +113,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                       const Text(
                         'ESTIMATED READY TIME',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF9CA3AF),
@@ -135,7 +127,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                               ).format(order.estimatedReadyTime!)
                             : 'Waiting for vendor confirmation',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF111827),
@@ -155,27 +146,26 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Icon(
                   Icons.local_shipping_outlined,
                   size: 20,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
                 SizedBox(width: 8),
                 Text(
                   'Delivery Information',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
               ],
@@ -184,7 +174,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
             const Text(
               'ADDRESS',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
@@ -196,7 +185,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
               address ??
                   ref.read(preferencesProvider).deliveryAddress.displayLine,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF111827),
@@ -206,7 +194,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
             const Text(
               'ESTIMATED TIME',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
@@ -219,7 +206,6 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                   ? DateFormat('h:mm a').format(order.estimatedReadyTime!)
                   : 'Waiting for vendor confirmation',
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF111827),
@@ -255,29 +241,28 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppTheme.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Icon(
                       Icons.local_shipping_outlined,
                       size: 20,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                     SizedBox(width: 8),
                     Text(
                       'Delivery Information',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ],
@@ -286,7 +271,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                 const Text(
                   'DELIVER TO',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF9CA3AF),
@@ -298,30 +282,28 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                   address ??
                       ref.read(preferencesProvider).deliveryAddress.displayLine,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF111827),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
+                const Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.access_time_rounded,
                       size: 18,
                       color: Color(0xFF6B7280),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Text(
                             'ESTIMATED ARRIVAL',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF9CA3AF),
@@ -332,7 +314,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           Text(
                             '12-25 mins',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF111827),
@@ -354,9 +335,9 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppTheme.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,7 +351,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                       width: 40,
                       height: 40,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -388,7 +369,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           Text(
                             order.vendorName,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF111827),
@@ -400,7 +380,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           Text(
                             '$stall | $section',
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
                               color: Color(0xFF6B7280),
                             ),
@@ -411,13 +390,12 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(color: Color(0xFFE2E8F0)),
+                const Divider(color: AppTheme.border),
                 const SizedBox(height: 8),
 
                 Text(
                   'ORDER ID: ${order.id}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF9CA3AF),
@@ -434,10 +412,9 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                         Text(
                           '${item.quantity}x',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -445,7 +422,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           child: Text(
                             item.productName,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 13,
                               color: Color(0xFF4B5563),
                             ),
@@ -456,7 +432,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                         Text(
                           '₱${item.total.toStringAsFixed(2)}',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF111827),
@@ -468,7 +443,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 8),
-                const Divider(color: Color(0xFFE2E8F0)),
+                const Divider(color: AppTheme.border),
                 const SizedBox(height: 8),
 
                 Row(
@@ -482,7 +457,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           const Text(
                             'TOTAL AMOUNT',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF9CA3AF),
@@ -492,10 +466,9 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           Text(
                             '₱${order.total.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                         ],
@@ -518,12 +491,12 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.gps_fixed_rounded,
                               size: 14,
@@ -533,7 +506,6 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                             Text(
                               'Track',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
@@ -563,27 +535,26 @@ class OrderConfirmationPaymentCard extends ConsumerWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(
                 Icons.account_balance_wallet_outlined,
                 size: 20,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
               SizedBox(width: 8),
               Text(
                 'Payment Method',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
@@ -615,7 +586,6 @@ class OrderConfirmationPaymentCard extends ConsumerWidget {
                   child: Text(
                     ref.read(preferencesProvider).paymentTitle,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF111827),

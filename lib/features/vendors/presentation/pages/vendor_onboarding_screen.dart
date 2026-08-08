@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
@@ -365,13 +366,13 @@ class _VendorOnboardingScreenState
               width: 32,
               height: 32,
               decoration: const BoxDecoration(
-                color: Color(0xFFF6F8F7),
+                color: AppTheme.scaffoldBackground,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 16,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
           ),
@@ -380,7 +381,6 @@ class _VendorOnboardingScreenState
             child: Text(
               _steps[_currentStep],
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -404,7 +404,7 @@ class _VendorOnboardingScreenState
               margin: EdgeInsets.only(right: index < _steps.length - 1 ? 8 : 0),
               decoration: BoxDecoration(
                 color: index <= _currentStep
-                    ? const Color(0xFF0B372B)
+                    ? AppTheme.primaryGreen
                     : const Color(0xFFE5E7EB),
                 borderRadius: BorderRadius.circular(2),
               ),

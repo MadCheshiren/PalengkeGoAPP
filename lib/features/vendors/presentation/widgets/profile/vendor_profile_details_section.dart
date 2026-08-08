@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:palengkego/core/mock/mock_data.dart';
@@ -26,10 +27,9 @@ class VendorProfileDetailsSection extends StatelessWidget {
             Text(
               profile.name,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
                 height: 1.1,
               ),
             ),
@@ -69,7 +69,6 @@ class VendorProfileDetailsSection extends StatelessWidget {
                         Text(
                           '${profile.rating}',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF111827),
@@ -79,10 +78,9 @@ class VendorProfileDetailsSection extends StatelessWidget {
                         Text(
                           '(${profile.reviewCount})',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             decoration: TextDecoration.underline,
                           ),
                         ),
@@ -192,7 +190,6 @@ class VendorProfileDetailsSection extends StatelessWidget {
         Text(
           text,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: Color(0xFF4B5563),
@@ -226,15 +223,14 @@ class VendorProfileDetailsSection extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: const Color(0xFF0B372B)),
+            Icon(icon, size: 16, color: AppTheme.primaryGreen),
             const SizedBox(width: 8),
             Text(
               label,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
           ],

@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 /// A dialog that asks the user for a reason when reporting a vendor or customer.
@@ -39,7 +40,6 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
             'Report ${widget.entityName}',
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: Color(0xFF1F2937),
@@ -54,9 +54,8 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
             'Please provide a reason for reporting. We will review your report shortly.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
-              color: Color(0xFF64748B),
+              color: AppTheme.textSecondary,
               height: 1.5,
             ),
           ),
@@ -68,11 +67,11 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
               hintText: 'Enter reason...',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: const BorderSide(color: AppTheme.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: const BorderSide(color: AppTheme.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -96,16 +95,15 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50),
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    side: const BorderSide(color: AppTheme.border),
                   ),
                 ),
                 child: const Text(
                   'Cancel',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ),
@@ -130,11 +128,7 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
                 ),
                 child: const Text(
                   'Submit',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
               ),
             ),

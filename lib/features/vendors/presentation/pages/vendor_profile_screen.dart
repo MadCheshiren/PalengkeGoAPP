@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,7 +46,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
         bottom: false,
         child: profileAsync.when(
           loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF0B372B)),
+            child: CircularProgressIndicator(color: AppTheme.primaryGreen),
           ),
           error: (error, stack) =>
               Center(child: Text('Error loading stall holder: $error')),
@@ -68,13 +69,13 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                               width: 32,
                               height: 32,
                               decoration: const BoxDecoration(
-                                color: Color(0xFFF6F8F7),
+                                color: AppTheme.scaffoldBackground,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.arrow_back_ios_new_rounded,
                                 size: 16,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                           ),
@@ -82,10 +83,9 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                         const Text(
                           'Stall Holder Profile',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                         Align(
@@ -112,7 +112,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                   decoration: BoxDecoration(
                                     color: isFavorite
                                         ? const Color(0xFFFEE2E2)
-                                        : const Color(0xFFF6F8F7),
+                                        : AppTheme.scaffoldBackground,
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -122,7 +122,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                     size: 16,
                                     color: isFavorite
                                         ? const Color(0xFFEF4444)
-                                        : const Color(0xFF0B372B),
+                                        : AppTheme.primaryGreen,
                                   ),
                                 ),
                               ),
@@ -199,7 +199,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                       ],
                                     ),
                                   ),
-                                  PopupMenuItem<String>(
+                                  const PopupMenuItem<String>(
                                     value: 'block',
                                     child: Row(
                                       children: [
@@ -208,8 +208,8 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                           size: 20,
                                           color: Colors.redAccent,
                                         ),
-                                        const SizedBox(width: 8),
-                                        const Text('Block Stall Holder'),
+                                        SizedBox(width: 8),
+                                        Text('Block Stall Holder'),
                                       ],
                                     ),
                                   ),
@@ -218,13 +218,13 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                   width: 32,
                                   height: 32,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFFF6F8F7),
+                                    color: AppTheme.scaffoldBackground,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.more_vert_rounded,
                                     size: 16,
-                                    color: Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                   ),
                                 ),
                               ),
@@ -248,10 +248,9 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                           child: Text(
                             'Fresh Catch Today',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               height: 1.2,
                             ),
                           ),
@@ -261,7 +260,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                           child: productsAsync.when(
                             loading: () => const Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                             ),
                             error: (error, stack) =>
@@ -319,10 +318,9 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                           child: Text(
                             'Customer Reviews',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               height: 1.2,
                             ),
                           ),

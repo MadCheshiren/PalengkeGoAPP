@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,7 +64,7 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       body: SafeArea(
         child: Stack(
           children: [
@@ -83,7 +84,7 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+        border: Border(top: BorderSide(color: AppTheme.border, width: 1)),
       ),
       child: SafeArea(
         child: Row(
@@ -141,9 +142,7 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
           Icon(
             isSelected ? iconFilled : iconOutlined,
             size: 24,
-            color: isSelected
-                ? const Color(0xFF0B372B)
-                : const Color(0xFF94A3B8),
+            color: isSelected ? AppTheme.primaryGreen : AppTheme.muted,
           ),
           const SizedBox(height: 4),
           Text(
@@ -151,12 +150,9 @@ class _VendorDashboardScreenState extends ConsumerState<VendorDashboardScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected
-                  ? const Color(0xFF0B372B)
-                  : const Color(0xFF94A3B8),
+              color: isSelected ? AppTheme.primaryGreen : AppTheme.muted,
             ),
           ),
         ],
@@ -195,7 +191,7 @@ class _DashboardHome extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
                   image: stall.avatarImage != null
@@ -221,20 +217,18 @@ class _DashboardHome extends ConsumerWidget {
                     const Text(
                       'PalengkeGo Stall Holder',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF94A3B8),
+                        color: AppTheme.muted,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Good morning, $greetingName!',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ],
@@ -259,7 +253,7 @@ class _DashboardHome extends ConsumerWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF6F8F7),
+                            color: AppTheme.scaffoldBackground,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Stack(
@@ -267,7 +261,7 @@ class _DashboardHome extends ConsumerWidget {
                               const Center(
                                 child: Icon(
                                   Icons.notifications_outlined,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                   size: 20,
                                 ),
                               ),
@@ -343,7 +337,7 @@ class _DashboardHome extends ConsumerWidget {
                     border: Border.all(
                       color: licenseStatus == LicenseStatus.suspended
                           ? bgColor
-                          : const Color(0xFFE2E8F0),
+                          : AppTheme.border,
                     ),
                   ),
                   child: Row(
@@ -364,7 +358,6 @@ class _DashboardHome extends ConsumerWidget {
                             Text(
                               title,
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: licenseStatus == LicenseStatus.suspended
@@ -376,11 +369,10 @@ class _DashboardHome extends ConsumerWidget {
                             Text(
                               message,
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 13,
                                 color: licenseStatus == LicenseStatus.suspended
                                     ? fgColor
-                                    : const Color(0xFF64748B),
+                                    : AppTheme.textSecondary,
                               ),
                             ),
                           ],
@@ -398,10 +390,9 @@ class _DashboardHome extends ConsumerWidget {
           const Text(
             'Your Stall',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 16),
@@ -410,14 +401,13 @@ class _DashboardHome extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
+              const Expanded(
                 child: Text(
                   'Recent Orders',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -428,10 +418,9 @@ class _DashboardHome extends ConsumerWidget {
                 child: const Text(
                   'View All',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
               ),
@@ -455,10 +444,7 @@ class _DashboardHome extends ConsumerWidget {
                   if (orders.isEmpty) {
                     return const Text(
                       'No recent orders.',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        color: Color(0xFF64748B),
-                      ),
+                      style: TextStyle(color: AppTheme.textSecondary),
                     );
                   }
 
@@ -560,8 +546,8 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                 width: _currentPage == index ? 20 : 6,
                 decoration: BoxDecoration(
                   color: _currentPage == index
-                      ? const Color(0xFF0B372B)
-                      : const Color(0xFF0B372B).withValues(alpha: 0.2),
+                      ? AppTheme.primaryGreen
+                      : AppTheme.primaryGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -583,10 +569,10 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0B372B).withValues(alpha: 0.04),
+              color: AppTheme.primaryGreen.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -626,10 +612,9 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                       child: const Text(
                         'ANNOUNCEMENT',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 8,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFB45309),
+                          color: AppTheme.warning,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -638,7 +623,6 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                     Text(
                       announcement.title,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -651,10 +635,9 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                     Text(
                       announcement.body,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                         height: 1.4,
                       ),
                       maxLines: 3,
@@ -688,7 +671,7 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0B372B).withValues(alpha: 0.15),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
@@ -749,10 +732,9 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                         child: const Text(
                           'ANNOUNCEMENT',
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFFB45309),
+                            color: AppTheme.warning,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -761,10 +743,9 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                       Text(
                         announcement.title,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                           height: 1.2,
                           letterSpacing: -0.5,
                         ),
@@ -773,7 +754,6 @@ class _DashboardCarouselState extends ConsumerState<_DashboardCarousel> {
                       Text(
                         announcement.body,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFF475569),

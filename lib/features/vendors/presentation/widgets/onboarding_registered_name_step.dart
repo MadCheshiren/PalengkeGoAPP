@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingRegisteredNameStep extends StatelessWidget {
@@ -28,7 +29,6 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF374151),
@@ -40,18 +40,10 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
           textCapitalization: TextCapitalization.words,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            color: Color(0xFF111827),
-          ),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              color: Color(0xFF9CA3AF),
-            ),
+            hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
             filled: true,
             fillColor: const Color(0xFFF3F4F6),
             border: OutlineInputBorder(
@@ -64,7 +56,10 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryGreen,
+                width: 1,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,

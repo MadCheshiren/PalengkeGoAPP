@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -134,7 +135,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                               child: const Icon(
                                 Icons.image_rounded,
                                 size: 28,
-                                color: Color(0xFF94A3B8),
+                                color: AppTheme.muted,
                               ),
                             ),
                     ),
@@ -149,10 +150,9 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                           Text(
                             widget.product.name,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                               height: 1.25,
                             ),
                           ),
@@ -160,22 +160,20 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                           Text(
                             _priceLabel(basePrice),
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF6D9773),
+                              color: AppTheme.accentGreen,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Stock: ${widget.product.stockQuantity % 1 == 0 ? widget.product.stockQuantity.toInt().toString() : widget.product.stockQuantity.toStringAsFixed(2)} ${widget.product.unit}',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: widget.product.isLowStock
                                   ? const Color(0xFFDC2626)
-                                  : const Color(0xFF64748B),
+                                  : AppTheme.textSecondary,
                             ),
                           ),
                           if (widget.product.isLowStock) ...[
@@ -195,7 +193,6 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                               child: const Text(
                                 'Low Stock Warning',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFFDC2626),
@@ -287,10 +284,9 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                     child: Text(
                       'Quantity',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -336,8 +332,8 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                           foreground:
                               _customWeightKg >
                                   (_isPieceProduct() ? 1.0 : 0.125)
-                              ? const Color(0xFF6D9773)
-                              : const Color(0xFF94A3B8),
+                              ? AppTheme.accentGreen
+                              : AppTheme.muted,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -356,10 +352,9 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                               ],
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
+                                color: AppTheme.primaryGreen,
                               ),
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
@@ -383,10 +378,9 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                           child: Text(
                             _isPieceProduct() ? 'pc' : 'kg',
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.muted,
                             ),
                           ),
                         ),
@@ -485,11 +479,7 @@ class _AddToCartBottomSheetState extends ConsumerState<AddToCartBottomSheet> {
                   ),
                   child: const Text(
                     'Add to cart',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

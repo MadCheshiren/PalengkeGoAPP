@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -212,7 +213,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                 context,
                               ).notesForVendor(vendorName),
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF374151),
@@ -225,7 +225,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       );
                     }),
                     const SizedBox(height: 4),
-                    const Divider(color: Color(0xFFE2E8F0)),
+                    const Divider(color: AppTheme.border),
                     const SizedBox(height: 12),
                     CheckoutSummaryRow(
                       label: AppLocalizations.of(context).summarySubtotal,
@@ -248,7 +248,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                     ],
                     const SizedBox(height: 12),
-                    const Divider(color: Color(0xFFE2E8F0)),
+                    const Divider(color: AppTheme.border),
                     const SizedBox(height: 12),
                     CheckoutSummaryRow(
                       label: AppLocalizations.of(context).summaryTotal,
@@ -269,18 +269,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     title: Text(
                       AppLocalizations.of(context).placeOrder,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     content: const Text(
                       'Are you sure you want to place this order? This action cannot be undone.',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                        color: Color(0xFF475569),
-                      ),
+                      style: TextStyle(fontSize: 14, color: Color(0xFF475569)),
                     ),
                     backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
@@ -292,8 +287,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         child: Text(
                           AppLocalizations.of(context).cancel,
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            color: Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -302,17 +296,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         onPressed: () => Navigator.of(context).pop(true),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFF0B372B),
+                          backgroundColor: AppTheme.primaryGreen,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: Text(
                           AppLocalizations.of(context).confirm,
-                          style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
@@ -464,18 +455,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 children: [
                   Text(
                     ref.watch(preferencesProvider).paymentTitle,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     ref.watch(preferencesProvider).paymentSubtitle,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF6B7280),
                     ),
@@ -494,32 +483,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return TextFormField(
       controller: _vendorNotesControllers[vendorName],
       maxLines: 3,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 14,
-        color: Color(0xFF1E293B),
-      ),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
       decoration: InputDecoration(
         hintText:
             'e.g. chop the pork into small cubes, select green bananas, etc.',
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF94A3B8),
-        ),
+        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
         filled: true,
-        fillColor: const Color(0xFFF8FAFC),
+        fillColor: AppTheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: AppTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

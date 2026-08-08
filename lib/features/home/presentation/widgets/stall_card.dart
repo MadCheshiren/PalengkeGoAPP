@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
@@ -78,7 +79,7 @@ class _StallCardState extends State<StallCard> {
                           child: const Center(
                             child: Icon(
                               Icons.image_rounded,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.muted,
                               size: 30,
                             ),
                           ),
@@ -114,11 +115,10 @@ class _StallCardState extends State<StallCard> {
                           const SizedBox(width: 2),
                           Text(
                             rating,
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
+                            style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                         ],
@@ -132,16 +132,13 @@ class _StallCardState extends State<StallCard> {
                       height: 23,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
-                        color: isOpen
-                            ? const Color(0xFF22C55E)
-                            : const Color(0xFF94A3B8),
+                        color: isOpen ? AppTheme.statusOpen : AppTheme.muted,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         status,
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                        style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -176,10 +173,9 @@ class _StallCardState extends State<StallCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF6D9773),
+                                  color: AppTheme.accentGreen,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -188,10 +184,9 @@ class _StallCardState extends State<StallCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                   height: 1.2,
                                 ),
                               ),
@@ -208,7 +203,6 @@ class _StallCardState extends State<StallCard> {
                                     Text(
                                       '(${widget.vendor.reviewCount})',
                                       style: const TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
                                         fontSize: 10,
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xFF6B7280),
@@ -223,7 +217,6 @@ class _StallCardState extends State<StallCard> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 10,
                                       fontWeight: FontWeight.w400,
                                       color: Color(0xFF9CA3AF),
@@ -247,10 +240,9 @@ class _StallCardState extends State<StallCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.muted,
                             ),
                           ),
                         ),
@@ -265,7 +257,7 @@ class _StallCardState extends State<StallCard> {
                           child: const Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 12,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                       ],

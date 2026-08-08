@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
@@ -32,7 +33,7 @@ class NotificationsScreen extends ConsumerWidget {
             ? notifService.vendorUnreadCount
             : notifService.customerUnreadCount;
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: AppTheme.surface,
           body: SafeArea(
             child: CustomScrollView(
               slivers: [
@@ -52,25 +53,24 @@ class NotificationsScreen extends ConsumerWidget {
                                   width: 40,
                                   height: 40,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFFF1F5F9),
+                                    color: AppTheme.surfaceContainerLow,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.arrow_back_ios_new_rounded,
                                     size: 18,
-                                    color: Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Flexible(
+                              const Flexible(
                                 child: Text(
                                   'Notifications',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0B372B),
+                                    color: AppTheme.primaryGreen,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -98,10 +98,9 @@ class NotificationsScreen extends ConsumerWidget {
                               child: const Text(
                                 'Mark all read',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 ),
                               ),
                             ),
@@ -197,13 +196,13 @@ class _EmptyNotifications extends StatelessWidget {
           Container(
             width: 72,
             height: 72,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F5E9),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.notifications_none_rounded,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
               size: 36,
             ),
           ),
@@ -211,20 +210,15 @@ class _EmptyNotifications extends StatelessWidget {
           const Text(
             "You're all caught up!",
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'New order updates will appear here.',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
         ],
       ),
@@ -260,9 +254,9 @@ class _NotificationCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(
-                0xFF0B372B,
-              ).withValues(alpha: isRead ? 0.04 : 0.12),
+              color: AppTheme.primaryGreen.withValues(
+                alpha: isRead ? 0.04 : 0.12,
+              ),
               blurRadius: isRead ? 6 : 16,
               offset: const Offset(0, 2),
             ),
@@ -294,7 +288,6 @@ class _NotificationCard extends ConsumerWidget {
                         child: Text(
                           notification.title,
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
                             // Unread: heavy. Read: medium — weight carries the state.
                             fontWeight: isRead
@@ -302,7 +295,7 @@ class _NotificationCard extends ConsumerWidget {
                                 : FontWeight.w700,
                             color: isRead
                                 ? const Color(0xFF6B7280)
-                                : const Color(0xFF0B372B),
+                                : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
                         ),
@@ -325,7 +318,6 @@ class _NotificationCard extends ConsumerWidget {
                   Text(
                     notification.body,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
@@ -352,7 +344,6 @@ class _NotificationCard extends ConsumerWidget {
                     child: Text(
                       _relativeTime(notification.createdAt),
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: isRead
@@ -425,7 +416,7 @@ class _NotificationCard extends ConsumerWidget {
                     border: Border.all(
                       color: isSuggested
                           ? const Color(0xFF86EFAC)
-                          : const Color(0xFFE2E8F0),
+                          : AppTheme.border,
                       width: isSuggested ? 1.5 : 1,
                     ),
                     boxShadow: [
@@ -479,7 +470,6 @@ class _NotificationCard extends ConsumerWidget {
                                 child: const Text(
                                   'RECOMMENDED',
                                   style: TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
                                     fontSize: 8,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF15803D),
@@ -491,7 +481,6 @@ class _NotificationCard extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF0F172A),
@@ -501,9 +490,8 @@ class _NotificationCard extends ConsumerWidget {
                             Text(
                               '${recipe.time} • ${recipe.difficulty}',
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 10,
-                                color: Color(0xFF64748B),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                           ],
@@ -527,7 +515,7 @@ class _NotificationCard extends ConsumerWidget {
       NotificationType.order => (
         icon: Icons.shopping_bag_outlined,
         iconColor: Colors.white,
-        bgColor: const Color(0xFF0B372B),
+        bgColor: AppTheme.primaryGreen,
       ),
       NotificationType.promo => (
         icon: Icons.local_offer_outlined,
@@ -588,12 +576,12 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
     final horizontalPadding = 16.0 * (1.0 - progress);
     final isAllCaughtUp = unreadCount == 0;
     final bannerColor = isAllCaughtUp
-        ? const Color(0xFF6D9773)
-        : const Color(0xFF0B372B);
+        ? AppTheme.accentGreen
+        : AppTheme.primaryGreen;
 
     return SizedBox.expand(
       child: Container(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: Container(
@@ -630,7 +618,6 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
                       Text(
                         isAllCaughtUp ? 'STATUS UPDATE' : 'NEW NOTIFICATIONS',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: Color(0xB2FFFFFF),
@@ -643,7 +630,6 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
                             ? "You're all caught up!"
                             : '$unreadCount new updates today',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,

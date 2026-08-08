@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/vendors/domain/day_schedule.dart';
 
@@ -57,9 +58,9 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF0B372B),
+              primary: AppTheme.primaryGreen,
               onPrimary: Colors.white,
-              onSurface: Color(0xFF0B372B),
+              onSurface: AppTheme.primaryGreen,
             ),
           ),
           child: child!,
@@ -90,14 +91,13 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
               children: [
                 Icon(
                   Icons.schedule_rounded,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   size: 20,
                 ),
                 SizedBox(width: 8),
                 Text(
                   'Operating Hours',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
@@ -112,15 +112,14 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                     icon: const Icon(
                       Icons.copy_rounded,
                       size: 14,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                     label: const Text(
                       'Apply Mon to All',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                     onPressed: widget.onApplyMondayToAll,
@@ -130,7 +129,7 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                     _isExpanded
                         ? Icons.keyboard_arrow_up_rounded
                         : Icons.keyboard_arrow_down_rounded,
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                   onPressed: () {
                     setState(() {
@@ -150,9 +149,9 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: AppTheme.border),
               ),
               child: Row(
                 children: [
@@ -161,7 +160,6 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                     child: Text(
                       schedule.name,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF1F2937),
@@ -193,10 +191,9 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                                       _stringToTime(schedule.openTime),
                                     ),
                                     style: const TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF0B372B),
+                                      color: AppTheme.primaryGreen,
                                     ),
                                   ),
                                 ),
@@ -205,7 +202,9 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                                 padding: EdgeInsets.symmetric(horizontal: 4),
                                 child: Text(
                                   '-',
-                                  style: TextStyle(color: Color(0xFF64748B)),
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                  ),
                                 ),
                               ),
                               InkWell(
@@ -227,10 +226,9 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                                       _stringToTime(schedule.closeTime),
                                     ),
                                     style: const TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF0B372B),
+                                      color: AppTheme.primaryGreen,
                                     ),
                                   ),
                                 ),
@@ -240,10 +238,9 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                         : const Text(
                             'Closed',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.muted,
                             ),
                           ),
                   ),
@@ -253,10 +250,10 @@ class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
                       widget.schedules[index] = schedule.copyWith(isOpen: val);
                       widget.onChanged();
                     },
-                    activeThumbColor: const Color(0xFF0B372B),
-                    activeTrackColor: const Color(
-                      0xFF0B372B,
-                    ).withValues(alpha: 0.3),
+                    activeThumbColor: AppTheme.primaryGreen,
+                    activeTrackColor: AppTheme.primaryGreen.withValues(
+                      alpha: 0.3,
+                    ),
                   ),
                 ],
               ),

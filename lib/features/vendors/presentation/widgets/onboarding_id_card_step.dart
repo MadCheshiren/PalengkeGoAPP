@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
@@ -76,7 +77,6 @@ class OnboardingIdCardStep extends StatelessWidget {
                             child: Text(
                               idCardFile!.split('/').last,
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF374151),
@@ -109,7 +109,7 @@ class OnboardingIdCardStep extends StatelessWidget {
                         child: const Icon(
                           Icons.edit,
                           size: 16,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -134,7 +134,7 @@ class OnboardingIdCardStep extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF0B372B)
+                        ? AppTheme.primaryGreen
                         : const Color(0xFFE5E7EB),
                   ),
                 ),
@@ -144,7 +144,6 @@ class OnboardingIdCardStep extends StatelessWidget {
                       child: Text(
                         type,
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
                           fontWeight: isSelected
                               ? FontWeight.w600
@@ -156,7 +155,7 @@ class OnboardingIdCardStep extends StatelessWidget {
                     if (isSelected)
                       const Icon(
                         Icons.check_circle,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                         size: 20,
                       ),
                   ],

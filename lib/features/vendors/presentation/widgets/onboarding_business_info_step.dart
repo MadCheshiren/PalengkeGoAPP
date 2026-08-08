@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -49,7 +50,6 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF374151),
@@ -61,25 +61,16 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
           textCapitalization: textCapitalization,
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            color: Color(0xFF111827),
-          ),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefixText,
             prefixStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF111827),
             ),
-            hintStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              color: Color(0xFF9CA3AF),
-            ),
+            hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
             filled: true,
             fillColor: const Color(0xFFF3F4F6),
             border: OutlineInputBorder(
@@ -92,7 +83,10 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+              borderSide: const BorderSide(
+                color: AppTheme.primaryGreen,
+                width: 1,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -118,7 +112,6 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Color(0xFF374151),
@@ -163,7 +156,6 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                             child: Text(
                               fileName.split('/').last.split('#').last,
                               style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF374151),
@@ -194,7 +186,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                       child: const Icon(
                         Icons.edit,
                         size: 16,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -206,7 +198,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 24),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: const Color(0xFFCBD5E1),
@@ -233,7 +225,6 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                   const Text(
                     'Add Attachment',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       color: Color(0xFF059669),
                       fontWeight: FontWeight.w600,
@@ -243,9 +234,8 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                   const Text(
                     'Supported formats: PDF, DOC, DOCX, JPG, PNG',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -304,7 +294,6 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
           const Text(
             'Stall Category *',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Color(0xFF374151),
@@ -322,11 +311,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                 value: selectedCategory.isEmpty ? null : selectedCategory,
                 hint: const Text(
                   'Select a category',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    color: Color(0xFF9CA3AF),
-                  ),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
                 ),
                 isExpanded: true,
                 icon: const Icon(
@@ -334,11 +319,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                   color: Color(0xFF9CA3AF),
                 ),
                 dropdownColor: Colors.white,
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 14,
-                  color: Color(0xFF111827),
-                ),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
                 items:
                     [
                       'Fresh Fish',

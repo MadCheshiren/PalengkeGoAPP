@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class StallInfoForm extends StatelessWidget {
@@ -22,7 +23,6 @@ class StallInfoForm extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: Color(0xFF475569),
@@ -44,19 +44,14 @@ class StallInfoForm extends StatelessWidget {
       readOnly: readOnly,
       textCapitalization: textCapitalization,
       style: TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 14,
-        color: readOnly ? const Color(0xFF64748B) : const Color(0xFF1E293B),
+        color: readOnly ? AppTheme.textSecondary : const Color(0xFF1E293B),
       ),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF94A3B8),
-        ),
+        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
         filled: true,
-        fillColor: readOnly ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
+        fillColor: readOnly ? AppTheme.surfaceContainerLow : AppTheme.surface,
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -68,7 +63,7 @@ class StallInfoForm extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
+          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -102,7 +97,6 @@ class StallInfoForm extends StatelessWidget {
                   child: Text(
                     'Select Category',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -114,7 +108,6 @@ class StallInfoForm extends StatelessWidget {
                     title: Text(
                       category,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         color: Color(0xFF1E293B),
                       ),
@@ -122,7 +115,7 @@ class StallInfoForm extends StatelessWidget {
                     trailing: selectedCategory == category
                         ? const Icon(
                             Icons.check_rounded,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           )
                         : null,
                     onTap: () {
@@ -148,7 +141,6 @@ class StallInfoForm extends StatelessWidget {
         const Text(
           'Stall Information',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Color(0xFF111827),
@@ -186,9 +178,9 @@ class StallInfoForm extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppTheme.border),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,14 +188,13 @@ class StallInfoForm extends StatelessWidget {
                 Text(
                   selectedCategory,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     color: Color(0xFF111827),
                   ),
                 ),
                 const Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                 ),
               ],
             ),

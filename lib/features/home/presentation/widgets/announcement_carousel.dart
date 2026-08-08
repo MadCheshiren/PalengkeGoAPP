@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:async';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
@@ -106,9 +107,9 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(
-                                  0xFF0B372B,
-                                ).withValues(alpha: 0.15),
+                                color: AppTheme.primaryGreen.withValues(
+                                  alpha: 0.15,
+                                ),
                                 blurRadius: 30,
                                 offset: const Offset(0, 10),
                               ),
@@ -177,7 +178,6 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                                         child: const Text(
                                           'ANNOUNCEMENT',
                                           style: TextStyle(
-                                            fontFamily: 'PlusJakartaSans',
                                             fontSize: 10,
                                             fontWeight: FontWeight.w800,
                                             color: Color(0xFFD97706),
@@ -189,10 +189,9 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                                       Text(
                                         announcement.title,
                                         style: const TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 22,
                                           fontWeight: FontWeight.w800,
-                                          color: Color(0xFF0B372B),
+                                          color: AppTheme.primaryGreen,
                                           height: 1.2,
                                           letterSpacing: -0.5,
                                         ),
@@ -201,7 +200,6 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                                       Text(
                                         announcement.body,
                                         style: const TextStyle(
-                                          fontFamily: 'PlusJakartaSans',
                                           fontSize: 15,
                                           fontWeight: FontWeight.w400,
                                           color: Color(0xFF475569),
@@ -227,7 +225,7 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0B372B).withValues(alpha: 0.3),
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.3),
                           blurRadius: 15,
                           offset: const Offset(0, 8),
                         ),
@@ -248,7 +246,7 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            const Color(0xFF0B372B).withValues(alpha: 0.9),
+                            AppTheme.primaryGreen.withValues(alpha: 0.9),
                           ],
                         ),
                       ),
@@ -271,7 +269,6 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                             child: const Text(
                               'NEW',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -283,7 +280,6 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                           Text(
                             announcement.title,
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
@@ -296,7 +292,6 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                           Text(
                             announcement.body,
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                               color: Colors.white.withValues(alpha: 0.85),
@@ -326,8 +321,8 @@ class _AnnouncementCarouselState extends State<AnnouncementCarousel> {
                 width: _currentPage == index ? 20 : 6,
                 decoration: BoxDecoration(
                   color: _currentPage == index
-                      ? const Color(0xFF0B372B)
-                      : const Color(0xFF0B372B).withValues(alpha: 0.2),
+                      ? AppTheme.primaryGreen
+                      : AppTheme.primaryGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
