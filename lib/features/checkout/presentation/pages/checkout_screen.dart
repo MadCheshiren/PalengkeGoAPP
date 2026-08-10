@@ -1,24 +1,17 @@
 import 'package:palengkego/core/theme/app_theme.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
-import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
-import 'package:palengkego/features/orders/domain/order_failure.dart';
-import 'package:palengkego/features/orders/domain/order_line_item.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
+import 'package:palengkego/features/checkout/application/checkout_controller.dart';
 
-import 'package:palengkego/features/orders/application/order_provider.dart';
-import 'package:palengkego/features/auth/application/auth_provider.dart';
-import 'package:palengkego/features/profile/application/profile_provider.dart';
-import 'package:palengkego/core/navigation/app_router.dart';
-import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
-import 'package:palengkego/features/cart/domain/cart_item.dart';
-import 'package:palengkego/features/checkout/domain/payment_selection.dart';
+import 'package:palengkego/core/navigation/app_router.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_delivery_cards.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_delivery_option_card.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_footer.dart';
@@ -27,6 +20,9 @@ import 'package:palengkego/features/checkout/presentation/widgets/checkout_order
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_pickup_cards.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_section_title.dart';
 import 'package:palengkego/features/checkout/presentation/widgets/checkout_summary_row.dart';
+import 'package:palengkego/features/checkout/presentation/widgets/checkout_payment_method_card.dart';
+import 'package:palengkego/features/checkout/presentation/widgets/checkout_vendor_notes.dart';
+import 'package:palengkego/features/checkout/presentation/widgets/checkout_place_order_dialog.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
 import 'package:palengkego/features/market/domain/market_vendor.dart';
 
@@ -38,15 +34,17 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
-  int _deliveryMethod = 0; // 0 = Delivery, 1 = Pick-Up
-  bool _isPriority = false;
-  final Map<String, TextEditingController> _vendorNotesControllers = {};
+  late final CheckoutController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CheckoutController(ref: ref);
+  }
 
   @override
   void dispose() {
-    for (final controller in _vendorNotesControllers.values) {
-      controller.dispose();
-    }
+    _controller.dispose();
     super.dispose();
   }
 
@@ -60,453 +58,232 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       0,
       (sum, item) => sum + item.total,
     );
-    final deliveryFee = _deliveryMethod == 0 ? FeeConfig.deliveryFee : 0.0;
-    final priorityFee = (_deliveryMethod == 0 && _isPriority)
-        ? FeeConfig.priorityFee
-        : 0.0;
-    final Map<String, List<CartItem>> itemsByVendor = {};
 
+    final Map<String, List<CartItem>> itemsByVendor = {};
     for (final item in selectedItems) {
       itemsByVendor.putIfAbsent(item.vendorName, () => []);
       itemsByVendor[item.vendorName]!.add(item);
     }
 
-    for (final vendor in itemsByVendor.keys) {
-      _vendorNotesControllers.putIfAbsent(
-        vendor,
-        () => TextEditingController(),
-      );
-    }
-
     final deliveryAddress = preferences.deliveryAddress;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            AppScreenHeader(
-              title: AppLocalizations.of(context).checkoutSectionTitle,
-              size: 32,
-              titleSize: 18,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CheckoutMethodToggle(
-                      deliveryMethod: _deliveryMethod,
-                      onChanged: (value) {
-                        setState(() => _deliveryMethod = value);
-                        ref
-                            .read(preferencesProvider.notifier)
-                            .updatePaymentMethod(value == 0 ? 'cod' : 'cop');
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    if (_deliveryMethod == 0) ...[
-                      CheckoutSectionTitle(
-                        icon: Icons.location_on_outlined,
-                        title: AppLocalizations.of(
-                          context,
-                        ).deliveryAddressTitle,
-                      ),
-                      const SizedBox(height: 12),
-                      CheckoutDeliveryAddressCard(
-                        deliveryAddress: deliveryAddress,
-                        onChange: () async {
-                          final result = await Navigator.of(
-                            context,
-                          ).pushNamed(AppRoutes.setDeliveryAddress);
-                          if (!mounted) return;
-                          if (result is DeliveryAddress) {
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        final deliveryMethod = _controller.deliveryMethod;
+        final deliveryFee = deliveryMethod == 0 ? FeeConfig.deliveryFee : 0.0;
+        final priorityFee = _controller.priorityFee;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                AppScreenHeader(
+                  title: AppLocalizations.of(context).checkoutSectionTitle,
+                  size: 32,
+                  titleSize: 18,
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CheckoutMethodToggle(
+                          deliveryMethod: deliveryMethod,
+                          onChanged: (value) {
+                            _controller.setDeliveryMethod(value);
                             ref
                                 .read(preferencesProvider.notifier)
-                                .updateAddress(
-                                  primaryAddress: result.primaryAddress.isEmpty
-                                      ? deliveryAddress.primaryAddress
-                                      : result.primaryAddress,
-                                  streetAddress: result.streetAddress,
-                                  notes: result.notes,
+                                .updatePaymentMethod(
+                                  value == 0 ? 'cod' : 'cop',
                                 );
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      CheckoutDeliveryOptionCard(
-                        isPrioritySelected: _isPriority,
-                        onOptionChanged: (val) {
-                          setState(() => _isPriority = val);
-                        },
-                      ),
-                    ] else ...[
-                      const CheckoutPickupHeader(),
-                      const SizedBox(height: 12),
-                      ...itemsByVendor.entries.map((entry) {
-                        final vendorName = entry.key;
-                        final allVendors = ref
-                            .watch(allVendorsProvider)
-                            .maybeWhen(data: (v) => v, orElse: () => []);
-                        final vendorModel = allVendors.firstWhere(
-                          (v) => v.name == vendorName,
-                          orElse: () => const MarketVendor(
-                            id: '',
-                            name: 'Stall Holder',
-                            category: 'General',
-                            rating: 4.6,
-                            isVerified: false,
-                            distance: '',
-                            imageUrl: '',
-                            stallNumber: 'Market Stall',
-                            marketSection: 'Fish Section',
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        if (deliveryMethod == 0) ...[
+                          CheckoutSectionTitle(
+                            icon: Icons.location_on_outlined,
+                            title: AppLocalizations.of(
+                              context,
+                            ).deliveryAddressTitle,
                           ),
-                        );
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: CheckoutPickupCard(
-                            vendorName: vendorName,
-                            vendorStall:
-                                vendorModel.stallNumber ?? 'Market Stall',
-                            vendorSection:
-                                vendorModel.marketSection ?? 'Fish Section',
-                            vendorRating: vendorModel.rating,
-                            vendorCount: 1,
-                            vendorImageUrl: vendorModel.imageUrl,
-                          ),
-                        );
-                      }),
-                      const CheckoutReadyTimeCard(),
-                    ],
-                    const SizedBox(height: 24),
-                    CheckoutSectionTitle(
-                      icon: Icons.credit_card_outlined,
-                      title: AppLocalizations.of(context).paymentMethodTitle,
-                    ),
-                    const SizedBox(height: 12),
-                    _paymentMethodCard(),
-                    const SizedBox(height: 24),
-                    CheckoutSectionTitle(
-                      icon: Icons.shopping_basket_outlined,
-                      title: AppLocalizations.of(context).orderSummaryTitle,
-                    ),
-                    const SizedBox(height: 12),
-                    ...selectedItems.map(
-                      (item) => CheckoutOrderItem(item: item),
-                    ),
-                    const SizedBox(height: 24),
-                    CheckoutSectionTitle(
-                      icon: Icons.note_alt_outlined,
-                      title: AppLocalizations.of(context).orderNotesTitle,
-                    ),
-                    const SizedBox(height: 12),
-                    ...itemsByVendor.keys.map((vendorName) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocalizations.of(
+                          const SizedBox(height: 12),
+                          CheckoutDeliveryAddressCard(
+                            deliveryAddress: deliveryAddress,
+                            onChange: () async {
+                              final result = await Navigator.of(
                                 context,
-                              ).notesForVendor(vendorName),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF374151),
+                              ).pushNamed(AppRoutes.setDeliveryAddress);
+                              if (!mounted) return;
+                              if (result is DeliveryAddress) {
+                                ref
+                                    .read(preferencesProvider.notifier)
+                                    .updateAddress(
+                                      primaryAddress:
+                                          result.primaryAddress.isEmpty
+                                          ? deliveryAddress.primaryAddress
+                                          : result.primaryAddress,
+                                      streetAddress: result.streetAddress,
+                                      notes: result.notes,
+                                    );
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          CheckoutDeliveryOptionCard(
+                            isPrioritySelected: _controller.isPriority,
+                            onOptionChanged: (val) {
+                              _controller.setPriority(val);
+                            },
+                          ),
+                        ] else ...[
+                          const CheckoutPickupHeader(),
+                          const SizedBox(height: 12),
+                          ...itemsByVendor.entries.map((entry) {
+                            final vendorName = entry.key;
+                            final allVendors = ref
+                                .watch(allVendorsProvider)
+                                .maybeWhen(data: (v) => v, orElse: () => []);
+                            final vendorModel = allVendors.firstWhere(
+                              (v) => v.name == vendorName,
+                              orElse: () => const MarketVendor(
+                                id: '',
+                                name: 'Stall Holder',
+                                category: 'General',
+                                rating: 4.6,
+                                isVerified: false,
+                                distance: '',
+                                imageUrl: '',
+                                stallNumber: 'Market Stall',
+                                marketSection: 'Fish Section',
+                              ),
+                            );
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: CheckoutPickupCard(
+                                vendorName: vendorName,
+                                vendorStall:
+                                    vendorModel.stallNumber ?? 'Market Stall',
+                                vendorSection:
+                                    vendorModel.marketSection ?? 'Fish Section',
+                                vendorRating: vendorModel.rating,
+                                vendorCount: 1,
+                                vendorImageUrl: vendorModel.imageUrl,
+                              ),
+                            );
+                          }),
+                          const CheckoutReadyTimeCard(),
+                        ],
+                        const SizedBox(height: 24),
+                        CheckoutSectionTitle(
+                          icon: Icons.credit_card_outlined,
+                          title: AppLocalizations.of(
+                            context,
+                          ).paymentMethodTitle,
+                        ),
+                        const SizedBox(height: 12),
+                        CheckoutPaymentMethodCard(
+                          deliveryMethod: deliveryMethod,
+                        ),
+                        const SizedBox(height: 24),
+                        CheckoutSectionTitle(
+                          icon: Icons.shopping_basket_outlined,
+                          title: AppLocalizations.of(context).orderSummaryTitle,
+                        ),
+                        const SizedBox(height: 12),
+                        ...selectedItems.map(
+                          (item) => CheckoutOrderItem(item: item),
+                        ),
+                        const SizedBox(height: 24),
+                        CheckoutSectionTitle(
+                          icon: Icons.note_alt_outlined,
+                          title: AppLocalizations.of(context).orderNotesTitle,
+                        ),
+                        const SizedBox(height: 12),
+                        ...itemsByVendor.keys.map((vendorName) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: CheckoutVendorNotes(
+                              vendorName: vendorName,
+                              controller: _controller.notesControllerFor(
+                                vendorName,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            _notesTextField(vendorName),
-                          ],
+                          );
+                        }),
+                        const SizedBox(height: 4),
+                        const Divider(color: AppTheme.border),
+                        const SizedBox(height: 12),
+                        CheckoutSummaryRow(
+                          label: AppLocalizations.of(context).summarySubtotal,
+                          value: '₱${subtotal.toStringAsFixed(2)}',
                         ),
-                      );
-                    }),
-                    const SizedBox(height: 4),
-                    const Divider(color: AppTheme.border),
-                    const SizedBox(height: 12),
-                    CheckoutSummaryRow(
-                      label: AppLocalizations.of(context).summarySubtotal,
-                      value: '₱${subtotal.toStringAsFixed(2)}',
-                    ),
-                    const SizedBox(height: 8),
-                    CheckoutSummaryRow(
-                      label: AppLocalizations.of(context).summaryDeliveryFee,
-                      value: _deliveryMethod == 0
-                          ? '₱${deliveryFee.toStringAsFixed(2)}'
-                          : AppLocalizations.of(context).feeFree,
-                      highlighted: _deliveryMethod == 1,
-                    ),
-                    if (_deliveryMethod == 0 && _isPriority) ...[
-                      const SizedBox(height: 8),
-                      CheckoutSummaryRow(
-                        label: AppLocalizations.of(context).summaryPriorityFee,
-                        value: '₱29.00',
-                        highlighted: true,
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    const Divider(color: AppTheme.border),
-                    const SizedBox(height: 12),
-                    CheckoutSummaryRow(
-                      label: AppLocalizations.of(context).summaryTotal,
-                      value:
-                          '₱${(subtotal + deliveryFee + priorityFee).toStringAsFixed(2)}',
-                      isBold: true,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            CheckoutFooter(
-              enabled: selectedItems.isNotEmpty,
-              onPlaceOrder: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(
-                      AppLocalizations.of(context).placeOrder,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryGreen,
-                      ),
-                    ),
-                    content: const Text(
-                      'Are you sure you want to place this order? This action cannot be undone.',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF475569)),
-                    ),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text(
-                          AppLocalizations.of(context).cancel,
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(height: 8),
+                        CheckoutSummaryRow(
+                          label: AppLocalizations.of(
+                            context,
+                          ).summaryDeliveryFee,
+                          value: deliveryMethod == 0
+                              ? '₱${deliveryFee.toStringAsFixed(2)}'
+                              : AppLocalizations.of(context).feeFree,
+                          highlighted: deliveryMethod == 1,
+                        ),
+                        if (deliveryMethod == 0 && _controller.isPriority) ...[
+                          const SizedBox(height: 8),
+                          CheckoutSummaryRow(
+                            label: AppLocalizations.of(
+                              context,
+                            ).summaryPriorityFee,
+                            value: '₱29.00',
+                            highlighted: true,
                           ),
+                        ],
+                        const SizedBox(height: 12),
+                        const Divider(color: AppTheme.border),
+                        const SizedBox(height: 12),
+                        CheckoutSummaryRow(
+                          label: AppLocalizations.of(context).summaryTotal,
+                          value:
+                              '₱${(subtotal + deliveryFee + priorityFee).toStringAsFixed(2)}',
+                          isBold: true,
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: AppTheme.primaryGreen,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          AppLocalizations.of(context).confirm,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-                if (confirm != true) return;
-                if (!context.mounted) return;
+                ),
+                CheckoutFooter(
+                  enabled:
+                      selectedItems.isNotEmpty && !_controller.placingOrder,
+                  onPlaceOrder: () async {
+                    final confirm = await showCheckoutPlaceOrderDialog(context);
+                    if (confirm != true) return;
+                    if (!context.mounted) return;
 
-                final Map<String, String> vendorNotes = {};
-                for (final entry in _vendorNotesControllers.entries) {
-                  final text = entry.value.text.trim();
-                  if (text.isNotEmpty) {
-                    vendorNotes[entry.key] = text;
-                  }
-                }
-
-                final profile = ref.read(currentProfileProvider).value;
-                final customerName = profile?.displayName ?? 'Customer';
-                final customerUid = ref.read(authProvider)?.uid ?? '';
-
-                // Create orders
-                try {
-                  final Map<String, (String, List<OrderLineItem>)>
-                  groupedItems = {};
-                  for (final item in selectedItems) {
-                    groupedItems.putIfAbsent(
-                      item.vendorName,
-                      () => (item.image, <OrderLineItem>[]),
+                    final orders = await _controller.placeOrder(
+                      selectedItems: selectedItems,
                     );
-                    groupedItems[item.vendorName]!.$2.add(
-                      OrderLineItem(
-                        productId: item.productId,
-                        productName: item.productName,
-                        quantity: item.quantity,
-                        unitPrice: item.price,
-                        unit: item.unit,
-                        image: item.image,
-                      ),
-                    );
-                  }
-
-                  final createdOrders = await ref
-                      .read(orderRepositoryProvider)
-                      .placeOrders(
-                        groupedItems: groupedItems,
-                        isPickup: _deliveryMethod == 1,
-                        vendorNotes: vendorNotes.isNotEmpty
-                            ? vendorNotes
-                            : null,
-                        customerName: customerName,
-                        customerUid: customerUid,
-                        isPriority: _deliveryMethod == 0 && _isPriority,
-                        priorityFee: priorityFee,
+                    if (!context.mounted) return;
+                    if (orders != null) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.orderConfirmation,
+                        (route) => false,
+                        arguments: OrderConfirmationRouteArgs(
+                          isPickup: deliveryMethod == 1,
+                          orders: orders,
+                          address: deliveryAddress.displayLine,
+                        ),
                       );
-
-                  ref.read(orderServiceProvider.notifier).refresh();
-                  ref.read(cartItemsProvider.notifier).removeSelectedItems();
-
-                  // Navigate to order confirmation screen
-                  if (!context.mounted) {
-                    return;
-                  }
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.orderConfirmation,
-                    (route) => false,
-                    arguments: OrderConfirmationRouteArgs(
-                      isPickup: _deliveryMethod == 1,
-                      orders: createdOrders,
-                      address: deliveryAddress.displayLine,
-                    ),
-                  );
-                } on OrderFailure catch (e) {
-                  if (context.mounted) {
-                    AppServices.showError(e.message);
-                  }
-                } catch (e, stack) {
-                  if (kDebugMode) debugPrint('Error placing order: $e');
-                  if (kDebugMode) debugPrint('Stacktrace: $stack');
-                  if (context.mounted) {
-                    AppServices.showError(
-                      'Failed to place your order. Your cart is unchanged — please try again.',
-                    );
-                  }
-                }
-              },
+                    }
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _paymentMethodCard() {
-    return GestureDetector(
-      onTap: () async {
-        final result = await Navigator.of(context).pushNamed(
-          AppRoutes.paymentMethods,
-          arguments: PaymentMethodsRouteArgs(
-            currentMethod: ref.read(preferencesProvider).paymentMethod,
-            fulfillmentMethod: _deliveryMethod == 0 ? 'delivery' : 'pickup',
           ),
         );
-        if (!mounted) return;
-        if (result is PaymentSelectionResult) {
-          final method = result.method;
-          final cardLabel = result.cardData?.displayLabel;
-          ref
-              .read(preferencesProvider.notifier)
-              .updatePaymentMethod(method, cardLabel: cardLabel);
-          final message = switch (method) {
-            'cod' => AppLocalizations.of(context).codSelected,
-            'gcash' => AppLocalizations.of(context).gcashSelected,
-            'card' => AppLocalizations.of(context).cardSelected,
-            _ => AppLocalizations.of(context).paymentMethodUpdated,
-          };
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
       },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF7ED),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.payments_outlined,
-                  size: 20,
-                  color: Color(0xFFF59E0B),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ref.watch(preferencesProvider).paymentTitle,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryGreen,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    ref.watch(preferencesProvider).paymentSubtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, size: 20, color: Color(0xFF9CA3AF)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _notesTextField(String vendorName) {
-    return TextFormField(
-      controller: _vendorNotesControllers[vendorName],
-      maxLines: 3,
-      style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-      decoration: InputDecoration(
-        hintText:
-            'e.g. chop the pork into small cubes, select green bananas, etc.',
-        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
-        filled: true,
-        fillColor: AppTheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
     );
   }
 }
