@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -316,34 +317,17 @@ class _VendorAccountDetailsScreenState
     TextInputType keyboardType = TextInputType.text,
     String? prefixText,
   }) {
-    return TextFormField(
+    return AppTextField(
       controller: controller,
       keyboardType: keyboardType,
       style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixText: prefixText,
-        prefixStyle: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
-        filled: true,
-        fillColor: AppTheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
+      hintText: hint,
+      prefixText: prefixText,
+      prefixStyle: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+      hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
+      fillColor: AppTheme.surface,
+      borderless: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       validator: (val) {
         if (val == null || val.trim().isEmpty) {
           return 'This field is required';
@@ -369,42 +353,25 @@ class _VendorAccountDetailsScreenState
     required bool isRequired,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return AppTextField(
       controller: controller,
       obscureText: obscureText,
       style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
-        filled: true,
-        fillColor: Colors.white,
-        suffixIcon: IconButton(
-          icon: Icon(
-            obscureText
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            color: AppTheme.textSecondary,
-            size: 20,
-          ),
-          onPressed: onToggleVisibility,
+      hintText: hint,
+      hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
+      fillColor: Colors.white,
+      borderColor: AppTheme.border,
+      suffixIcon: IconButton(
+        icon: Icon(
+          obscureText
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          color: AppTheme.textSecondary,
+          size: 20,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        onPressed: onToggleVisibility,
       ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       validator:
           validator ??
           (val) {

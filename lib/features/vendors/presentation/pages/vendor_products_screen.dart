@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,7 +46,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: TextField(
                 onChanged: (value) => setState(() => _searchQuery = value),
-                decoration: InputDecoration(
+                decoration: appInputDecoration(
                   hintText: 'Search products...',
                   hintStyle: const TextStyle(
                     fontSize: 14,
@@ -56,24 +57,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     color: AppTheme.muted,
                     size: 20,
                   ),
-                  filled: true,
                   fillColor: AppTheme.scaffoldBackground,
+                  borderless: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppTheme.primaryGreen,
-                      width: 1,
-                    ),
-                  ),
                 ),
               ),
             ),

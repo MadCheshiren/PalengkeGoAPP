@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -131,23 +132,11 @@ class _RatingModalState extends ConsumerState<RatingModal> {
               TextField(
                 controller: _commentController,
                 maxLines: 4,
-                decoration: InputDecoration(
+                decoration: appInputDecoration(
                   hintText: 'Share more details about your experience...',
                   hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-                  filled: true,
                   fillColor: const Color(0xFFF9FAFB),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.primaryGreen),
-                  ),
+                  borderColor: const Color(0xFFE5E7EB),
                 ),
               ),
               const SizedBox(height: 24),

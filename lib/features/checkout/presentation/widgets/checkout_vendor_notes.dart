@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -27,35 +28,18 @@ class CheckoutVendorNotes extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        TextFormField(
+        AppTextField(
           controller: controller,
           maxLines: 3,
           style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-          decoration: InputDecoration(
-            hintText:
-                'e.g. chop the pork into small cubes, select green bananas, etc.',
-            hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
-            filled: true,
-            fillColor: AppTheme.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryGreen,
-                width: 1,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+          hintText:
+              'e.g. chop the pork into small cubes, select green bananas, etc.',
+          hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
+          fillColor: AppTheme.surface,
+          borderColor: AppTheme.border,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
           ),
         ),
       ],

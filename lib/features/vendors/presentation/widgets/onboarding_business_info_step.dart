@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
@@ -62,7 +63,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
           style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
-          decoration: InputDecoration(
+          decoration: appInputDecoration(
             hintText: hint,
             prefixText: prefixText,
             prefixStyle: const TextStyle(
@@ -71,23 +72,8 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
               color: Color(0xFF111827),
             ),
             hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
-            filled: true,
             fillColor: const Color(0xFFF3F4F6),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryGreen,
-                width: 1,
-              ),
-            ),
+            borderless: true,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,

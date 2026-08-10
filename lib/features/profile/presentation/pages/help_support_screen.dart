@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 
@@ -249,7 +250,7 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            TextFormField(
+                            AppTextField(
                               controller: _reportController,
                               maxLines: 4,
                               validator: (val) {
@@ -262,28 +263,15 @@ class _CustomerHelpSupportScreenState extends State<CustomerHelpSupportScreen> {
                                 fontSize: 14,
                                 color: Color(0xFF1E293B),
                               ),
-                              decoration: InputDecoration(
-                                hintText: 'Explain the issue in detail...',
-                                hintStyle: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.muted,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.all(14),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFCBD5E1),
-                                  ),
-                                ),
+                              hintText: 'Explain the issue in detail...',
+                              hintStyle: const TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.muted,
                               ),
+                              borderRadius: 10,
+                              borderColor: const Color(0xFFCBD5E1),
+                              focusedBorderWidth: 2,
+                              contentPadding: const EdgeInsets.all(14),
                             ),
                             const SizedBox(height: 20),
                             SizedBox(

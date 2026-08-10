@@ -8,6 +8,7 @@ import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:palengkego/core/widgets/empty_state.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -409,9 +410,9 @@ class _VendorOrderActions extends ConsumerWidget {
                           TextField(
                             controller: controller,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
+                            decoration: appInputDecoration(
                               suffixText: 'mins',
-                              border: OutlineInputBorder(),
+                              focusedBorderWidth: 2,
                             ),
                           ),
                         ],
@@ -497,9 +498,7 @@ class _VendorOrderActions extends ConsumerWidget {
                       content: TextField(
                         controller: controller,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: appInputDecoration(focusedBorderWidth: 2),
                       ),
                       actions: [
                         TextButton(

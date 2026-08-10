@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
@@ -249,42 +250,21 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              TextFormField(
+                              AppTextField(
                                 controller: _reportController,
                                 maxLines: 4,
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Color(0xFF1F2937),
                                 ),
-                                decoration: InputDecoration(
-                                  hintText: 'Explain the issue in detail...',
-                                  hintStyle: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppTheme.muted,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFCBD5E1),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFCBD5E1),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(
-                                      color: AppTheme.primaryGreen,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.all(12),
+                                hintText: 'Explain the issue in detail...',
+                                hintStyle: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.muted,
                                 ),
+                                borderRadius: 10,
+                                borderColor: const Color(0xFFCBD5E1),
+                                contentPadding: const EdgeInsets.all(12),
                                 validator: (val) {
                                   if (val == null || val.trim().isEmpty) {
                                     return 'Please provide a description of the issue';
