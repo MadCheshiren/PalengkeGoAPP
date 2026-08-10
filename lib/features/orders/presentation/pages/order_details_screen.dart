@@ -11,8 +11,13 @@ import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_details_items_list.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_details_cards.dart';
-import 'package:palengkego/features/orders/presentation/widgets/order_summary_row.dart';
 import 'package:palengkego/features/orders/presentation/widgets/tracking_map_preview.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_header.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_items_header.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_summary_card.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_stall_actions.dart';
+import 'package:palengkego/features/orders/presentation/widgets/order_details_cancel_bar.dart';
+import 'package:palengkego/features/orders/presentation/widgets/cancel_orders_dialog.dart';
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/application/blocked_vendors_provider.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/block_vendor_dialog.dart';
@@ -130,42 +135,16 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
           (o) => o.id == _order.id,
           orElse: () => _order,
         );
-        final subtotalAmount = order.subtotal;
-        final deliveryFeeAmount = order.deliveryFee;
-        final serviceFeeAmount = order.serviceFee;
-        final totalAmount = order.total;
         return Scaffold(
           backgroundColor: AppTheme.surface,
           bottomNavigationBar:
               (order.status == OrderStatus.pending &&
                   _timeRemaining > Duration.zero)
-              ? SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _showCancelDialog();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryGreen,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel Order (${_timeRemaining.inMinutes.toString().padLeft(2, '0')}:${(_timeRemaining.inSeconds % 60).toString().padLeft(2, '0')})',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+              ? OrderDetailsCancelBar(
+                  timeRemaining: _timeRemaining,
+                  onPressed: () {
+                    _showCancelDialog();
+                  },
                 )
               : null,
           body: SafeArea(
@@ -173,46 +152,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
               slivers: [
                 // Header
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(this.context)) {
-                              Navigator.pop(this.context);
-                            } else {
-                              Navigator.of(
-                                this.context,
-                              ).pushReplacementNamed(AppRoutes.main);
-                            }
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.surfaceContainerLow,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              size: 18,
-                              color: AppTheme.primaryGreen,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Order #${order.id}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: OrderDetailsHeader(orderId: order.id),
                 ),
 
                 // Map Preview
@@ -246,28 +186,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Items List',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1F2937),
-                              ),
-                            ),
-                            Text(
-                              '${order.items.length} Items',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.primaryGreen,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                        OrderDetailsItemsHeader(itemCount: order.items.length),
                         OrderDetailsItemsList(items: order.items),
                       ],
                     ),
@@ -284,101 +203,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
 
                 // Order Summary
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                      ),
-                      child: Column(
-                        children: [
-                          OrderSummaryRow(
-                            label: 'Subtotal',
-                            value: '₱${subtotalAmount.toStringAsFixed(2)}',
-                          ),
-                          const SizedBox(height: 12),
-                          OrderSummaryRow(
-                            label: 'Delivery Fee',
-                            value: '₱${deliveryFeeAmount.toStringAsFixed(2)}',
-                          ),
-                          if (order.isPriority) ...[
-                            const SizedBox(height: 12),
-                            OrderSummaryRow(
-                              label: 'Priority Delivery Fee',
-                              value: '₱${order.priorityFee.toStringAsFixed(2)}',
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          OrderSummaryRow(
-                            label: 'Service Fee',
-                            value: '₱${serviceFeeAmount.toStringAsFixed(2)}',
-                          ),
-                          const Divider(height: 24, color: Color(0xFFE5E7EB)),
-                          OrderSummaryRow(
-                            label: 'Total',
-                            value: '₱${totalAmount.toStringAsFixed(2)}',
-                            isTotal: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: OrderDetailsSummaryCard(order: order),
                 ),
 
                 // History Actions
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (order.status == OrderStatus.completed ||
-                            order.status == OrderStatus.cancelled) ...[
-                          const Text(
-                            'Stall Holder Actions',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryGreen,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildActionButton(
-                                  label: 'Report Stall Holder',
-                                  icon: Icons.flag_outlined,
-                                  backgroundColor: Colors.white,
-                                  textColor: const Color(0xFFF59E0B),
-                                  borderColor: const Color(0xFFFDE68A),
-                                  onTap: () {
-                                    _showReportDialog(context);
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildActionButton(
-                                  label: 'Block Stall Holder',
-                                  icon: Icons.block,
-                                  backgroundColor: const Color(0xFFFEF2F2),
-                                  textColor: const Color(0xFFDC2626),
-                                  borderColor: const Color(0xFFFECACA),
-                                  onTap: () {
-                                    _showBlockDialog(context);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 32),
-                        ],
-                      ],
-                    ),
+                  child: OrderDetailsStallActions(
+                    order: order,
+                    onReport: () => _showReportDialog(context),
+                    onBlock: () => _showBlockDialog(context),
                   ),
                 ),
 
@@ -395,43 +228,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
       ),
       error: (err, stack) =>
           const Scaffold(body: Center(child: Text('Error loading order'))),
-    );
-  }
-
-  Widget _buildActionButton({
-    required String label,
-    required IconData icon,
-    required Color backgroundColor,
-    required Color textColor,
-    required Color borderColor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: textColor),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -528,7 +324,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     } else {
       idsToCancel = await showDialog<List<String>>(
         context: context,
-        builder: (dialogContext) => _CancelOrdersDialog(
+        builder: (dialogContext) => CancelOrdersDialog(
           activeOrders: activeOrders,
           currentOrderId: widget.order.id,
         ),
@@ -579,146 +375,5 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
         }
       }
     }
-  }
-}
-
-class _CancelOrdersDialog extends StatefulWidget {
-  final List<MarketOrder> activeOrders;
-  final String currentOrderId;
-
-  const _CancelOrdersDialog({
-    required this.activeOrders,
-    required this.currentOrderId,
-  });
-
-  @override
-  State<_CancelOrdersDialog> createState() => _CancelOrdersDialogState();
-}
-
-class _CancelOrdersDialogState extends State<_CancelOrdersDialog> {
-  final Set<String> _selectedIds = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedIds.add(widget.currentOrderId);
-  }
-
-  void _toggleAll() {
-    setState(() {
-      if (_selectedIds.length == widget.activeOrders.length) {
-        _selectedIds.clear();
-      } else {
-        _selectedIds.addAll(widget.activeOrders.map((o) => o.id));
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final allSelected = _selectedIds.length == widget.activeOrders.length;
-
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        'Cancel Orders',
-        style: TextStyle(fontWeight: FontWeight.w700),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select the active orders you wish to cancel. This action cannot be undone.',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Select All',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                Checkbox(
-                  value: allSelected,
-                  activeColor: AppTheme.primaryGreen,
-                  onChanged: (_) => _toggleAll(),
-                ),
-              ],
-            ),
-            const Divider(),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: widget.activeOrders.length,
-                itemBuilder: (context, index) {
-                  final order = widget.activeOrders[index];
-                  final isSelected = _selectedIds.contains(order.id);
-                  return CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    activeColor: AppTheme.primaryGreen,
-                    title: Text(
-                      order.vendorName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      'Order ${order.id} • ₱${order.total.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    value: isSelected,
-                    onChanged: (val) {
-                      setState(() {
-                        if (val == true) {
-                          _selectedIds.add(order.id);
-                        } else {
-                          _selectedIds.remove(order.id);
-                        }
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Color(0xFF6B7280)),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: _selectedIds.isEmpty
-              ? null
-              : () => Navigator.pop(context, _selectedIds.toList()),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFDC2626),
-            disabledBackgroundColor: const Color(
-              0xFFDC2626,
-            ).withValues(alpha: 0.5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: const Text(
-            'Confirm',
-            style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
-          ),
-        ),
-      ],
-    );
   }
 }
