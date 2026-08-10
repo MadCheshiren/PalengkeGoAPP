@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:excel/excel.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
@@ -120,6 +121,34 @@ void main() {
     completedLastMonth,
   ];
 
+  // Expected totals are derived from the service's own period rules
+  // (Mon-Sun week, calendar month) so the assertions hold on any date.
+  // The previous hardcoded P 860.00 only matched Thu-Sun with day <= 9
+  // of the month: Monday excludes "now - 1 day", and "now - 9 days"
+  // stays inside the month once the day-of-month exceeds 9.
+  final (weekStart, weekEnd) = SalesReportExportService.periodBounds(
+    'week',
+    now,
+  );
+  final weekOrders = SalesReportExportService.completedInRange(
+    fixtures,
+    weekStart,
+    weekEnd,
+  );
+  final (monthStart, monthEnd) = SalesReportExportService.periodBounds(
+    'month',
+    now,
+  );
+  final monthOrders = SalesReportExportService.completedInRange(
+    fixtures,
+    monthStart,
+    monthEnd,
+  );
+
+  String fmt(double amount) => 'P ${NumberFormat('#,##0.00').format(amount)}';
+  final weekExpected = fmt(weekOrders.fold(0.0, (sum, o) => sum + o.total));
+  final monthExpected = fmt(monthOrders.fold(0.0, (sum, o) => sum + o.total));
+
   group('SalesReportExportService', () {
     test('buildFilename normalizes the report period and stall name', () {
       final name = SalesReportExportService.buildFilename(
@@ -166,9 +195,9 @@ void main() {
       expect(textAt('A5'), 'Earnings Today');
       expect(textAt('B5'), 'P 360.00');
       expect(textAt('A6'), 'Earnings This Period');
-      expect(textAt('B6'), 'P 860.00');
+      expect(textAt('B6'), weekExpected);
       expect(textAt('A7'), 'Total Monthly Earnings');
-      expect(textAt('B7'), 'P 860.00');
+      expect(textAt('B7'), monthExpected);
     });
 
     test('buildExcel monthly report uses month-to-date totals only', () {
@@ -184,7 +213,7 @@ void main() {
       }
 
       expect(textAt('A5'), 'Total Monthly Earnings');
-      expect(textAt('B5'), 'P 860.00');
+      expect(textAt('B5'), monthExpected);
     });
 
     test('reports exclude non-completed orders', () {
