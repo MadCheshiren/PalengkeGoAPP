@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -126,8 +127,9 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
             // Grid content
             Expanded(
               child: currentList.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
+                loading: () => const AsyncLoadingView(),
+                error: (error, stack) =>
+                    AsyncErrorView(message: 'Error: $error'),
                 data: (list) {
                   return list.isEmpty
                       ? Center(

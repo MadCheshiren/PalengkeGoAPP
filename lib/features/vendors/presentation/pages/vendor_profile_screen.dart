@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,11 +47,9 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
       body: SafeArea(
         bottom: false,
         child: profileAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-          ),
+          loading: () => const AsyncLoadingView(color: AppTheme.primaryGreen),
           error: (error, stack) =>
-              Center(child: Text('Error loading stall holder: $error')),
+              AsyncErrorView(message: 'Error loading stall holder: $error'),
           data: (profile) {
             return Column(
               children: [

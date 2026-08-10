@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -320,11 +321,9 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
         ],
       ),
       body: recommendationsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-        ),
+        loading: () => const AsyncLoadingView(color: AppTheme.primaryGreen),
         error: (err, stack) =>
-            Center(child: Text('Error loading recommendations: $err')),
+            AsyncErrorView(message: 'Error loading recommendations: $err'),
         data: (items) {
           if (items.isEmpty) {
             return const EmptyState(

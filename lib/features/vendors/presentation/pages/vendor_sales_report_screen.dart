@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -145,9 +146,9 @@ class _VendorSalesReportScreenState
                           return _buildTransactionCard(order);
                         },
                       ),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const AsyncLoadingView(),
                 error: (err, stack) =>
-                    const Center(child: Text('Error loading report')),
+                    const AsyncErrorView(message: 'Error loading report'),
               ),
             ),
           ],

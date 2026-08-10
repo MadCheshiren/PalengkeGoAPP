@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:palengkego/core/config/categories.dart';
 import 'package:palengkego/core/widgets/animated_entrance.dart';
 import 'package:flutter/material.dart';
@@ -96,8 +97,8 @@ class _MarketStallBrowserState extends ConsumerState<MarketStallBrowser> {
         ),
         Expanded(
           child: filteredVendorsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Error: $err')),
+            loading: () => const AsyncLoadingView(),
+            error: (err, _) => AsyncErrorView(message: 'Error: $err'),
             data: (filteredVendors) {
               if (filteredVendors.isEmpty) {
                 return const MarketEmptyState(query: '');

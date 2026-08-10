@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,13 +222,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
           ),
         );
       },
-      loading: () => const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-        ),
-      ),
+      loading: () =>
+          const Scaffold(body: AsyncLoadingView(color: AppTheme.primaryGreen)),
       error: (err, stack) =>
-          const Scaffold(body: Center(child: Text('Error loading order'))),
+          const Scaffold(body: AsyncErrorView(message: 'Error loading order')),
     );
   }
 

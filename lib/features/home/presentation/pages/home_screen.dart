@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/animated_entrance.dart';
@@ -83,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
                             child: Center(child: CircularProgressIndicator()),
                           ),
                           error: (err, stack) =>
-                              Center(child: Text('Error: $err')),
+                              AsyncErrorView(message: 'Error: $err'),
                           data: (discountedProducts) {
                             if (discountedProducts.isEmpty) {
                               return const SizedBox.shrink();
@@ -189,7 +190,7 @@ class HomeScreen extends ConsumerWidget {
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
                         error: (err, stack) =>
-                            Center(child: Text('Error: $err')),
+                            AsyncErrorView(message: 'Error: $err'),
                         data: (allVendors) {
                           final vendors = allVendors
                               .where((v) => !blockedIds.contains(v.id))

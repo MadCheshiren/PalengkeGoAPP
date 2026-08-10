@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
@@ -78,13 +79,11 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
       },
       loading: () => const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
-        ),
+        body: AsyncLoadingView(color: AppTheme.primaryGreen),
       ),
       error: (err, stack) => const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: Text('Error loading orders')),
+        body: AsyncErrorView(message: 'Error loading orders'),
       ),
     );
   }

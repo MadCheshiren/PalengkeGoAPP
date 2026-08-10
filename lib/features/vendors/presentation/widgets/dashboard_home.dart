@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -333,7 +334,7 @@ class VendorDashboardHome extends ConsumerWidget {
                     }).toList(),
                   );
                 },
-                orElse: () => const Center(child: CircularProgressIndicator()),
+                orElse: () => const AsyncLoadingView(),
               );
             },
           ),

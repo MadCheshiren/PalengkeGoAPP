@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
@@ -135,12 +136,10 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         },
                       );
                     },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppTheme.primaryGreen,
-                      ),
-                    ),
-                    error: (error, _) => Center(child: Text('Error: $error')),
+                    loading: () =>
+                        const AsyncLoadingView(color: AppTheme.primaryGreen),
+                    error: (error, _) =>
+                        AsyncErrorView(message: 'Error: $error'),
                   ),
                   Positioned(
                     right: 20,

@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -462,7 +463,8 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
+                  error: (error, stack) =>
+                      AsyncErrorView(message: 'Error: $error'),
                 ),
               ),
             ),

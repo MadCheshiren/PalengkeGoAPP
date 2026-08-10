@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -138,8 +139,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (dialogContext) =>
-                          const Center(child: CircularProgressIndicator()),
+                      builder: (dialogContext) => const AsyncLoadingView(),
                     );
 
                     // Simulate API delay

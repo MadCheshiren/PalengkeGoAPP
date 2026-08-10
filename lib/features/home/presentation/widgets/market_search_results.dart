@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,8 +21,8 @@ class MarketCombinedSearchResults extends ConsumerWidget {
     final resultsAsync = ref.watch(appSearchProvider(query));
 
     return resultsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
+      loading: () => const AsyncLoadingView(),
+      error: (err, _) => AsyncErrorView(message: 'Error: $err'),
       data: (results) {
         if (results.isEmpty) return MarketEmptyState(query: query);
 
