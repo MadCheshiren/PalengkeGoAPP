@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/features/vendors/domain/license_renewal.dart';
@@ -12,11 +13,9 @@ class VendorLicenseHistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (history.isEmpty) {
-      return const Center(
-        child: Text(
-          'No renewal history found.',
-          style: TextStyle(color: AppTheme.textSecondary),
-        ),
+      return const EmptyState(
+        title: 'No renewal history found.',
+        titleStyle: TextStyle(color: AppTheme.textSecondary),
       );
     }
 

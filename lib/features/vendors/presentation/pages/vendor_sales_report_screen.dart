@@ -9,6 +9,7 @@ import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/detailed_sales_report_export_service.dart';
 import 'package:palengkego/core/utils/file_export_util.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
@@ -132,9 +133,7 @@ class _VendorSalesReportScreenState
             Expanded(
               child: ordersAsync.when(
                 data: (orders) => orders.isEmpty
-                    ? const Center(
-                        child: Text('No completed transactions yet.'),
-                      )
+                    ? const EmptyState(title: 'No completed transactions yet.')
                     : ListView.builder(
                         itemCount: orders.length,
                         padding: const EdgeInsets.symmetric(

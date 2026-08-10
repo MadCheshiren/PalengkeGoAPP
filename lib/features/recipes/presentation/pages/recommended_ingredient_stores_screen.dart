@@ -2,6 +2,7 @@ import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
@@ -326,11 +327,9 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
             Center(child: Text('Error loading recommendations: $err')),
         data: (items) {
           if (items.isEmpty) {
-            return const Center(
-              child: Text(
-                'No stalls found for this ingredient yet.',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
+            return const EmptyState(
+              title: 'No stalls found for this ingredient yet.',
+              titleStyle: TextStyle(color: AppTheme.textSecondary),
             );
           }
 

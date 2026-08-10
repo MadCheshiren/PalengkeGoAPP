@@ -2,6 +2,7 @@ import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import 'package:palengkego/features/recipes/application/recipe_provider.dart';
 import 'package:palengkego/features/recipes/application/recipe_unlock.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
@@ -177,19 +178,15 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                         const SizedBox(height: 16),
                       ],
                       if (filteredRecipes.isEmpty)
-                        const Padding(
+                        const EmptyState(
                           padding: EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 40,
                           ),
-                          child: Center(
-                            child: Text(
-                              'No recipes found in this category.',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
+                          title: 'No recipes found in this category.',
+                          titleStyle: TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                     ],
