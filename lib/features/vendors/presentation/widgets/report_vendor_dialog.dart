@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 
 /// A dialog that asks the user for a reason when reporting a vendor or customer.
@@ -63,23 +64,12 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
           TextField(
             controller: _controller,
             maxLines: 3,
-            decoration: InputDecoration(
+            decoration: appInputDecoration(
               hintText: 'Enter reason...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(
-                  color: Color(0xFF10B981),
-                  width: 2,
-                ),
-              ),
+              borderRadius: 8,
+              borderColor: AppTheme.border,
+              focusedBorderColor: const Color(0xFF10B981),
+              focusedBorderWidth: 2,
             ),
           ),
         ],

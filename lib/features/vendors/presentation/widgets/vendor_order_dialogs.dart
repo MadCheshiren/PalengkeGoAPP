@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
@@ -33,19 +34,12 @@ Future<void> showVendorCancelOrderDialog(
           TextField(
             controller: noteController,
             maxLines: 3,
-            decoration: InputDecoration(
+            decoration: appInputDecoration(
               hintText: 'Cancellation reason...',
               hintStyle: const TextStyle(fontSize: 13, color: AppTheme.muted),
-              filled: true,
               fillColor: AppTheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
+              borderColor: AppTheme.border,
+              focusedBorderWidth: 2,
             ),
           ),
         ],
@@ -135,24 +129,12 @@ Future<void> showVendorReportCustomerDialog(
             controller: reasonController,
             maxLines: 3,
             style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
+            decoration: appInputDecoration(
               hintText:
                   'Describe the issue (e.g., troll order, fake customer)...',
               hintStyle: const TextStyle(fontSize: 13, color: AppTheme.muted),
-              filled: true,
               fillColor: AppTheme.surface,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.primaryGreen),
-              ),
+              borderColor: AppTheme.border,
             ),
           ),
         ],

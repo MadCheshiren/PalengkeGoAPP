@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -105,7 +106,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
                   _PhoneSpaceFormatter(),
                 ],
-                decoration: InputDecoration(
+                decoration: appInputDecoration(
                   hintText: 'xxx xxx xxxx',
                   prefixText: '+63 ',
                   prefixStyle: const TextStyle(
@@ -113,12 +114,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
                   ),
-                  filled: true,
                   fillColor: const Color(0xFFF3F4F6),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+                  borderless: true,
+                  focusedBorderWidth: 2,
                 ),
               ),
               const SizedBox(height: 24),

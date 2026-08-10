@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -422,7 +423,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return AppTextField(
       controller: controller,
       textCapitalization: TextCapitalization.words,
       keyboardType: keyboardType,
@@ -432,43 +433,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         fontWeight: FontWeight.w500,
         color: Color(0xFF1E293B),
       ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(
-          color: AppTheme.textSecondary,
-          fontWeight: FontWeight.w500,
-        ),
-        floatingLabelStyle: const TextStyle(
-          color: AppTheme.primaryGreen,
-          fontWeight: FontWeight.w600,
-        ),
-        prefixIcon: Icon(prefixIcon, size: 22, color: AppTheme.muted),
-        filled: true,
-        fillColor: AppTheme.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 18,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppTheme.border, width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: AppTheme.primaryGreen,
-            width: 1.5,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
-        ),
+      labelText: label,
+      labelStyle: const TextStyle(
+        color: AppTheme.textSecondary,
+        fontWeight: FontWeight.w500,
       ),
+      floatingLabelStyle: const TextStyle(
+        color: AppTheme.primaryGreen,
+        fontWeight: FontWeight.w600,
+      ),
+      prefixIcon: Icon(prefixIcon, size: 22, color: AppTheme.muted),
+      fillColor: AppTheme.surface,
+      borderRadius: 16,
+      borderColor: AppTheme.border,
+      borderWidth: 1.5,
+      focusedBorderWidth: 1.5,
+      errorBorderColor: const Color(0xFFEF4444),
+      errorBorderWidth: 1.5,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     );
   }
 

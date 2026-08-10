@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/services/app_services.dart';
 
@@ -155,26 +156,14 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
               TextField(
                 controller: _detailsController,
                 maxLines: 3,
-                decoration: InputDecoration(
+                decoration: appInputDecoration(
                   hintText: 'Add any additional details (optional)',
                   hintStyle: const TextStyle(
                     color: Color(0xFF9CA3AF),
                     fontSize: 14,
                   ),
-                  filled: true,
                   fillColor: const Color(0xFFF9FAFB),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.primaryGreen),
-                  ),
+                  borderColor: const Color(0xFFE5E7EB),
                   contentPadding: const EdgeInsets.all(16),
                 ),
                 style: const TextStyle(fontSize: 14),

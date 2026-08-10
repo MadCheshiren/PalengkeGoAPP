@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -43,7 +44,7 @@ class RegistrationTextField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        TextFormField(
+        AppTextField(
           controller: controller,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
@@ -51,48 +52,23 @@ class RegistrationTextField extends StatelessWidget {
           textCapitalization: textCapitalization,
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            hintText: hintText,
-            prefixText: prefixText,
-            filled: true,
-            fillColor: AppTheme.surface,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.muted,
-            ),
-            prefixIcon: Icon(prefixIcon, size: 18, color: AppTheme.muted),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryGreen,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFEF4444)),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
+          hintText: hintText,
+          prefixText: prefixText,
+          hintStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: AppTheme.muted,
+          ),
+          prefixIcon: Icon(prefixIcon, size: 18, color: AppTheme.muted),
+          fillColor: AppTheme.surface,
+          borderColor: AppTheme.border,
+          focusedBorderWidth: 1.5,
+          errorBorderColor: const Color(0xFFEF4444),
+          errorBorderWidth: 1,
+          errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 14,
           ),
         ),
       ],
@@ -133,70 +109,45 @@ class RegistrationPasswordField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        TextFormField(
+        AppTextField(
           controller: controller,
           obscureText: obscureText,
           textInputAction: TextInputAction.next,
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            hintText: hintText,
-            filled: true,
-            fillColor: Colors.white,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.muted,
+          hintText: hintText,
+          hintStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.muted,
+          ),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.only(left: 12),
+            child: Icon(Icons.lock_outline, size: 16, color: AppTheme.muted),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 0,
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscureText
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: 18,
+              color: AppTheme.textSecondary,
             ),
-            prefixIcon: const Padding(
-              padding: EdgeInsets.only(left: 12),
-              child: Icon(Icons.lock_outline, size: 16, color: AppTheme.muted),
-            ),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: 40,
-              minHeight: 0,
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                obscureText
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                size: 18,
-                color: AppTheme.textSecondary,
-              ),
-              onPressed: onToggleVisibility,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 15,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryGreen,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFEF4444)),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
+            onPressed: onToggleVisibility,
+          ),
+          fillColor: Colors.white,
+          borderColor: AppTheme.border,
+          focusedBorderWidth: 1.5,
+          errorBorderColor: const Color(0xFFEF4444),
+          errorBorderWidth: 1,
+          errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 15,
           ),
         ),
       ],

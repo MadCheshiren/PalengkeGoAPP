@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 
 class StallInfoForm extends StatelessWidget {
@@ -38,7 +39,7 @@ class StallInfoForm extends StatelessWidget {
     Widget? suffixIcon,
     TextCapitalization textCapitalization = TextCapitalization.words,
   }) {
-    return TextFormField(
+    return AppTextField(
       controller: controller,
       maxLines: maxLines,
       readOnly: readOnly,
@@ -47,29 +48,12 @@ class StallInfoForm extends StatelessWidget {
         fontSize: 14,
         color: readOnly ? AppTheme.textSecondary : const Color(0xFF1E293B),
       ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
-        filled: true,
-        fillColor: readOnly ? AppTheme.surfaceContainerLow : AppTheme.surface,
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
+      hintText: hint,
+      hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
+      fillColor: readOnly ? AppTheme.surfaceContainerLow : AppTheme.surface,
+      suffixIcon: suffixIcon,
+      borderless: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       validator: (val) {
         if (val == null || val.trim().isEmpty) {
           return 'This field is required';

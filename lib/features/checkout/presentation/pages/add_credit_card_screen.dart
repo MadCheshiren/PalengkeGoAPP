@@ -1,4 +1,5 @@
 import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/features/checkout/domain/payment_selection.dart';
@@ -275,7 +276,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
     TextCapitalization textCapitalization = TextCapitalization.none,
     bool obscureText = false,
   }) {
-    return TextFormField(
+    return AppTextField(
       controller: controller,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
@@ -283,36 +284,12 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
       inputFormatters: inputFormatters,
       validator: validator,
       style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
-        filled: true,
-        fillColor: const Color(0xFFF3F4F6),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
+      hintText: hint,
+      hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+      fillColor: const Color(0xFFF3F4F6),
+      borderless: true,
+      errorBorderColor: const Color(0xFFEF4444),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
