@@ -232,6 +232,52 @@ class VendorProductCategorySelector extends StatelessWidget {
   }
 }
 
+class VendorProductDiscountBanner extends StatelessWidget {
+  final double? discountedPrice;
+
+  const VendorProductDiscountBanner({super.key, this.discountedPrice});
+
+  @override
+  Widget build(BuildContext context) {
+    final price = discountedPrice;
+    if (price == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0FDF4),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFBBF7D0)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.local_offer_rounded,
+              color: Color(0xFF16A34A),
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Discounted Price:',
+              style: TextStyle(fontSize: 13, color: AppTheme.success),
+            ),
+            const Spacer(),
+            Text(
+              '₱${price.toStringAsFixed(0)}',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF15803D),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class VendorProductLabel extends StatelessWidget {
   final String text;
 

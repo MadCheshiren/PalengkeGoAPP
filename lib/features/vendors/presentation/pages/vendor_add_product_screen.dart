@@ -1,17 +1,14 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:palengkego/core/config/categories.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:palengkego/core/services/app_services.dart';
-import 'package:palengkego/features/auth/application/auth_provider.dart';
-import 'package:palengkego/features/vendors/application/vendor_provider.dart';
-import 'package:palengkego/features/vendors/domain/vendor_product.dart';
-import 'package:palengkego/features/notifications/application/notification_provider.dart';
-import 'package:palengkego/core/services/notification_service.dart';
 import 'package:palengkego/core/utils/image_picker_helper.dart';
-import 'package:palengkego/core/utils/unit_helper.dart';
+import 'package:palengkego/features/vendors/application/vendor_product_form_controller.dart';
+import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import '../widgets/vendor_screen_header.dart';
 import '../widgets/vendor_product_form_fields.dart';
+import '../widgets/vendor_product_delete_dialog.dart';
+import '../widgets/vendor_product_picker_sheet.dart';
+import '../widgets/vendor_product_success_sheet.dart';
 
 /// Vendor Add / Edit Product Screen
 /// Pass [existingProduct] to enter edit mode.
@@ -27,70 +24,26 @@ class VendorAddProductScreen extends ConsumerStatefulWidget {
 
 class _VendorAddProductScreenState
     extends ConsumerState<VendorAddProductScreen> {
-  bool _inStock = true;
-  bool _isSaving = false;
-  String _selectedCategory = '';
-  String _selectedSubCategory = '';
-  String _imageUrl = '';
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _stockController = TextEditingController();
-  final TextEditingController _discountController = TextEditingController();
-
-  bool get _isEditMode => widget.existingProduct != null;
-
-  double? get _calculatedDiscountedPrice {
-    final double? price = double.tryParse(_priceController.text.trim());
-    final double? discount = double.tryParse(_discountController.text.trim());
-    if (price != null && discount != null && discount > 0) {
-      return price * (1 - (discount / 100));
-    }
-    return null;
-  }
-
-  bool? _isPieceUnit;
-
-  final List<String> _categories = AppCategories.product;
+  late final VendorProductFormController _controller;
 
   @override
   void initState() {
     super.initState();
-    final p = widget.existingProduct;
-    if (p != null) {
-      _nameController.text = p.name;
-      _priceController.text = p.price.toStringAsFixed(0);
-      _stockController.text = p.stockQuantity % 1 == 0
-          ? p.stockQuantity.toInt().toString()
-          : p.stockQuantity.toString();
-      if (p.discountPercentage != null && p.discountPercentage! > 0) {
-        _discountController.text = p.discountPercentage.toString();
-      }
-      if (p.category == 'Beef' || p.category == 'Pork') {
-        _selectedCategory = 'Meat';
-        _selectedSubCategory = p.category;
-      } else {
-        _selectedCategory = p.category;
-      }
-      _imageUrl = p.imageUrl;
-      _inStock = p.isActive;
-      _isPieceUnit = UnitHelper.isPieceProduct(p);
-    }
+    _controller = VendorProductFormController(
+      existingProduct: widget.existingProduct,
+    );
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _priceController.dispose();
-    _stockController.dispose();
-    _discountController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   void _saveProduct() {
     // Defer to next frame — same Flutter Web ScrollView deactivation fix.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _isSaving) return;
+      if (!mounted || _controller.isSaving) return;
       _performSave();
     });
   }
@@ -98,187 +51,17 @@ class _VendorAddProductScreenState
   Future<void> _performSave() async {
     FocusScope.of(context).unfocus();
 
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      AppServices.showError('Please enter a product name.');
-      return;
-    }
+    final name = _controller.nameController.text.trim();
+    final saved = await _controller.save(ref);
+    if (!mounted || !saved) return;
 
-    if (_selectedCategory == 'Meat' && _selectedSubCategory.isEmpty) {
-      AppServices.showSnackBar('Please select a meat subcategory');
-      return;
-    }
-
-    if (_imageUrl.isEmpty) {
-      AppServices.showError('Please select a category.');
-      return;
-    }
-    if (_priceController.text.trim().isEmpty) {
-      AppServices.showError('Please enter a price.');
-      return;
-    }
-    if (_isPieceUnit == null) {
-      AppServices.showError('Please select a Selling Unit.');
-      return;
-    }
-
-    setState(() => _isSaving = true);
-
-    try {
-      final double price = double.tryParse(_priceController.text.trim()) ?? 0.0;
-      final double stock = double.tryParse(_stockController.text.trim()) ?? 0.0;
-      final double? discount = double.tryParse(_discountController.text.trim());
-      // Read ref synchronously BEFORE any await — safe even if widget unmounts later.
-      final vendorId = ref.read(currentVendorIdProvider);
-      if (vendorId == null) {
-        setState(() => _isSaving = false);
-        AppServices.showError('Vendor session required.');
-        return;
-      }
-      final manager = ref.read(vendorProductsManagerProvider(vendorId));
-
-      final product = VendorProduct(
-        id: _isEditMode
-            ? widget.existingProduct!.id
-            : 'p${DateTime.now().millisecondsSinceEpoch}',
-        vendorId: vendorId,
-        name: name,
-        description: 'Fresh product from vendor',
-        category: _selectedCategory == 'Meat'
-            ? _selectedSubCategory
-            : _selectedCategory,
-        price: price,
-        unit: _isPieceUnit! ? 'pc' : 'kg',
-        imageUrl: _imageUrl,
-        isActive: _inStock,
-        stockQuantity: stock,
-        discountPercentage: discount,
-      );
-
-      if (_isEditMode) {
-        await manager.updateProduct(product);
-      } else {
-        await manager.addProduct(product);
-      }
-
-      // Trigger Flash Sale notification if discount is present
-      if (discount != null && discount > 0) {
-        final notifService = ref.read(notificationServiceProvider);
-        final title = 'Flash Sale on ${product.name}!';
-        final body =
-            '${discount.toInt()}% off on ${product.name}. Limited time only!';
-
-        notifService.addNotification(
-          AppNotification(
-            id: 'flash_${product.id}_${DateTime.now().millisecondsSinceEpoch}',
-            type: NotificationType.promo,
-            target: NotificationTarget.customer,
-            title: title,
-            body: body,
-            createdAt: DateTime.now(),
-          ),
-        );
-
-        // outside app notification
-        notifService.showLocalNotification(
-          id: product.id.hashCode,
-          title: title,
-          body: body,
-        );
-      }
-
-      if (!mounted) return;
-
-      setState(() => _isSaving = false);
-
-      // Show success bottom sheet
-      await _showSuccessSheet(name);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isSaving = false);
-      AppServices.showError('Failed to save product: $e');
-    }
-  }
-
-  Future<void> _showSuccessSheet(String productName) async {
-    // Capture the navigator BEFORE the sheet opens.
-    // After Navigator.pop(ctx) fires inside the sheet, the parent widget's
-    // context may already be deactivated on Flutter Web — using the pre-captured
-    // navigator avoids the "deactivated widget ancestor" crash.
+    // Capture the navigator BEFORE the sheet opens (Web deactivation fix).
     final navigator = Navigator.of(context);
-
-    await showModalBottomSheet<void>(
+    await showVendorProductSuccessSheet(
       context: context,
-      isDismissible: false,
-      enableDrag: false,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_rounded,
-                size: 36,
-                color: Color(0xFF16A34A),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _isEditMode ? 'Product Updated!' : 'Product Added!',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.primaryGreen,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '"$productName" has been ${_isEditMode ? 'updated in' : 'added to'} your inventory and is now visible to customers.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx); // close the sheet
-                  navigator
-                      .pop(); // close add/edit screen (pre-captured, never stale)
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Back to Products',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      isEditMode: _controller.isEditMode,
+      productName: name,
+      navigator: navigator,
     );
   }
 
@@ -288,505 +71,302 @@ class _VendorAddProductScreenState
     // Deferring to the next frame guarantees the tree is stable.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _showDeleteConfirmation();
+      _confirmDelete();
     });
   }
 
-  Future<void> _showDeleteConfirmation() async {
+  Future<void> _confirmDelete() async {
     // All context lookups happen synchronously before any await.
     final navigator = Navigator.of(context);
-    final productName = widget.existingProduct!.name;
-    final productId = widget.existingProduct!.id;
-    final vendorId = ref.read(currentVendorIdProvider);
-    if (vendorId == null) {
-      AppServices.showError('Vendor session required.');
-      return;
-    }
-    final manager = ref.read(vendorProductsManagerProvider(vendorId));
+    final productName = _controller.existingProduct!.name;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Product?',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF111827),
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to delete "$productName"? This will remove it from your inventory and the customer view immediately.',
-          style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
-            height: 1.5,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Delete',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await showVendorProductDeleteDialog(
+      context,
+      productName: productName,
     );
+    if (!mounted || confirmed != true) return;
 
-    if (confirmed != true) return;
+    final deleted = await _controller.delete(ref);
+    if (!mounted || !deleted) return;
+    navigator.pop();
+  }
 
-    if (mounted) setState(() => _isSaving = true);
-
-    try {
-      await manager.deleteProduct(productId);
-      // Use global key — zero context traversal, safe after any async gap.
-      AppServices.showSnackBar('"$productName" has been deleted.');
-      navigator.pop();
-    } catch (e) {
-      if (mounted) setState(() => _isSaving = false);
-      AppServices.showError('Failed to delete product: $e');
-    }
+  Future<void> _pickImage() async {
+    FocusScope.of(context).unfocus();
+    final file = await ImagePickerHelper.pickImage(context);
+    if (!mounted || file == null) return;
+    _controller.setImageUrl(file.path);
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = _controller;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
             VendorScreenHeader(
-              title: _isEditMode ? 'Edit Product' : 'Add Product',
+              title: c.isEditMode ? 'Edit Product' : 'Add Product',
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'General Information',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
+              child: ListenableBuilder(
+                listenable: c,
+                builder: (context, _) => SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'General Information',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Upload Photo Area
-                    VendorProductImagePicker(
-                      imageUrl: _imageUrl,
-                      onTap: () async {
-                        FocusScope.of(context).unfocus();
-                        final file = await ImagePickerHelper.pickImage(context);
-                        if (!mounted) return;
-                        if (file != null) {
-                          setState(() {
-                            _imageUrl = file.path;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 24),
+                      // Upload Photo Area
+                      VendorProductImagePicker(
+                        imageUrl: c.imageUrl,
+                        onTap: _pickImage,
+                      ),
+                      const SizedBox(height: 24),
 
-                    // Product Name
-                    const VendorProductLabel('Product Name'),
-                    const SizedBox(height: 8),
-                    VendorProductTextField(
-                      hint: 'e.g. Organic Avocados',
-                      controller: _nameController,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Category
-                    const VendorProductLabel('Category'),
-                    const SizedBox(height: 8),
-                    VendorProductCategorySelector(
-                      selectedCategory: _selectedCategory,
-                      onTap: () => _showCategoryPicker(context),
-                    ),
-                    const SizedBox(height: 20),
-
-                    if (_selectedCategory == 'Meat') ...[
-                      const VendorProductLabel('Subcategory'),
+                      // Product Name
+                      const VendorProductLabel('Product Name'),
                       const SizedBox(height: 8),
-                      VendorProductCategorySelector(
-                        selectedCategory: _selectedSubCategory,
-                        onTap: () => _showSubCategoryPicker(context),
+                      VendorProductTextField(
+                        hint: 'e.g. Organic Avocados',
+                        controller: c.nameController,
                       ),
                       const SizedBox(height: 20),
-                    ],
 
-                    const VendorProductLabel('Selling Unit'),
-                    const SizedBox(height: 8),
-                    VendorProductUnitPicker(
-                      isPieceUnit: _isPieceUnit,
-                      onChanged: (val) => setState(() => _isPieceUnit = val),
-                    ),
-                    const SizedBox(height: 20),
+                      // Category
+                      const VendorProductLabel('Category'),
+                      const SizedBox(height: 8),
+                      VendorProductCategorySelector(
+                        selectedCategory: c.selectedCategory,
+                        onTap: () => showVendorProductPickerSheet(
+                          context: context,
+                          title: 'Select Category',
+                          options: c.categories,
+                          selected: c.selectedCategory,
+                          onSelected: c.setCategory,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-                    // Price field
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              VendorProductLabel(
-                                _isPieceUnit == null
-                                    ? 'Price'
-                                    : (_isPieceUnit!
-                                          ? 'Price / pc'
-                                          : 'Price / kg'),
-                              ),
-                              const SizedBox(height: 8),
-                              VendorProductTextField(
-                                hint: '0.00',
-                                controller: _priceController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                                prefixText: '₱ ',
-                                onChanged: (_) => setState(() {}),
-                              ),
-                            ],
+                      if (c.selectedCategory == 'Meat') ...[
+                        const VendorProductLabel('Subcategory'),
+                        const SizedBox(height: 8),
+                        VendorProductCategorySelector(
+                          selectedCategory: c.selectedSubCategory,
+                          onTap: () => showVendorProductPickerSheet(
+                            context: context,
+                            title: 'Select Subcategory',
+                            options: const ['Beef', 'Pork'],
+                            selected: c.selectedSubCategory,
+                            onSelected: c.setSubCategory,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const VendorProductLabel('Discount %'),
-                              const SizedBox(height: 8),
-                              VendorProductTextField(
-                                hint: 'e.g. 15',
-                                controller: _discountController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                                suffixText: '%',
-                                onChanged: (_) => setState(() {}),
-                              ),
-                            ],
-                          ),
-                        ),
+                        const SizedBox(height: 20),
                       ],
-                    ),
-                    if (_calculatedDiscountedPrice != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFBBF7D0)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.local_offer_rounded,
-                                color: Color(0xFF16A34A),
-                                size: 16,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Discounted Price:',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.success,
+
+                      const VendorProductLabel('Selling Unit'),
+                      const SizedBox(height: 8),
+                      VendorProductUnitPicker(
+                        isPieceUnit: c.isPieceUnit,
+                        onChanged: c.setUnit,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Price field
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                VendorProductLabel(
+                                  c.isPieceUnit == null
+                                      ? 'Price'
+                                      : (c.isPieceUnit!
+                                            ? 'Price / pc'
+                                            : 'Price / kg'),
                                 ),
-                              ),
-                              const Spacer(),
+                                const SizedBox(height: 8),
+                                VendorProductTextField(
+                                  hint: '0.00',
+                                  controller: c.priceController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  prefixText: '₱ ',
+                                  onChanged: (_) => c.refresh(),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const VendorProductLabel('Discount %'),
+                                const SizedBox(height: 8),
+                                VendorProductTextField(
+                                  hint: 'e.g. 15',
+                                  controller: c.discountController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  suffixText: '%',
+                                  onChanged: (_) => c.refresh(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      VendorProductDiscountBanner(
+                        discountedPrice: c.calculatedDiscountedPrice,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Stock Quantity
+                      const VendorProductLabel('Stock Quantity'),
+                      const SizedBox(height: 8),
+                      VendorProductTextField(
+                        hint: '0',
+                        controller: c.stockController,
+                        keyboardType: TextInputType.number,
+                        suffixText: c.isPieceUnit == null
+                            ? ''
+                            : (c.isPieceUnit! ? 'pcs' : 'kg'),
+                        onChanged: (_) => c.refresh(),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // In Stock Toggle
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                '₱${_calculatedDiscountedPrice!.toStringAsFixed(0)}',
-                                style: const TextStyle(
+                                'In Stock',
+                                style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF15803D),
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF111827),
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Available for customers to buy',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF9CA3AF),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    const SizedBox(height: 20),
-
-                    // Stock Quantity
-                    const VendorProductLabel('Stock Quantity'),
-                    const SizedBox(height: 8),
-                    VendorProductTextField(
-                      hint: '0',
-                      controller: _stockController,
-                      keyboardType: TextInputType.number,
-                      suffixText: _isPieceUnit == null
-                          ? ''
-                          : (_isPieceUnit! ? 'pcs' : 'kg'),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // In Stock Toggle
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'In Stock',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF111827),
-                              ),
+                          Switch(
+                            value: c.inStock,
+                            onChanged: c.setInStock,
+                            activeThumbColor: AppTheme.primaryGreen,
+                            activeTrackColor: AppTheme.primaryGreen.withValues(
+                              alpha: 0.3,
                             ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Available for customers to buy',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF9CA3AF),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Switch(
-                          value: _inStock,
-                          onChanged: (value) =>
-                              setState(() => _inStock = value),
-                          activeThumbColor: AppTheme.primaryGreen,
-                          activeTrackColor: AppTheme.primaryGreen.withValues(
-                            alpha: 0.3,
                           ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Save / Update Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isSaving ? null : _saveProduct,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryGreen,
-                          disabledBackgroundColor: const Color(0xFF9CA3AF),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Text(
-                                _isEditMode ? 'Update Product' : 'Save Product',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                        ],
                       ),
-                    ),
 
-                    // Delete Button — edit mode only
-                    if (_isEditMode) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 32),
+
+                      // Save / Update Button
                       SizedBox(
                         width: double.infinity,
                         height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _isSaving ? null : _deleteProduct,
-                          icon: const Icon(
-                            Icons.delete_outline_rounded,
-                            size: 20,
-                            color: Color(0xFFEF4444),
-                          ),
-                          label: const Text(
-                            'Delete Product',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFEF4444),
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                              color: Color(0xFFEF4444),
-                              width: 1.5,
-                            ),
+                        child: ElevatedButton(
+                          onPressed: c.isSaving ? null : _saveProduct,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryGreen,
+                            disabledBackgroundColor: const Color(0xFF9CA3AF),
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
+                            elevation: 0,
                           ),
+                          child: c.isSaving
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Text(
+                                  c.isEditMode
+                                      ? 'Update Product'
+                                      : 'Save Product',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ),
                       ),
+
+                      // Delete Button — edit mode only
+                      if (c.isEditMode) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: OutlinedButton.icon(
+                            onPressed: c.isSaving ? null : _deleteProduct,
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              size: 20,
+                              color: Color(0xFFEF4444),
+                            ),
+                            label: const Text(
+                              'Delete Product',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFEF4444),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                color: Color(0xFFEF4444),
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
                     ],
-                    const SizedBox(height: 16),
-                  ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showCategoryPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text(
-                    'Select Category',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                ),
-                ..._categories.map((category) {
-                  final isSelected = category == _selectedCategory;
-                  return ListTile(
-                    trailing: isSelected
-                        ? const Icon(
-                            Icons.check_rounded,
-                            color: AppTheme.primaryGreen,
-                          )
-                        : null,
-                    title: Text(
-                      category,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: isSelected
-                            ? AppTheme.primaryGreen
-                            : const Color(0xFF374151),
-                      ),
-                    ),
-                    onTap: () {
-                      setState(() => _selectedCategory = category);
-                      Navigator.pop(ctx);
-                    },
-                  );
-                }),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showSubCategoryPicker(BuildContext context) {
-    final subCategories = ['Beef', 'Pork'];
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text(
-                    'Select Subcategory',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                ),
-                ...subCategories.map((subCategory) {
-                  final isSelected = subCategory == _selectedSubCategory;
-                  return ListTile(
-                    trailing: isSelected
-                        ? const Icon(
-                            Icons.check_rounded,
-                            color: AppTheme.primaryGreen,
-                          )
-                        : null,
-                    title: Text(
-                      subCategory,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: isSelected
-                            ? AppTheme.primaryGreen
-                            : const Color(0xFF374151),
-                      ),
-                    ),
-                    onTap: () {
-                      setState(() => _selectedSubCategory = subCategory);
-                      Navigator.pop(ctx);
-                    },
-                  );
-                }),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
