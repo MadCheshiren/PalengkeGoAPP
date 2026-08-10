@@ -9,6 +9,7 @@ import 'package:palengkego/features/profile/application/blocked_vendors_provider
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
 
 import 'package:palengkego/core/widgets/app_bottom_nav_bar.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/vendor_profile_components.dart';
@@ -281,13 +282,9 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                                         .toList();
 
                               if (displayedProducts.isEmpty) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: Text(
-                                      'No products found for this category.',
-                                    ),
-                                  ),
+                                return const EmptyState(
+                                  padding: EdgeInsets.all(20),
+                                  title: 'No products found for this category.',
                                 );
                               }
                               return GridView.builder(

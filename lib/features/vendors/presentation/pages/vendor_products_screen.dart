@@ -6,6 +6,7 @@ import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/unit_helper.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import '../widgets/vendor_screen_header.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
@@ -108,14 +109,12 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                       }).toList();
 
                       if (filteredProducts.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No products match this filter yet.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppTheme.textSecondary,
-                            ),
+                        return const EmptyState(
+                          title: 'No products match this filter yet.',
+                          titleStyle: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
                           ),
                         );
                       }

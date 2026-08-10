@@ -7,6 +7,7 @@ import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_order_details_screen.dart';
@@ -108,14 +109,12 @@ class _VendorOrdersTab extends ConsumerWidget {
         }).toList();
 
         if (orders.isEmpty) {
-          return const Center(
-            child: Text(
-              'No orders in this tab yet.',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textSecondary,
-              ),
+          return const EmptyState(
+            title: 'No orders in this tab yet.',
+            titleStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textSecondary,
             ),
           );
         }
