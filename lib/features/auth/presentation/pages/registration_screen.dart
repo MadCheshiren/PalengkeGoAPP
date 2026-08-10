@@ -1,13 +1,16 @@
 import 'package:palengkego/core/theme/app_theme.dart';
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_form_fields.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_address_placeholder.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_terms_row.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_bottom_action_bar.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_input_formatters.dart';
 import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
@@ -183,7 +186,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildField(
+                            child: RegistrationTextField(
                               label: 'First Name',
                               hintText: 'First name',
                               prefixIcon: Icons.person_outline_rounded,
@@ -207,7 +210,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: _buildField(
+                            child: RegistrationTextField(
                               label: 'Surname',
                               hintText: 'Surname',
                               prefixIcon: Icons.person_outline_rounded,
@@ -230,7 +233,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Email
-                      _buildField(
+                      RegistrationTextField(
                         label: 'Email Address',
                         hintText: 'Enter your email',
                         prefixIcon: Icons.email_outlined,
@@ -239,7 +242,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         controller: _emailController,
                         inputFormatters: [
                           FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                          _LowercaseFormatter(),
+                          LowercaseFormatter(),
                         ],
                         validator: (v) {
                           final val = (v ?? '').trim();
@@ -252,7 +255,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Phone
-                      _buildField(
+                      RegistrationTextField(
                         label: 'Phone Number',
                         hintText: 'xxx xxx xxxx',
                         prefixIcon: Icons.phone_outlined,
@@ -262,7 +265,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         prefixText: '+63 ',
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
-                          _PhoneSpaceFormatter(),
+                          PhoneSpaceFormatter(),
                         ],
                         validator: (v) {
                           final val = (v ?? '').replaceAll(RegExp(r'\D'), '');
@@ -275,7 +278,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Password
-                      _buildPasswordField(
+                      RegistrationPasswordField(
                         label: 'Password',
                         hintText: 'Create a password',
                         controller: _passwordController,
@@ -303,7 +306,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Confirm Password
-                      _buildPasswordField(
+                      RegistrationPasswordField(
                         label: 'Confirm Password',
                         hintText: 'Confirm your password',
                         controller: _confirmPasswordController,
@@ -325,88 +328,25 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Set Address Button
-                      _addressPlaceholder(),
-                      const SizedBox(height: 24),
-                      // Terms
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Checkbox(
-                            value: _termsAccepted,
-                            onChanged: (val) {
-                              setState(() {
-                                _termsAccepted = val ?? false;
-                              });
-                            },
-                            activeColor: AppTheme.primaryGreen,
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () async {
-                                final url = Uri.parse(
-                                  'https://palengkego.com/terms',
-                                );
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url);
-                                } else {
-                                  if (!context.mounted) return;
-                                  showDialog(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text(
-                                        'Terms & Privacy Policy',
-                                      ),
-                                      content: const SingleChildScrollView(
-                                        child: Text(
-                                          'By registering, you agree to our Terms & Privacy Policy.\n\n'
-                                          'Please note: Stall holder contact numbers are collected and displayed to allow direct customer communication.\n\n'
-                                          'For full terms, please visit https://palengkego.com/terms',
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(ctx).pop(),
-                                          child: const Text(
-                                            'Close',
-                                            style: TextStyle(
-                                              color: AppTheme.primaryGreen,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                              },
-                              child: RichText(
-                                text: const TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: 'By registering, you agree to our ',
-                                    ),
-                                    TextSpan(
-                                      text: 'Terms & Privacy Policy',
-                                      style: TextStyle(
-                                        color: AppTheme.primaryGreen,
-                                        fontWeight: FontWeight.w600,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      RegistrationAddressPlaceholder(
+                        selectedAddress: _selectedAddress,
+                        onSelected: (address) {
+                          setState(() => _selectedAddress = address);
+                        },
                       ),
                       const SizedBox(height: 24),
-                      _bottomActionBar(),
+                      // Terms
+                      RegistrationTermsRow(
+                        accepted: _termsAccepted,
+                        onChanged: (val) {
+                          setState(() => _termsAccepted = val);
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      RegistrationBottomActionBar(
+                        isLoading: _isLoading,
+                        onRegister: _handleRegister,
+                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -416,403 +356,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildField({
-    required String label,
-    required String hintText,
-    required IconData prefixIcon,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    TextEditingController? controller,
-    String? prefixText,
-    List<TextInputFormatter>? inputFormatters,
-    TextCapitalization textCapitalization = TextCapitalization.none,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          inputFormatters: inputFormatters,
-          textCapitalization: textCapitalization,
-          validator: validator,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            hintText: hintText,
-            prefixText: prefixText,
-            filled: true,
-            fillColor: AppTheme.surface,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppTheme.muted,
-            ),
-            prefixIcon: Icon(prefixIcon, size: 18, color: AppTheme.muted),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryGreen,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFEF4444)),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField({
-    required String label,
-    required String hintText,
-    required TextEditingController controller,
-    required bool obscureText,
-    required VoidCallback onToggleVisibility,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF334155),
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          textInputAction: TextInputAction.next,
-          validator: validator,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            hintText: hintText,
-            filled: true,
-            fillColor: Colors.white,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.muted,
-            ),
-            prefixIcon: const Padding(
-              padding: EdgeInsets.only(left: 12),
-              child: Icon(Icons.lock_outline, size: 16, color: AppTheme.muted),
-            ),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: 40,
-              minHeight: 0,
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                obscureText
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                size: 18,
-                color: AppTheme.textSecondary,
-              ),
-              onPressed: onToggleVisibility,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 15,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppTheme.primaryGreen,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFEF4444)),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1.5,
-              ),
-            ),
-            errorStyle: const TextStyle(fontSize: 11, color: Color(0xFFEF4444)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _addressPlaceholder() {
-    return GestureDetector(
-      onTap: () async {
-        final result = await Navigator.of(
-          context,
-        ).pushNamed(AppRoutes.setDeliveryAddress);
-        if (result is DeliveryAddress) {
-          setState(() {
-            _selectedAddress = result;
-          });
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.primaryGreen.withValues(alpha: 0.05),
-          border: Border.all(
-            color: AppTheme.primaryGreen,
-            width: 1,
-            style: BorderStyle.solid,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.location_on_outlined,
-                size: 20,
-                color: AppTheme.primaryGreen,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _selectedAddress?.primaryAddress ??
-                      'Set Your Delivery Address',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                if (_selectedAddress != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _selectedAddress!.streetAddress,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const Spacer(),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 12,
-              color: AppTheme.primaryGreen,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _bottomActionBar() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        border: const Border(
-          top: BorderSide(color: AppTheme.surfaceContainerLow, width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 56,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                      offset: const Offset(0, 4),
-                      blurRadius: 6,
-                      spreadRadius: -4,
-                    ),
-                    BoxShadow(
-                      color: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                      offset: const Offset(0, 10),
-                      blurRadius: 15,
-                      spreadRadius: -3,
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleRegister,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    disabledBackgroundColor: AppTheme.primaryGreen.withValues(
-                      alpha: 0.5,
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.0,
-                          ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Register Account',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-                },
-                child: Center(
-                  child: RichText(
-                    text: const TextSpan(
-                      style: TextStyle(fontSize: 14),
-                      children: [
-                        TextSpan(
-                          text: 'Already have an account? ',
-                          style: TextStyle(color: Color(0xFF475569)),
-                        ),
-                        TextSpan(
-                          text: 'Log In',
-                          style: TextStyle(
-                            color: AppTheme.primaryGreen,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Forces all typed characters to lowercase — used on email fields.
-class _LowercaseFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) => newValue.copyWith(text: newValue.text.toLowerCase());
-}
-
-class _PhoneSpaceFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    var text = newValue.text.replaceAll(RegExp(r'\D'), '');
-    if (text.length > 10) text = text.substring(0, 10);
-    var formatted = '';
-    for (var i = 0; i < text.length; i++) {
-      if (i == 3 || i == 6) formatted += ' ';
-      formatted += text[i];
-    }
-
-    // Attempt to maintain cursor position
-    int cursor = newValue.selection.baseOffset;
-    if (cursor > formatted.length) {
-      cursor = formatted.length;
-    }
-
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
