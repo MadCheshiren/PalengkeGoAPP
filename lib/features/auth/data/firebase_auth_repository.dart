@@ -29,6 +29,13 @@ class FirebaseAuthRepository implements AuthRepository {
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  static bool _googleSignInInitialized = false;
+
+  Future<void> _ensureGoogleSignInInitialized() async {
+    if (_googleSignInInitialized) return;
+    await GoogleSignIn.instance.initialize();
+    _googleSignInInitialized = true;
+  }
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
@@ -74,11 +81,18 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<AppUser> signInWithGoogle() async {
-    final googleUser = await GoogleSignIn().signIn();
-    if (googleUser == null) throw Exception('Google Sign-In cancelled.');
-    final googleAuth = await googleUser.authentication;
+    await _ensureGoogleSignInInitialized();
+    final GoogleSignInAccount googleUser;
+    try {
+      googleUser = await GoogleSignIn.instance.authenticate();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('Google Sign-In cancelled.');
+      }
+      rethrow;
+    }
+    final googleAuth = googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
     final userCred = await _auth.signInWithCredential(credential);
@@ -98,7 +112,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await GoogleSignIn().signOut();
+    await _ensureGoogleSignInInitialized();
+    await GoogleSignIn.instance.signOut();
     await _auth.signOut();
   }
 
