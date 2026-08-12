@@ -18,7 +18,7 @@ class ImagePickerHelper {
     if (source == null) return null;
 
     if (source == AttachmentSource.file) {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png', 'jpeg'],
       );
