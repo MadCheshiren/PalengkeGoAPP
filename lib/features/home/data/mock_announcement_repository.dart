@@ -49,9 +49,9 @@ class MockAnnouncementRepository implements AnnouncementRepository {
     return _announcements.where((a) {
       if (!a.isActive) return false;
       return a.targetAudience == AnnouncementAudience.all ||
-          (role == 'customer' &&
+          (role == 'customers' &&
               a.targetAudience == AnnouncementAudience.customers) ||
-          (role == 'stallholder' &&
+          (role == 'stallholders' &&
               a.targetAudience == AnnouncementAudience.stallholders);
     }).toList();
   }
