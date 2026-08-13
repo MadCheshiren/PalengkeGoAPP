@@ -43,6 +43,7 @@ docs/superpowers/plans/*
 stitch_req.json
 .codex
 .impeccable
+.freebuff/
 
 # Local environment and production secrets
 .env
