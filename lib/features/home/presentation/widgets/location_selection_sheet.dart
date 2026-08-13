@@ -18,6 +18,24 @@ class _LocationSelectionSheetState
     extends ConsumerState<LocationSelectionSheet> {
   DeliveryAddress? _selectedAddress;
 
+  static const _addressIconList = [
+    Icons.home_outlined,
+    Icons.work_outline_rounded,
+    Icons.school_outlined,
+    Icons.favorite_outline_rounded,
+    Icons.lock_outline_rounded,
+    Icons.star_outline_rounded,
+    Icons.fitness_center_rounded,
+    Icons.local_cafe_outlined,
+  ];
+
+  static IconData _iconForCodePoint(int codePoint) {
+    for (final icon in _addressIconList) {
+      if (icon.codePoint == codePoint) return icon;
+    }
+    return Icons.favorite_rounded;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -106,7 +124,7 @@ class _LocationSelectionSheetState
 
   IconData _getIconForAddress(DeliveryAddress address) {
     if (address.iconCodePoint != null) {
-      return IconData(address.iconCodePoint!, fontFamily: 'MaterialIcons');
+      return _iconForCodePoint(address.iconCodePoint!);
     }
     final lower = address.label.toLowerCase().trim();
     if (lower == 'home') return Icons.home_rounded;

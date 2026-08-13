@@ -27,6 +27,24 @@ class _DeliveryAddressFormSheetState
 
   IconData? _selectedCustomIcon;
 
+  static const _addressIconList = [
+    Icons.home_outlined,
+    Icons.work_outline_rounded,
+    Icons.school_outlined,
+    Icons.favorite_outline_rounded,
+    Icons.lock_outline_rounded,
+    Icons.star_outline_rounded,
+    Icons.fitness_center_rounded,
+    Icons.local_cafe_outlined,
+  ];
+
+  static IconData _iconForCodePoint(int codePoint) {
+    for (final icon in _addressIconList) {
+      if (icon.codePoint == codePoint) return icon;
+    }
+    return Icons.favorite_rounded;
+  }
+
   static const List<String> _nagaBarangays = [
     'Abella',
     'Bagumbayan Norte',
@@ -85,10 +103,7 @@ class _DeliveryAddressFormSheetState
     _streetAddressController.text = address.streetAddress;
     _notesController.text = address.notes;
     if (address.iconCodePoint != null) {
-      _selectedCustomIcon = IconData(
-        address.iconCodePoint!,
-        fontFamily: 'MaterialIcons',
-      );
+      _selectedCustomIcon = _iconForCodePoint(address.iconCodePoint!);
     }
   }
 
@@ -451,7 +466,7 @@ class _DeliveryAddressFormSheetState
             predefinedLabels.add({
               'name': label,
               'icon': addr.iconCodePoint != null
-                  ? IconData(addr.iconCodePoint!, fontFamily: 'MaterialIcons')
+                  ? _iconForCodePoint(addr.iconCodePoint!)
                   : Icons.favorite_border_rounded,
             });
           }
