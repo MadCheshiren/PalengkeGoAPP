@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
@@ -228,25 +229,23 @@ class CookbookScreen extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
+              child: AdaptiveImage(
                 recipe.imageUrl,
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    color: recipe.backgroundColor,
-                    child: const Center(
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 24,
-                        color: Color(0xFF9CA3AF),
-                      ),
+                placeholder: Container(
+                  width: 80,
+                  height: 80,
+                  color: recipe.backgroundColor,
+                  child: const Center(
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 24,
+                      color: Color(0xFF9CA3AF),
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),

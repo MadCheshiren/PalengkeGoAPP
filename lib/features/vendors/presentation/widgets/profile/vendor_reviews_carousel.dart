@@ -23,9 +23,10 @@ class VendorReviewsCarousel extends StatefulWidget {
   State<VendorReviewsCarousel> createState() => _VendorReviewsCarouselState();
 }
 
-class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
-  late ScrollController _scrollController;
-  Timer? _tickerTimer;
+class _VendorReviewsCarouselState extends State<VendorReviewsCarousel>
+    with SingleTickerProviderStateMixin {
+  late final ScrollController _scrollController;
+  late final AnimationController _autoScrollController;
   Timer? _resumeTimer;
   bool _isUserInteracting = false;
 
@@ -33,6 +34,10 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _autoScrollController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 24),
+    )..addListener(_onAutoScrollTick);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.reviews.isNotEmpty) {
         _startAutoScroll();
@@ -40,32 +45,25 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
     });
   }
 
+  void _onAutoScrollTick() {
+    if (!mounted || _isUserInteracting || !_scrollController.hasClients) {
+      return;
+    }
+    final position = _scrollController.position;
+    final maxScroll = position.maxScrollExtent;
+    if (maxScroll <= 0) return;
+
+    position.jumpTo(_autoScrollController.value * maxScroll);
+  }
+
   void _startAutoScroll() {
-    _tickerTimer?.cancel();
-    _tickerTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_isUserInteracting || !_scrollController.hasClients) return;
-
-      final position = _scrollController.position;
-      final maxScroll = position.maxScrollExtent;
-      final current = position.pixels;
-
-      if (maxScroll <= 0) return;
-
-      if (current >= maxScroll) {
-        _scrollController.jumpTo(0);
-      } else {
-        _scrollController.jumpTo(current + 0.4);
-      }
-    });
+    _autoScrollController.repeat();
   }
 
   void _pauseAutoScroll() {
     _resumeTimer?.cancel();
     _isUserInteracting = true;
+    _autoScrollController.stop();
   }
 
   void _scheduleResume() {
@@ -75,14 +73,15 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel> {
         setState(() {
           _isUserInteracting = false;
         });
+        _startAutoScroll();
       }
     });
   }
 
   @override
   void dispose() {
-    _tickerTimer?.cancel();
     _resumeTimer?.cancel();
+    _autoScrollController.dispose();
     _scrollController.dispose();
     super.dispose();
   }

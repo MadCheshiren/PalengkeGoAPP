@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
 import 'package:palengkego/core/services/app_services.dart';
@@ -432,12 +433,12 @@ class _NotificationCard extends ConsumerWidget {
                       // Recipe Image
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
+                        child: AdaptiveImage(
                           recipe.imageUrl,
                           width: 70,
                           height: 70,
                           fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => Container(
+                          placeholder: Container(
                             width: 70,
                             height: 70,
                             color: const Color(0xFFCBD5E1),

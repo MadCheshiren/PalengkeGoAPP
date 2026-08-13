@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/market/application/market_provider.dart';
 
 class RecommendedProductCard extends StatelessWidget {
@@ -54,10 +55,10 @@ class RecommendedProductCard extends StatelessWidget {
                     child: SizedBox(
                       height: 125,
                       width: double.infinity,
-                      child: Image.network(
+                      child: AdaptiveImage(
                         product.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
+                        placeholder: Container(
                           color: AppTheme.surfaceContainerLow,
                           child: const Icon(
                             Icons.restaurant_menu,
