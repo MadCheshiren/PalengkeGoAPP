@@ -1,29 +1,28 @@
-class OrderLineItem {
-  final String productName;
-  final int quantity;
-  final double unitPrice;
-  final String weight;
-  final String pricePerKg;
-  final String image;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:palengkego/core/utils/quantity_format.dart';
 
-  const OrderLineItem({
-    required this.productName,
-    required this.quantity,
-    required this.unitPrice,
-    required this.weight,
-    required this.pricePerKg,
-    required this.image,
-  });
+part 'order_line_item.freezed.dart';
+part 'order_line_item.g.dart';
+
+@freezed
+abstract class OrderLineItem with _$OrderLineItem {
+  const OrderLineItem._(); // allows custom methods/getters
+
+  const factory OrderLineItem({
+    required String productId,
+    required String productName,
+    required double quantity,
+    required double unitPrice,
+
+    /// 'kg' or 'pc'
+    @Default('kg') String unit,
+    @Default('') String image,
+  }) = _OrderLineItem;
+
+  factory OrderLineItem.fromJson(Map<String, dynamic> json) =>
+      _$OrderLineItemFromJson(json);
 
   double get total => unitPrice * quantity;
 
-  String get quantityLabel {
-    if (weight == '1kg') {
-      return '$quantity kg';
-    }
-    if (weight == '1pc' || weight == '1 pc') {
-      return '$quantity kg';
-    }
-    return '$quantity x $weight';
-  }
+  String get quantityLabel => formatQuantityLabel(quantity, unit);
 }

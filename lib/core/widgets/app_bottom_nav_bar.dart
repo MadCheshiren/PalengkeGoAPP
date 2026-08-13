@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ class AppBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
   final int? cartBadgeCount;
+  final int? recipeBadgeCount;
   final bool isCartAction;
 
   const AppBottomNavBar({
@@ -14,6 +16,7 @@ class AppBottomNavBar extends StatelessWidget {
     required this.selectedIndex,
     required this.onTap,
     this.cartBadgeCount,
+    this.recipeBadgeCount,
     this.isCartAction = false,
   });
 
@@ -40,7 +43,9 @@ class AppBottomNavBar extends StatelessWidget {
               ),
               decoration: const BoxDecoration(
                 color: Color.fromRGBO(255, 255, 255, 0.95),
-                border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
+                border: Border(
+                  top: BorderSide(color: AppTheme.surfaceContainerLow),
+                ),
               ),
               child: Row(
                 children: [
@@ -57,8 +62,8 @@ class AppBottomNavBar extends StatelessWidget {
                       builder: (isActive) => Icon(
                         Icons.home_rounded,
                         color: isActive
-                            ? const Color(0xFF0B372B)
-                            : const Color(0xFF94A3B8),
+                            ? AppTheme.primaryGreen
+                            : AppTheme.muted,
                         size: 24,
                       ),
                     ),
@@ -78,8 +83,8 @@ class AppBottomNavBar extends StatelessWidget {
                             ? 'market highlighted.svg'
                             : 'market.svg',
                         color: isActive
-                            ? const Color(0xFF0B372B)
-                            : const Color(0xFF94A3B8),
+                            ? AppTheme.primaryGreen
+                            : AppTheme.muted,
                         width: 20,
                         height: 18,
                       ),
@@ -98,8 +103,8 @@ class AppBottomNavBar extends StatelessWidget {
                       builder: (isActive) => _svgIcon(
                         asset: 'orders.svg',
                         color: isActive
-                            ? const Color(0xFF0B372B)
-                            : const Color(0xFF94A3B8),
+                            ? AppTheme.primaryGreen
+                            : AppTheme.muted,
                         width: 22,
                         height: 22,
                       ),
@@ -112,14 +117,15 @@ class AppBottomNavBar extends StatelessWidget {
                       index: 3,
                       selectedIndex: selectedIndex,
                       onTap: onTap,
+                      badgeCount: recipeBadgeCount,
                       iconSpacing: itemSpacing,
                       activeFontSize: activeFontSize,
                       inactiveFontSize: inactiveFontSize,
                       builder: (isActive) => _svgIcon(
                         asset: 'recipes.svg',
                         color: isActive
-                            ? const Color(0xFF0B372B)
-                            : const Color(0xFF94A3B8),
+                            ? AppTheme.primaryGreen
+                            : AppTheme.muted,
                         width: 25,
                         height: 20,
                       ),
@@ -138,8 +144,8 @@ class AppBottomNavBar extends StatelessWidget {
                       builder: (isActive) => _svgIcon(
                         asset: 'shopping cart icon.svg',
                         color: isActive
-                            ? const Color(0xFF0B372B)
-                            : const Color(0xFF94A3B8),
+                            ? AppTheme.primaryGreen
+                            : AppTheme.muted,
                         width: 24,
                         height: 24,
                       ),
@@ -224,7 +230,6 @@ class _NavItem extends StatelessWidget {
                       child: Text(
                         '$badgeCount',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -241,12 +246,9 @@ class _NavItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: isActive ? activeFontSize : inactiveFontSize,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive
-                    ? const Color(0xFF0B372B)
-                    : const Color(0xFF94A3B8),
+                color: isActive ? AppTheme.primaryGreen : AppTheme.muted,
                 letterSpacing: 0.15,
               ),
             ),

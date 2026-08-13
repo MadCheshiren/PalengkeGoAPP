@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
@@ -21,12 +22,8 @@ class RecipeHeroCard extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => Container(
                 height: 280,
-                color: const Color(0xFFE2E8F0),
-                child: const Icon(
-                  Icons.image,
-                  size: 60,
-                  color: Color(0xFF94A3B8),
-                ),
+                color: AppTheme.border,
+                child: const Icon(Icons.image, size: 60, color: AppTheme.muted),
               ),
             ),
           ),
@@ -61,13 +58,12 @@ class RecipeHeroCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFB902),
+                      color: AppTheme.starRating,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       'FILIPINO CLASSIC',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -79,7 +75,6 @@ class RecipeHeroCard extends StatelessWidget {
                   Text(
                     recipe.title,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -90,7 +85,6 @@ class RecipeHeroCard extends StatelessWidget {
                   Text(
                     recipe.description,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withValues(alpha: 0.9),

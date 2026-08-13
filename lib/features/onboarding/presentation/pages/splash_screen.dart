@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -68,15 +69,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         curve: const Interval(0.25, 0.55, curve: Curves.easeOut),
       ),
     );
-    _nameSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _ctrl,
-        curve: const Interval(0.25, 0.55, curve: Curves.easeOut),
-      ),
-    );
+    _nameSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _ctrl,
+            curve: const Interval(0.25, 0.55, curve: Curves.easeOut),
+          ),
+        );
 
     // ── Tagline: fade in (45–70%) ────────────────────────────────────────
     _tagFade = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -137,7 +136,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B372B),
+      backgroundColor: AppTheme.primaryGreen,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _ctrl,
@@ -146,7 +145,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Spacer(flex: 2),
+                  const Spacer(),
 
                   // ── Logo ────────────────────────────────────────────────
                   FadeTransition(
@@ -175,44 +174,48 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 2),
 
                   // ── App name ─────────────────────────────────────────────
                   FadeTransition(
                     opacity: _nameFade,
                     child: SlideTransition(
                       position: _nameSlide,
-                      child: const Text(
-                        'PalengkeGo',
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 34,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
+                      child: const Center(
+                        child: Text(
+                          'PalengkeGo',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 4),
 
                   // ── Tagline ───────────────────────────────────────────────
                   FadeTransition(
                     opacity: _tagFade,
-                    child: Text(
-                      'SKIP THE ROAM, ORDER FROM HOME',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.55),
-                        letterSpacing: 2.0,
+                    child: Center(
+                      child: Text(
+                        'SKIP THE ROAM, ORDER FROM HOME',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.55),
+                          letterSpacing: 2.0,
+                        ),
                       ),
                     ),
                   ),
 
-                  const Spacer(flex: 2),
+                  const Spacer(),
 
                   // ── Animated dot loader ───────────────────────────────────
                   FadeTransition(
@@ -264,8 +267,11 @@ class _PulsingDotsState extends State<_PulsingDots>
     return Tween<double>(begin: 0.35, end: 1.0).animate(
       CurvedAnimation(
         parent: _ctrl,
-        curve: Interval(start, (start + 0.5).clamp(0, 1),
-            curve: Curves.easeInOut),
+        curve: Interval(
+          start,
+          (start + 0.5).clamp(0, 1),
+          curve: Curves.easeInOut,
+        ),
       ),
     );
   }

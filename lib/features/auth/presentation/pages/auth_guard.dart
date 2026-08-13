@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
@@ -17,7 +18,7 @@ class AuthGuard extends ConsumerWidget {
     final user = ref.watch(authProvider);
     if (user == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF6F8F7),
+        backgroundColor: AppTheme.scaffoldBackground,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -25,7 +26,7 @@ class AuthGuard extends ConsumerWidget {
               ? IconButton(
                   icon: const Icon(
                     Icons.arrow_back_rounded,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                   onPressed: () => Navigator.pop(context),
                 )
@@ -40,27 +41,22 @@ class AuthGuard extends ConsumerWidget {
                 const Icon(
                   Icons.lock_outline_rounded,
                   size: 64,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
                 const SizedBox(height: 24),
-                Text(
+                const Text(
                   'Account Required',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(
+                const Text(
                   'You need to be logged in to access this page.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 16,
-                    color: const Color(0xFF64748B),
-                  ),
+                  style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
                 ),
                 const SizedBox(height: 48),
                 SizedBox(
@@ -71,15 +67,14 @@ class AuthGuard extends ConsumerWidget {
                       Navigator.pushNamed(context, AppRoutes.login);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0B372B),
+                      backgroundColor: AppTheme.primaryGreen,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Log In',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -96,18 +91,17 @@ class AuthGuard extends ConsumerWidget {
                       Navigator.pushNamed(context, AppRoutes.registration);
                     },
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF0B372B)),
+                      side: const BorderSide(color: AppTheme.primaryGreen),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Register',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -120,7 +114,7 @@ class AuthGuard extends ConsumerWidget {
     }
     if (allowedRoles != null && !allowedRoles!.contains(user.role)) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF6F8F7),
+        backgroundColor: AppTheme.scaffoldBackground,
         body: Center(
           child: Padding(
             padding: EdgeInsets.all(24.0),
@@ -130,28 +124,23 @@ class AuthGuard extends ConsumerWidget {
                 Icon(
                   Icons.admin_panel_settings_outlined,
                   size: 64,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
                 SizedBox(height: 24),
                 Text(
                   'Access Restricted',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                   ),
                 ),
                 SizedBox(height: 12),
                 Text(
                   'This page is only available for the correct account type.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 16,
-                    color: Color(0xFF64748B),
-                  ),
+                  style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
                 ),
               ],
             ),

@@ -10,6 +10,9 @@ import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/cart/presentation/pages/shopping_cart_screen.dart';
 import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.dart';
 import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
+import 'package:palengkego/features/notifications/application/notification_provider.dart';
+import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
@@ -36,8 +39,13 @@ void main() {
       overrides: [
         authProvider.overrideWith(() => _TestAuthNotifier(user)),
         sharedPreferencesProvider.overrideWithValue(prefs),
+        notificationServiceProvider.overrideWith(
+          (ref) => NotificationService(isTest: true),
+        ),
       ],
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         onGenerateRoute: AppRouter.onGenerateRoute,
         initialRoute: routeName,
         routes: {routeName: (_) => const SizedBox.shrink()},
@@ -106,11 +114,10 @@ void main() {
         serviceFee: 15,
         items: const [
           OrderLineItem(
+            productId: 'p1',
             productName: 'Mango',
             quantity: 1,
             unitPrice: 100,
-            weight: '1kg',
-            pricePerKg: 'PHP 100/kg',
             image: '',
           ),
         ],
@@ -122,9 +129,10 @@ void main() {
           arguments: TrackOrderRouteArgs(order: order, isPickup: false),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.byType(OrderDetailsScreen), findsOneWidget);
-      expect(find.text('Current Status'), findsOneWidget);
+      expect(find.text('Stall Holder Confirmation'), findsOneWidget);
     });
   });
 
@@ -192,7 +200,11 @@ void main() {
       await tester.pumpWidget(
         buildRoutedApp(AppRoutes.vendorDashboard, user: MockUsers.vendor),
       );
-      await tester.pumpAndSettle();
+      // The dashboard hosts an auto-ticking reviews carousel, so bounded
+      // pumps are used instead of pumpAndSettle (which would time out).
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(VendorDashboardScreen), findsOneWidget);
       expect(find.text('Account Required'), findsNothing);

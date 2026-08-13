@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/core/services/preferences_provider.dart';
+import 'package:palengkego/features/market/application/market_provider.dart';
 import 'package:palengkego/features/profile/application/blocked_vendors_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -71,7 +72,10 @@ void main() {
       container.read(blockedVendorsProvider.notifier).block('v1');
       container.read(blockedVendorsProvider.notifier).block('v2');
 
-      final vendors = container.read(blockedVendorsListProvider);
+      // Ensure the underlying async vendor data is resolved first.
+      await container.read(allVendorsProvider.future);
+
+      final vendors = container.read(blockedVendorsListProvider).value ?? [];
 
       expect(vendors.map((vendor) => vendor.id), containsAll(['v1', 'v2']));
     });

@@ -1,4 +1,6 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 
 class CheckoutMethodToggle extends StatelessWidget {
   const CheckoutMethodToggle({
@@ -23,7 +25,7 @@ class CheckoutMethodToggle extends StatelessWidget {
         children: [
           Expanded(
             child: _ToggleButton(
-              label: 'Delivery',
+              label: AppLocalizations.of(context).deliveryMethod,
               icon: Icons.local_shipping_outlined,
               selected: deliveryMethod == 0,
               onTap: () => onChanged(0),
@@ -31,7 +33,7 @@ class CheckoutMethodToggle extends StatelessWidget {
           ),
           Expanded(
             child: _ToggleButton(
-              label: 'Pick-Up',
+              label: AppLocalizations.of(context).pickupMethod,
               icon: Icons.storefront_outlined,
               selected: deliveryMethod == 1,
               onTap: () => onChanged(1),
@@ -71,20 +73,21 @@ class _ToggleButton extends StatelessWidget {
             Icon(
               icon,
               size: 14,
-              color: selected
-                  ? const Color(0xFF0B372B)
-                  : const Color(0xFF64748B),
+              color: selected ? AppTheme.primaryGreen : AppTheme.textSecondary,
             ),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: selected
-                    ? const Color(0xFF0B372B)
-                    : const Color(0xFF64748B),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected
+                      ? AppTheme.primaryGreen
+                      : AppTheme.textSecondary,
+                ),
               ),
             ),
           ],

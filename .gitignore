@@ -30,6 +30,7 @@ docs/*
 !docs/BACKEND_ARCHITECTURE.md
 !docs/QA_PIPELINE.md
 !docs/REFACTOR_HANDOFF.md
+!docs/CHANGELOG.md
 !docs/superpowers/
 docs/superpowers/*
 !docs/superpowers/plans/
@@ -38,7 +39,11 @@ docs/superpowers/plans/*
 
 # Project-local agent/tooling files
 .qwen/
+.agents/
 stitch_req.json
+.codex
+.impeccable
+.freebuff/
 
 # Local environment and production secrets
 .env
@@ -90,4 +95,12 @@ app.*.map.json
 
 # Screenshots/Figma exports
 screensfromfigma/
+
+# Build artifacts & local export outputs
+android/build/
+compiled_history.md
+exports/
+downloads/
+
+deps.txt
 

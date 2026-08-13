@@ -1,3 +1,6 @@
+import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
@@ -5,8 +8,11 @@ import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
 import 'package:intl/intl.dart';
 import 'package:palengkego/core/utils/unit_helper.dart';
+import 'package:palengkego/core/widgets/empty_state.dart';
 import '../widgets/vendor_screen_header.dart';
-import 'vendor_add_product_screen.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
+import 'package:palengkego/core/navigation/app_router.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
 /// Vendor Products Screen
 /// Shows all vendor products with stock toggle.
@@ -14,21 +20,24 @@ class VendorProductsScreen extends ConsumerStatefulWidget {
   const VendorProductsScreen({super.key});
 
   @override
-  ConsumerState<VendorProductsScreen> createState() => _VendorProductsScreenState();
+  ConsumerState<VendorProductsScreen> createState() =>
+      _VendorProductsScreenState();
 }
 
 class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
   String _selectedFilter = 'All Products';
   String _searchQuery = '';
-  late String _vendorId;
+  String? _vendorId;
 
   @override
   Widget build(BuildContext context) {
     _vendorId = ref.watch(currentVendorIdProvider);
-    final productsAsync = ref.watch(vendorProductsProvider(_vendorId));
+    final productsAsync = _vendorId == null
+        ? const AsyncValue<List<VendorProduct>>.data([])
+        : ref.watch(vendorProductsProvider(_vendorId!));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -37,36 +46,20 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: TextField(
                 onChanged: (value) => setState(() => _searchQuery = value),
-                decoration: InputDecoration(
+                decoration: appInputDecoration(
                   hintText: 'Search products...',
                   hintStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.muted,
                   ),
                   prefixIcon: const Icon(
                     Icons.search,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.muted,
                     size: 20,
                   ),
-                  filled: true,
-                  fillColor: const Color(0xFFF6F8F7),
+                  fillColor: AppTheme.scaffoldBackground,
+                  borderless: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF0B372B),
-                      width: 1,
-                    ),
-                  ),
                 ),
               ),
             ),
@@ -96,34 +89,32 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                           'Out of Stock' => !product.isActive,
                           _ => true,
                         };
-                        final matchesSearch = product.name.toLowerCase().contains(
-                          _searchQuery.trim().toLowerCase(),
-                        );
+                        final matchesSearch = product.name
+                            .toLowerCase()
+                            .contains(_searchQuery.trim().toLowerCase());
                         return matchesFilter && matchesSearch;
                       }).toList();
 
                       if (filteredProducts.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No products match this filter yet.',
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF64748B),
-                            ),
+                        return const EmptyState(
+                          title: 'No products match this filter yet.',
+                          titleStyle: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
                           ),
                         );
                       }
 
                       return GridView.builder(
                         padding: const EdgeInsets.all(20),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 0.85,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 0.85,
+                            ),
                         itemCount: filteredProducts.length,
                         itemBuilder: (context, index) {
                           final product = filteredProducts[index];
@@ -131,30 +122,26 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         },
                       );
                     },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF0B372B)),
-                    ),
-                    error: (error, _) => Center(
-                      child: Text('Error: $error'),
-                    ),
+                    loading: () =>
+                        const AsyncLoadingView(color: AppTheme.primaryGreen),
+                    error: (error, _) =>
+                        AsyncErrorView(message: 'Error: $error'),
                   ),
                   Positioned(
                     right: 20,
                     bottom: 20,
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushNamed(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const VendorAddProductScreen(),
-                          ),
+                          AppRoutes.vendorAddProduct,
                         );
                       },
                       child: Container(
                         width: 56,
                         height: 56,
                         decoration: const BoxDecoration(
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -182,39 +169,40 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
           Text(
             label,
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? const Color(0xFF0B372B) : const Color(0xFF94A3B8),
+              color: isSelected ? AppTheme.primaryGreen : AppTheme.muted,
             ),
           ),
           const SizedBox(height: 4),
-          if (isSelected) Container(width: 40, height: 2, color: const Color(0xFF0B372B)),
+          if (isSelected)
+            Container(width: 40, height: 2, color: AppTheme.primaryGreen),
         ],
       ),
     );
   }
 
   Widget _buildProductGridCard(VendorProduct product) {
-    final formatCurrency = NumberFormat.currency(symbol: 'PHP ', decimalDigits: 0);
-    final isFruit = UnitHelper.isPieceUnit(product.name, product.description);
-    final imageColor = isFruit ? const Color(0xFFFFF7ED) : const Color(0xFFF0FDF4);
-    final unitLabel = UnitHelper.getUnitString(isFruit);
+    final formatCurrency = NumberFormat.currency(symbol: '₱', decimalDigits: 0);
+    final isPiece = UnitHelper.isPieceProduct(product);
+    final imageColor = isPiece
+        ? const Color(0xFFFFF7ED)
+        : const Color(0xFFF0FDF4);
+    final unitLabel = UnitHelper.getUnitString(isPiece);
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
+        Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => VendorAddProductScreen(existingProduct: product),
-          ),
+          AppRoutes.vendorAddProduct,
+          arguments: VendorAddProductRouteArgs(existingProduct: product),
         );
       },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
           boxShadow: const [
             BoxShadow(
               color: Color.fromRGBO(16, 24, 40, 0.04),
@@ -236,30 +224,67 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(16),
                       ),
-                      image: product.imageUrl.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(product.imageUrl),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
                     ),
-                    child: product.imageUrl.isEmpty
-                        ? const Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              size: 40,
-                              color: Color(0xFF94A3B8),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (product.imageUrl.isNotEmpty)
+                            AdaptiveImage(product.imageUrl, fit: BoxFit.cover)
+                          else
+                            const Center(
+                              child: Icon(
+                                Icons.image_outlined,
+                                size: 40,
+                                color: AppTheme.muted,
+                              ),
                             ),
-                          )
-                        : null,
+                        ],
+                      ),
+                    ),
                   ),
+                  // Low Stock Warning
+                  if (product.isActive &&
+                      product.stockQuantity > 0 &&
+                      product.isLowStock)
+                    Positioned(
+                      top: 8,
+                      left: product.hasDiscount
+                          ? 60
+                          : 8, // Shift right if discount tag exists
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF59E0B), // Amber warning
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'LOW STOCK',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   // Discount Tag
                   if (product.hasDiscount)
                     Positioned(
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFF3B30),
                           borderRadius: BorderRadius.circular(6),
@@ -267,7 +292,6 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         child: Text(
                           '${product.discountPercentage!.toInt()}% OFF',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             color: Colors.white,
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
@@ -296,7 +320,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                       child: const Icon(
                         Icons.edit_rounded,
                         size: 14,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -313,10 +337,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -324,7 +347,6 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                     Text(
                       '${formatCurrency.format(product.price)}/$unitLabel',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF9CA3AF),
@@ -334,10 +356,9 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                   Text(
                     '${formatCurrency.format(product.discountedPrice)}/$unitLabel',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
+                      color: AppTheme.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -346,13 +367,14 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                       Expanded(
                         child: Text(
                           product.stockQuantity > 0
-                              ? 'Stock: ${product.stockQuantity} $unitLabel'
-                              : (product.isActive ? 'In Stock' : 'Out of Stock'),
+                              ? 'Stock: ${product.stockQuantity % 1 == 0 ? product.stockQuantity.toInt().toString() : product.stockQuantity.toStringAsFixed(2)} $unitLabel'
+                              : (product.isActive
+                                    ? 'In Stock'
+                                    : 'Out of Stock'),
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 10,
                             color: product.isActive
-                                ? const Color(0xFF22C55E)
+                                ? AppTheme.statusOpen
                                 : const Color(0xFFEF4444),
                           ),
                         ),
@@ -361,25 +383,37 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                         scale: 0.75,
                         alignment: Alignment.centerRight,
                         child: Switch(
-                          value: product.isActive,
-                          onChanged: (value) async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final updated = product.copyWith(isActive: value);
-                            await ref
-                                .read(vendorProductsManagerProvider(_vendorId))
-                                .updateProduct(updated);
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '${product.name} is now ${value ? 'in stock' : 'out of stock'}.'
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
-                          activeThumbColor: const Color(0xFF0B372B),
-                          activeTrackColor:
-                              const Color(0xFF0B372B).withValues(alpha: 0.25),
+                          value: product.isActive && product.stockQuantity > 0,
+                          onChanged: product.stockQuantity > 0
+                              ? (value) async {
+                                  if (_vendorId == null) return;
+                                  final messenger = ScaffoldMessenger.of(
+                                    context,
+                                  );
+                                  final updated = product.copyWith(
+                                    isActive: value,
+                                  );
+                                  await ref
+                                      .read(
+                                        vendorProductsManagerProvider(
+                                          _vendorId!,
+                                        ),
+                                      )
+                                      .updateProduct(updated);
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${product.name} is now ${value ? 'in stock' : 'out of stock'}.',
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              : null,
+                          activeThumbColor: AppTheme.primaryGreen,
+                          activeTrackColor: AppTheme.primaryGreen.withValues(
+                            alpha: 0.25,
+                          ),
                         ),
                       ),
                     ],

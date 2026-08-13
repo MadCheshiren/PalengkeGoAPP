@@ -1,7 +1,17 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/core/services/app_services.dart';
 import 'package:palengkego/features/notifications/application/notification_provider.dart';
+import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/main/presentation/pages/main_screen.dart';
+import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
+import 'package:palengkego/features/recipes/application/recipe_provider.dart';
+import 'package:palengkego/features/recipes/domain/recipe.dart';
+import 'package:palengkego/features/recipes/presentation/pages/recipe_details_screen.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -10,14 +20,20 @@ class NotificationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // ref.read only — ListenableBuilder below handles all reactivity.
     final notifService = ref.read(notificationServiceProvider);
+    final user = ref.watch(authProvider);
 
     return ListenableBuilder(
       listenable: notifService,
       builder: (context, _) {
-        final notifications = notifService.forCustomer;
-        final unreadCount = notifService.customerUnreadCount;
+        final isVendor = user?.role == UserRole.vendor;
+        final notifications = isVendor
+            ? notifService.forVendor
+            : notifService.forCustomer;
+        final unreadCount = isVendor
+            ? notifService.vendorUnreadCount
+            : notifService.customerUnreadCount;
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: AppTheme.surface,
           body: SafeArea(
             child: CustomScrollView(
               slivers: [
@@ -28,40 +44,48 @@ class NotificationsScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.maybePop(context),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  size: 18,
-                                  color: Color(0xFF0B372B),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.maybePop(context),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.surfaceContainerLow,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    size: 18,
+                                    color: AppTheme.primaryGreen,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Notifications',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
+                              const SizedBox(width: 12),
+                              const Flexible(
+                                child: Text(
+                                  'Notifications',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryGreen,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         if (unreadCount > 0)
                           GestureDetector(
-                            onTap: () => notifService
-                                .markAllRead(NotificationTarget.customer),
+                            onTap: () => notifService.markAllRead(
+                              isVendor
+                                  ? NotificationTarget.vendor
+                                  : NotificationTarget.customer,
+                            ),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -74,10 +98,9 @@ class NotificationsScreen extends ConsumerWidget {
                               child: const Text(
                                 'Mark all read',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
                                 ),
                               ),
                             ),
@@ -104,19 +127,43 @@ class NotificationsScreen extends ConsumerWidget {
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final notif = notifications[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: _NotificationCard(
-                              notification: notif,
-                              onTap: () => notifService.markRead(notif.id),
-                            ),
-                          );
-                        },
-                        childCount: notifications.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final notif = notifications[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: _NotificationCard(
+                            notification: notif,
+                            onTap: () async {
+                              notifService.markRead(notif.id);
+                              if (notif.type == NotificationType.recipe) {
+                                navigateToMainTab(context, 3);
+                              } else if (notif.id.startsWith(
+                                'vendor_reg_success',
+                              )) {
+                                final entered = await ref
+                                    .read(authProvider.notifier)
+                                    .enterVendorMode();
+                                if (!entered) {
+                                  if (context.mounted) {
+                                    AppServices.showError(
+                                      'Only stall holders can manage a stall.',
+                                    );
+                                  }
+                                  return;
+                                }
+                                if (context.mounted) {
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    PageTransitions.slideFromRight(
+                                      const VendorDashboardScreen(),
+                                    ),
+                                    (route) => false,
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        );
+                      }, childCount: notifications.length),
                     ),
                   ),
 
@@ -149,13 +196,13 @@ class _EmptyNotifications extends StatelessWidget {
           Container(
             width: 72,
             height: 72,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F5E9),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.notifications_none_rounded,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
               size: 36,
             ),
           ),
@@ -163,20 +210,15 @@ class _EmptyNotifications extends StatelessWidget {
           const Text(
             "You're all caught up!",
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'New order updates will appear here.',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
         ],
       ),
@@ -187,17 +229,16 @@ class _EmptyNotifications extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Notification card
 // ---------------------------------------------------------------------------
-class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({
-    required this.notification,
-    required this.onTap,
-  });
+// Notification card
+// ---------------------------------------------------------------------------
+class _NotificationCard extends ConsumerWidget {
+  const _NotificationCard({required this.notification, required this.onTap});
 
   final AppNotification notification;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final config = _typeConfig(notification.type);
     final isRead = notification.isRead;
 
@@ -213,7 +254,9 @@ class _NotificationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0B372B).withValues(alpha: isRead ? 0.04 : 0.12),
+              color: AppTheme.primaryGreen.withValues(
+                alpha: isRead ? 0.04 : 0.12,
+              ),
               blurRadius: isRead ? 6 : 16,
               offset: const Offset(0, 2),
             ),
@@ -245,13 +288,14 @@ class _NotificationCard extends StatelessWidget {
                         child: Text(
                           notification.title,
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
                             // Unread: heavy. Read: medium — weight carries the state.
-                            fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                            fontWeight: isRead
+                                ? FontWeight.w500
+                                : FontWeight.w700,
                             color: isRead
                                 ? const Color(0xFF6B7280)
-                                : const Color(0xFF0B372B),
+                                : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
                         ),
@@ -274,7 +318,6 @@ class _NotificationCard extends StatelessWidget {
                   Text(
                     notification.body,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
@@ -283,6 +326,8 @@ class _NotificationCard extends StatelessWidget {
                       height: 1.45,
                     ),
                   ),
+                  if (notification.type == NotificationType.recipe)
+                    _buildRecipeCards(context, ref),
                   const SizedBox(height: 8),
                   // Timestamp chip
                   Container(
@@ -299,7 +344,6 @@ class _NotificationCard extends StatelessWidget {
                     child: Text(
                       _relativeTime(notification.createdAt),
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: isRead
@@ -317,35 +361,187 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
+  Widget _buildRecipeCards(BuildContext context, WidgetRef ref) {
+    final repository = ref.watch(recipeRepositoryProvider);
+    final allRecipesFuture = repository.getRecipes();
+
+    return FutureBuilder<List<Recipe>>(
+      future: allRecipesFuture,
+      builder: (context, snapshot) {
+        final allRecipes = snapshot.data ?? const <Recipe>[];
+
+        // Find the suggested recipe in the body if any
+        Recipe? suggested;
+        for (final r in allRecipes) {
+          if (notification.body.toLowerCase().contains(r.title.toLowerCase())) {
+            suggested = r;
+            break;
+          }
+        }
+
+        // Put suggested recipe first, followed by others
+        final list = <Recipe>[];
+        if (suggested != null) {
+          list.add(suggested);
+          list.addAll(allRecipes.where((r) => r.title != suggested!.title));
+        } else {
+          list.addAll(allRecipes);
+        }
+
+        return Container(
+          height: 90,
+          margin: const EdgeInsets.only(top: 10, bottom: 8),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: list.length,
+            itemBuilder: (context, idx) {
+              final recipe = list[idx];
+              final isSuggested =
+                  suggested != null && recipe.title == suggested.title;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    PageTransitions.slideFromRight(
+                      RecipeDetailsScreen(recipe: recipe),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 220,
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSuggested ? const Color(0xFFF0FDF4) : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSuggested
+                          ? const Color(0xFF86EFAC)
+                          : AppTheme.border,
+                      width: isSuggested ? 1.5 : 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Recipe Image
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          recipe.imageUrl,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => Container(
+                            width: 70,
+                            height: 70,
+                            color: const Color(0xFFCBD5E1),
+                            child: const Icon(
+                              Icons.restaurant,
+                              size: 24,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Recipe Info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isSuggested)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                margin: const EdgeInsets.only(bottom: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'RECOMMENDED',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF15803D),
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              recipe.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${recipe.time} • ${recipe.difficulty}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   ({IconData icon, Color iconColor, Color bgColor}) _typeConfig(
     NotificationType type,
   ) {
     return switch (type) {
       NotificationType.order => (
-          icon: Icons.shopping_bag_outlined,
-          iconColor: Colors.white,
-          bgColor: const Color(0xFF0B372B),
-        ),
+        icon: Icons.shopping_bag_outlined,
+        iconColor: Colors.white,
+        bgColor: AppTheme.primaryGreen,
+      ),
       NotificationType.promo => (
-          icon: Icons.local_offer_outlined,
-          iconColor: const Color(0xFF059669),
-          bgColor: const Color(0xFFECFDF5),
-        ),
+        icon: Icons.local_offer_outlined,
+        iconColor: const Color(0xFF059669),
+        bgColor: const Color(0xFFECFDF5),
+      ),
       NotificationType.review => (
-          icon: Icons.star_outline_rounded,
-          iconColor: const Color(0xFFF59E0B),
-          bgColor: const Color(0xFFFEF3C7),
-        ),
+        icon: Icons.star_outline_rounded,
+        iconColor: const Color(0xFFF59E0B),
+        bgColor: const Color(0xFFFEF3C7),
+      ),
       NotificationType.stock => (
-          icon: Icons.inbox_outlined,
-          iconColor: const Color(0xFFEF4444),
-          bgColor: const Color(0xFFFEF2F2),
-        ),
+        icon: Icons.inbox_outlined,
+        iconColor: const Color(0xFFEF4444),
+        bgColor: const Color(0xFFFEF2F2),
+      ),
       NotificationType.admin => (
-          icon: Icons.campaign_outlined,
-          iconColor: const Color(0xFF3B82F6),
-          bgColor: const Color(0xFFEFF6FF),
-        ),
+        icon: Icons.campaign_outlined,
+        iconColor: const Color(0xFF3B82F6),
+        bgColor: const Color(0xFFEFF6FF),
+      ),
+      NotificationType.recipe => (
+        icon: Icons.restaurant_menu_rounded,
+        iconColor: const Color(0xFFEA580C),
+        bgColor: const Color(0xFFFFF7ED),
+      ),
     };
   }
 }
@@ -380,12 +576,12 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
     final horizontalPadding = 16.0 * (1.0 - progress);
     final isAllCaughtUp = unreadCount == 0;
     final bannerColor = isAllCaughtUp
-        ? const Color(0xFF6D9773)
-        : const Color(0xFF0B372B);
+        ? AppTheme.accentGreen
+        : AppTheme.primaryGreen;
 
     return SizedBox.expand(
       child: Container(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: Container(
@@ -412,37 +608,38 @@ class _StatusBannerDelegate extends SliverPersistentHeaderDelegate {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isAllCaughtUp ? 'STATUS UPDATE' : 'NEW NOTIFICATIONS',
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xB2FFFFFF),
-                        letterSpacing: 1.2,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isAllCaughtUp ? 'STATUS UPDATE' : 'NEW NOTIFICATIONS',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xB2FFFFFF),
+                          letterSpacing: 1.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isAllCaughtUp
-                          ? "You're all caught up!"
-                          : '$unreadCount new updates today',
-                      style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        height: 1.2,
+                      const SizedBox(height: 4),
+                      Text(
+                        isAllCaughtUp
+                            ? "You're all caught up!"
+                            : '$unreadCount new updates today',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 16),

@@ -1,13 +1,19 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
 class OnboardingIdCardStep extends StatelessWidget {
-  final String selectedIdType;
+  final String? selectedIdType;
+  final String? idCardFile;
   final ValueChanged<String> onIdTypeChanged;
+  final VoidCallback onUploadIdCard;
 
   const OnboardingIdCardStep({
     super.key,
-    required this.selectedIdType,
+    this.selectedIdType,
+    this.idCardFile,
     required this.onIdTypeChanged,
+    required this.onUploadIdCard,
   });
 
   @override
@@ -32,6 +38,86 @@ class OnboardingIdCardStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (idCardFile != null) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+              ),
+              child: Stack(
+                children: [
+                  if (idCardFile!.toLowerCase().endsWith('.jpg') ||
+                      idCardFile!.toLowerCase().endsWith('.jpeg') ||
+                      idCardFile!.toLowerCase().endsWith('.png'))
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(11),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: AdaptiveImage(idCardFile, fit: BoxFit.cover),
+                      ),
+                    )
+                  else
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.description,
+                            size: 40,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              idCardFile!.split('/').last,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF374151),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: onUploadIdCard,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           ...List.generate(idTypes.length, (index) {
             final type = idTypes[index];
             final isSelected = selectedIdType == type;
@@ -48,7 +134,7 @@ class OnboardingIdCardStep extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF0B372B)
+                        ? AppTheme.primaryGreen
                         : const Color(0xFFE5E7EB),
                   ),
                 ),
@@ -58,7 +144,6 @@ class OnboardingIdCardStep extends StatelessWidget {
                       child: Text(
                         type,
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 13,
                           fontWeight: isSelected
                               ? FontWeight.w600
@@ -70,7 +155,7 @@ class OnboardingIdCardStep extends StatelessWidget {
                     if (isSelected)
                       const Icon(
                         Icons.check_circle,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                         size: 20,
                       ),
                   ],

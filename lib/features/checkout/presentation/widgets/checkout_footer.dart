@@ -1,4 +1,6 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 
 class CheckoutFooter extends StatelessWidget {
   const CheckoutFooter({
@@ -26,29 +28,32 @@ class CheckoutFooter extends StatelessWidget {
           child: ElevatedButton(
             onPressed: enabled ? onPlaceOrder : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0B372B),
+              backgroundColor: AppTheme.primaryGreen,
               foregroundColor: Colors.white,
               disabledBackgroundColor: const Color(0xFFCBD5E1),
               disabledForegroundColor: Colors.white70,
               elevation: 6,
-              shadowColor: const Color(0xFF0B372B).withValues(alpha: 0.18),
+              shadowColor: AppTheme.primaryGreen.withValues(alpha: 0.18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Place Order',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Text(
+                    AppLocalizations.of(context).placeOrder,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded, size: 18),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_rounded, size: 18),
               ],
             ),
           ),

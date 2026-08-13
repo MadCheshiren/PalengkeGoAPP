@@ -1,10 +1,13 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
-import 'package:palengkego/core/services/order_service.dart';
+
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class FloatingOrderProgress extends ConsumerWidget {
@@ -12,20 +15,20 @@ class FloatingOrderProgress extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderService = ref.read(orderServiceProvider);
+    final asyncOrders = ref.watch(orderServiceProvider);
 
     return Positioned(
       bottom: 16,
       left: 16,
       right: 16,
-      child: ListenableBuilder(
-        listenable: orderService,
-        builder: (context, _) {
-          final activeOrders = orderService.orders
+      child: asyncOrders.when(
+        data: (orders) {
+          final activeOrders = orders
               .where(
                 (o) =>
                     o.status != OrderStatus.completed &&
-                    o.status != OrderStatus.cancelled,
+                    o.status != OrderStatus.cancelled &&
+                    o.status != OrderStatus.rejected,
               )
               .toList();
 
@@ -42,11 +45,10 @@ class FloatingOrderProgress extends ConsumerWidget {
           }
 
           // Multiple active orders → multi-order tray
-          return _MultiOrderPill(
-            orders: activeOrders,
-            orderService: orderService,
-          );
+          return _MultiOrderPill(orders: activeOrders);
         },
+        loading: () => const SizedBox.shrink(),
+        error: (err, stack) => const SizedBox.shrink(),
       ),
     );
   }
@@ -67,7 +69,7 @@ class _SingleOrderPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B),
+          color: AppTheme.primaryGreen,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -103,7 +105,6 @@ class _SingleOrderPill extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -112,11 +113,7 @@ class _SingleOrderPill extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     order.statusLabel,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -133,9 +130,8 @@ class _SingleOrderPill extends StatelessWidget {
 
 class _MultiOrderPill extends StatelessWidget {
   final List<MarketOrder> orders;
-  final OrderService orderService;
 
-  const _MultiOrderPill({required this.orders, required this.orderService});
+  const _MultiOrderPill({required this.orders});
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +143,7 @@ class _MultiOrderPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF0B372B),
+          color: AppTheme.primaryGreen,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -175,7 +171,7 @@ class _MultiOrderPill extends StatelessWidget {
                           color: _avatarColor(i),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             width: 2,
                           ),
                         ),
@@ -185,7 +181,6 @@ class _MultiOrderPill extends StatelessWidget {
                               ? shown[i].vendorName[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -205,7 +200,6 @@ class _MultiOrderPill extends StatelessWidget {
                   Text(
                     '${orders.length} active orders',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -216,11 +210,7 @@ class _MultiOrderPill extends StatelessWidget {
                     orders.map((o) => o.statusLabel).toSet().join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -237,11 +227,7 @@ class _MultiOrderPill extends StatelessWidget {
   }
 
   Color _avatarColor(int index) {
-    const colors = [
-      Color(0xFF2E7D57),
-      Color(0xFF1A5C45),
-      Color(0xFF3A9467),
-    ];
+    const colors = [Color(0xFF2E7D57), Color(0xFF1A5C45), Color(0xFF3A9467)];
     return colors[index % colors.length];
   }
 
@@ -250,59 +236,54 @@ class _MultiOrderPill extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _OrderTraySheet(
-        orders: orders,
-        orderService: orderService,
-      ),
+      builder: (_) => _OrderTraySheet(orders: orders),
     );
   }
 }
 
 // ── Order tray bottom sheet ───────────────────────────────────────────────────
 
-class _OrderTraySheet extends StatefulWidget {
+class _OrderTraySheet extends ConsumerStatefulWidget {
   final List<MarketOrder> orders;
-  final OrderService orderService;
 
-  const _OrderTraySheet({required this.orders, required this.orderService});
+  const _OrderTraySheet({required this.orders});
 
   @override
-  State<_OrderTraySheet> createState() => _OrderTraySheetState();
+  ConsumerState<_OrderTraySheet> createState() => _OrderTraySheetState();
 }
 
-class _OrderTraySheetState extends State<_OrderTraySheet> {
+class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
   late List<MarketOrder> _orders;
 
   @override
   void initState() {
     super.initState();
     _orders = List.from(widget.orders);
-    widget.orderService.addListener(_refresh);
-  }
-
-  void _refresh() {
-    if (!mounted) return;
-    setState(() {
-      _orders = widget.orderService.orders
-          .where(
-            (o) =>
-                o.status != OrderStatus.completed &&
-                o.status != OrderStatus.cancelled,
-          )
-          .toList();
-    });
-    // Auto-close if all orders are done
-    if (_orders.isEmpty && mounted) Navigator.of(context).maybePop();
-  }
-
-  @override
-  void dispose() {
-    widget.orderService.removeListener(_refresh);
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(orderServiceProvider, (previous, next) {
+      if (next is AsyncData) {
+        final updatedOrders = next.value!
+            .where(
+              (o) =>
+                  o.status != OrderStatus.completed &&
+                  o.status != OrderStatus.cancelled &&
+                  o.status != OrderStatus.rejected,
+            )
+            .toList();
+
+        if (mounted) {
+          setState(() {
+            _orders = updatedOrders;
+          });
+          if (_orders.isEmpty) {
+            Navigator.of(context).maybePop();
+          }
+        }
+      }
+    });
     return DraggableScrollableSheet(
       initialChildSize: 0.5,
       minChildSize: 0.35,
@@ -324,7 +305,7 @@ class _OrderTraySheetState extends State<_OrderTraySheet> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
+                    color: AppTheme.border,
                     borderRadius: BorderRadius.circular(99),
                   ),
                 ),
@@ -337,7 +318,6 @@ class _OrderTraySheetState extends State<_OrderTraySheet> {
                     const Text(
                       'Active Orders',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF111827),
@@ -356,10 +336,9 @@ class _OrderTraySheetState extends State<_OrderTraySheet> {
                       child: Text(
                         '${_orders.length}',
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
@@ -398,7 +377,6 @@ class _OrderTraySheetState extends State<_OrderTraySheet> {
                           child: Text(
                             'All orders completed.',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 14,
                               color: Color(0xFF9CA3AF),
                             ),
@@ -432,24 +410,36 @@ class _OrderTraySheetState extends State<_OrderTraySheet> {
   }
 
   bool _canCancel(MarketOrder order) {
-    if (order.status == OrderStatus.completed ||
-        order.status == OrderStatus.cancelled) {
+    if (order.status != OrderStatus.pending) {
       return false;
     }
-    final cancelUntil = order.placedAt.add(OrderService.cancelWindow);
+    final cancelUntil = order.placedAt.add(FeeConfig.cancelWindow);
     return DateTime.now().isBefore(cancelUntil);
   }
 
-  void _cancelOrder(MarketOrder order) {
-    final cancelled = widget.orderService.cancelOrder(order.id);
-    if (cancelled && mounted) {
+  Future<void> _cancelOrder(MarketOrder order) async {
+    try {
+      await ref.read(orderServiceProvider.notifier).cancelOrder(order.id);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Order from ${order.vendorName} cancelled.',
-            style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+            style: const TextStyle(),
           ),
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } on OrderFailure catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message, style: const TextStyle()),
+          backgroundColor: const Color(0xFFB3261E),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -480,7 +470,7 @@ class _OrderTrayRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -506,7 +496,6 @@ class _OrderTrayRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF111827),
@@ -516,7 +505,6 @@ class _OrderTrayRow extends StatelessWidget {
                 Text(
                   '${order.items.length} item${order.items.length == 1 ? '' : 's'} · ${order.statusLabel}',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     color: Color(0xFF6B7280),
                   ),
@@ -544,7 +532,6 @@ class _OrderTrayRow extends StatelessWidget {
                     child: const Text(
                       'Cancel',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFEF4444),
@@ -562,13 +549,12 @@ class _OrderTrayRow extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     'View',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -589,8 +575,10 @@ class _OrderTrayRow extends StatelessWidget {
       OrderStatus.confirmed => const Color(0xFF3B82F6),
       OrderStatus.preparing => const Color(0xFF8B5CF6),
       OrderStatus.ready => const Color(0xFF059669),
+      OrderStatus.outForDelivery => const Color(0xFF059669),
       OrderStatus.completed => const Color(0xFF6B7280),
       OrderStatus.cancelled => const Color(0xFFEF4444),
+      OrderStatus.rejected => const Color(0xFFEF4444),
     };
   }
 }

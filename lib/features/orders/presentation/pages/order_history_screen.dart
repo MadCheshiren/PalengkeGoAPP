@@ -1,9 +1,12 @@
+import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
@@ -25,18 +28,17 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ref.read only — ListenableBuilder below is the sole reactive mechanism.
-    final orderService = ref.read(orderServiceProvider);
+    final ordersAsync = ref.watch(orderServiceProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false,
-        child: ListenableBuilder(
-          listenable: orderService,
-          builder: (context, _) {
-            final orders = _filteredOrders(orderService.orders);
-            return Column(
+    return ordersAsync.when(
+      data: (ordersList) {
+        final orders = _filteredOrders(ordersList);
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            bottom: false,
+            child: Column(
               children: [
                 _header(context),
                 OrderHistoryTabRow(
@@ -50,15 +52,18 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
                           itemCount: orders.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 14),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 14),
                           itemBuilder: (context, index) => OrderHistoryCard(
                             order: orders[index],
                             onPrimaryAction: () =>
                                 _handlePrimaryAction(context, orders[index]),
                             onSecondaryAction:
                                 orders[index].status == OrderStatus.completed
-                                ? () =>
-                                      _handleSecondaryAction(context, orders[index])
+                                ? () => _handleSecondaryAction(
+                                    context,
+                                    orders[index],
+                                  )
                                 : null,
                             onTertiaryAction:
                                 orders[index].status == OrderStatus.completed
@@ -68,9 +73,17 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                         ),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+        );
+      },
+      loading: () => const Scaffold(
+        backgroundColor: Colors.white,
+        body: AsyncLoadingView(color: AppTheme.primaryGreen),
+      ),
+      error: (err, stack) => const Scaffold(
+        backgroundColor: Colors.white,
+        body: AsyncErrorView(message: 'Error loading orders'),
       ),
     );
   }
@@ -107,7 +120,6 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
         child: Text(
           'My Orders',
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF202020),
@@ -134,18 +146,19 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
   }
 
   void _handleSecondaryAction(BuildContext context, MarketOrder order) {
-    final cart = ref.read(cartServiceProvider);
+    final cartNotifier = ref.read(cartItemsProvider.notifier);
     for (final item in order.items) {
-      for (var count = 0; count < item.quantity; count++) {
-        cart.addToCart(
+      cartNotifier.addToCart(
+        CartItem(
+          productId: item.productId,
           vendorName: order.vendorName,
           productName: item.productName,
           price: item.unitPrice,
-          weight: item.weight,
-          pricePerKg: item.pricePerKg,
+          unit: item.unit,
           image: item.image,
-        );
-      }
+          quantity: item.quantity,
+        ),
+      );
     }
 
     ScaffoldMessenger.of(context).showSnackBar(

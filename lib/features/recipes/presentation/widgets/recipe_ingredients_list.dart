@@ -1,4 +1,7 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/navigation/app_router.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
 class RecipeIngredientsList extends StatelessWidget {
@@ -25,7 +28,6 @@ class RecipeIngredientsList extends StatelessWidget {
             const Text(
               'Ingredients',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1F2937),
@@ -35,16 +37,15 @@ class RecipeIngredientsList extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 '${ingredients.length} Items',
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ),
@@ -63,108 +64,171 @@ class RecipeIngredientsList extends StatelessWidget {
             final imageUrl = ingredient.imageUrl;
             final isChecked = checkedIngredients.contains(name);
 
-            return GestureDetector(
-              onTap: () => onIngredientToggled(name),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isChecked
-                        ? const Color(0xFF0B372B)
-                        : const Color(0xFFE2E8F0),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isChecked ? AppTheme.primaryGreen : AppTheme.border,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    // Checkbox
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: isChecked
-                            ? const Color(0xFF0B372B)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
+                    // Checkbox tap area (toggles manual checked state)
+                    GestureDetector(
+                      onTap: () => onIngredientToggled(name),
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
                           color: isChecked
-                              ? const Color(0xFF0B372B)
-                              : const Color(0xFFCBD5E1),
-                          width: 2,
-                        ),
-                      ),
-                      child: isChecked
-                          ? const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 16),
-                    // Text content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: isChecked
-                                  ? const Color(0xFF0B372B)
-                                  : const Color(0xFF1F2937),
-                              decoration: isChecked
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                            ),
+                              ? AppTheme.primaryGreen
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isChecked
+                                ? AppTheme.primaryGreen
+                                : const Color(0xFFCBD5E1),
+                            width: 2,
                           ),
-                          if (description.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              description,
-                              style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF9CA3AF),
+                        ),
+                        child: isChecked
+                            ? const Icon(
+                                Icons.check,
+                                size: 16,
+                                color: Colors.white,
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+
+                    // Ingredient info area - Tapping takes user to Recommended Stores Screen (Image 2 flow)
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.recommendedIngredientStores,
+                            arguments: RecommendedIngredientStoresRouteArgs(
+                              ingredientName: name,
+                              recipeTitle: recipe.title,
+                            ),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          name,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: isChecked
+                                                ? AppTheme.primaryGreen
+                                                : const Color(0xFF1F2937),
+                                            decoration: isChecked
+                                                ? TextDecoration.lineThrough
+                                                : null,
+                                          ),
+                                        ),
+                                      ),
+                                      if (!isChecked) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFECFDF5),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xFFA7F3D0),
+                                            ),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'Find Store',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Color(0xFF047857),
+                                                ),
+                                              ),
+                                              SizedBox(width: 2),
+                                              Icon(
+                                                Icons.arrow_forward_ios_rounded,
+                                                size: 9,
+                                                color: Color(0xFF047857),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  if (description.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      description,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: Color(0xFF9CA3AF),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
+                            // Optional Image
+                            if (imageUrl != null) ...[
+                              const SizedBox(width: 10),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  imageUrl,
+                                  width: 44,
+                                  height: 44,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => Container(
+                                    width: 44,
+                                    height: 44,
+                                    color: AppTheme.surfaceContainerLow,
+                                    child: const Icon(
+                                      Icons.image,
+                                      size: 18,
+                                      color: Color(0xFFCBD5E1),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ),
-                    // Ingredient image
-                    if (imageUrl != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          imageUrl,
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
-                            width: 48,
-                            height: 48,
-                            color: const Color(0xFFF1F5F9),
-                            child: const Icon(
-                              Icons.image,
-                              size: 20,
-                              color: Color(0xFFCBD5E1),
-                            ),
-                          ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),

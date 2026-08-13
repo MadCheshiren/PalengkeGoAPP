@@ -1,49 +1,31 @@
-class CartItem {
-  final String vendorName;
-  final String productName;
-  final double price;
-  final String weight;
-  final String pricePerKg;
-  final String image;
-  final int quantity;
-  final bool selected;
-  final int stockQuantity;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:palengkego/core/utils/quantity_format.dart';
 
-  const CartItem({
-    required this.vendorName,
-    required this.productName,
-    required this.price,
-    required this.weight,
-    required this.pricePerKg,
-    required this.image,
-    this.quantity = 1,
-    this.selected = true,
-    this.stockQuantity = 10,
-  });
+part 'cart_item.freezed.dart';
+part 'cart_item.g.dart';
+
+@freezed
+abstract class CartItem with _$CartItem {
+  const CartItem._(); // allows custom methods/getters
+
+  const factory CartItem({
+    required String productId,
+    required String vendorName,
+    required String productName,
+    required double price,
+
+    /// 'kg' or 'pc'
+    @Default('kg') String unit,
+    required String image,
+    @Default(1.0) double quantity,
+    @Default(true) bool selected,
+    @Default(10.0) double stockQuantity,
+  }) = _CartItem;
+
+  factory CartItem.fromJson(Map<String, dynamic> json) =>
+      _$CartItemFromJson(json);
 
   double get total => price * quantity;
 
-  CartItem copyWith({
-    String? vendorName,
-    String? productName,
-    double? price,
-    String? weight,
-    String? pricePerKg,
-    String? image,
-    int? quantity,
-    bool? selected,
-    int? stockQuantity,
-  }) {
-    return CartItem(
-      vendorName: vendorName ?? this.vendorName,
-      productName: productName ?? this.productName,
-      price: price ?? this.price,
-      weight: weight ?? this.weight,
-      pricePerKg: pricePerKg ?? this.pricePerKg,
-      image: image ?? this.image,
-      quantity: quantity ?? this.quantity,
-      selected: selected ?? this.selected,
-      stockQuantity: stockQuantity ?? this.stockQuantity,
-    );
-  }
+  String get quantityLabel => formatQuantityLabel(quantity, unit);
 }

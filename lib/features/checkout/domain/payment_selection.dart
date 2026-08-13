@@ -15,10 +15,7 @@ class CardSelectionData {
 }
 
 class PaymentSelectionResult {
-  const PaymentSelectionResult({
-    required this.method,
-    this.cardData,
-  });
+  const PaymentSelectionResult({required this.method, this.cardData});
 
   final String method;
   final CardSelectionData? cardData;

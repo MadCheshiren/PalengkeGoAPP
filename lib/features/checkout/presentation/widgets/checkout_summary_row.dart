@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class CheckoutSummaryRow extends StatelessWidget {
@@ -6,35 +7,39 @@ class CheckoutSummaryRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.highlighted = false,
+    this.isBold = false,
   });
 
   final String label;
   final String value;
   final bool highlighted;
+  final bool isBold;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Color(0xFF64748B),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: isBold ? 16 : 14,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+              color: isBold ? AppTheme.primaryGreen : AppTheme.textSecondary,
+            ),
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: highlighted
-                ? const Color(0xFF0B372B)
-                : const Color(0xFF64748B),
+            fontSize: isBold ? 16 : 14,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+            color: (highlighted || isBold)
+                ? AppTheme.primaryGreen
+                : AppTheme.textSecondary,
           ),
         ),
       ],

@@ -3,18 +3,28 @@ import 'package:flutter/material.dart';
 class ResponsiveWrapper extends StatelessWidget {
   final Widget child;
 
+  /// Breakpoint above which the app renders as a centered phone-width slab.
+  static const double desktopBreakpoint = 480;
+
   const ResponsiveWrapper({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey.shade900,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 450, maxWidth: 450),
-          child: ClipRect(child: child),
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth <= desktopBreakpoint) {
+          return child;
+        }
+        return ColoredBox(
+          color: Colors.grey.shade900,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: desktopBreakpoint),
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 }

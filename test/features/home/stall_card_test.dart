@@ -17,6 +17,7 @@ void main() {
         isVerified: true,
         distance: '120m',
         imageUrl: '',
+        isOpen: false,
       );
 
       await tester.pumpWidget(

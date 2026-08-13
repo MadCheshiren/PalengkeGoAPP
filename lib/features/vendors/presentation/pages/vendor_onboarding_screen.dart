@@ -1,14 +1,17 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
-import 'package:palengkego/features/auth/domain/app_user.dart';
-import 'package:palengkego/core/utils/page_transitions.dart';
-import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
+import 'package:palengkego/core/services/app_services.dart';
+
 import 'package:palengkego/features/vendors/presentation/widgets/onboarding_business_info_step.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/onboarding_registered_name_step.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/onboarding_id_card_step.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/onboarding_phone_step.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/onboarding_bottom_buttons.dart';
+import 'package:palengkego/features/vendors/domain/kyc_submission.dart';
+import 'package:palengkego/features/vendors/application/kyc_provider.dart';
+import 'package:palengkego/core/utils/image_picker_helper.dart';
 
 /// Vendor Onboarding Screen
 /// Multi-step flow for vendors to register and start selling.
@@ -24,15 +27,19 @@ class VendorOnboardingScreen extends ConsumerStatefulWidget {
   const VendorOnboardingScreen({super.key});
 
   @override
-  ConsumerState<VendorOnboardingScreen> createState() => _VendorOnboardingScreenState();
+  ConsumerState<VendorOnboardingScreen> createState() =>
+      _VendorOnboardingScreenState();
 }
 
-class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen> {
+class _VendorOnboardingScreenState
+    extends ConsumerState<VendorOnboardingScreen> {
   int _currentStep = 0;
   final PageController _pageController = PageController();
 
   // Form data (no validation for dev)
   final _registeredNameController = TextEditingController();
+  final _blockNumberController = TextEditingController();
+  final _stallNumberController = TextEditingController();
   final _mayorsPermitController = TextEditingController();
   final _sanitaryPermitController = TextEditingController();
   final _fireCertificationController = TextEditingController();
@@ -48,13 +55,16 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
 
   // ID card fields
   final _idNumberController = TextEditingController();
-  String _selectedIdType = 'Unified Multi-Purpose Identification (UMID) Card';
+  String? _selectedIdType;
 
   // File upload placeholders (for dev, just text)
   String? _mayorsPermitFile;
   String? _sanitaryPermitFile;
   String? _fireCertificationFile;
   String? _marketClearanceFile;
+
+  String _selectedCategory = '';
+  String? _idCardFile;
 
   final List<String> _steps = [
     'Registered Name',
@@ -86,8 +96,7 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
     if (_currentStep == 0) {
       if (_lastNameController.text.trim().isEmpty ||
           _firstNameController.text.trim().isEmpty ||
-          _middleNameController.text.trim().isEmpty ||
-          _suffixController.text.trim().isEmpty) {
+          _middleNameController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill all required fields.')),
         );
@@ -95,12 +104,30 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
       }
     } else if (_currentStep == 1) {
       if (_registeredNameController.text.trim().isEmpty ||
+          _selectedCategory.isEmpty ||
           _mayorsPermitFile == null ||
           _sanitaryPermitFile == null ||
           _fireCertificationFile == null ||
           _marketClearanceFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter stall name and upload all permits.')),
+          const SnackBar(
+            content: Text(
+              'Please enter stall name, select a category, and upload all permits.',
+            ),
+          ),
+        );
+        return;
+      }
+    } else if (_currentStep == 2) {
+      if (_selectedIdType == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select an ID Card Type.')),
+        );
+        return;
+      }
+      if (_idCardFile == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please upload an ID Card photo.')),
         );
         return;
       }
@@ -115,13 +142,46 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
         curve: Curves.easeInOut,
       );
     } else {
-      // Last step - go to vendor dashboard with smooth transition
-      await ref.read(authProvider.notifier).loginAs(UserRole.vendor);
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        PageTransitions.slideFromRight(const VendorDashboardScreen()),
-        (route) => false,
+      // Last step - submit KYC then go to vendor dashboard
+      if (_phoneController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter your phone number.')),
+        );
+        return;
+      }
+
+      final uid = ref.read(authProvider)?.uid ?? 'stall holder-001';
+
+      final submission = KycSubmission(
+        kycId: '', // generated by repo
+        stallHolderId: uid,
+        mayorPermitUrl: _mayorsPermitFile ?? '',
+        sanitaryPermitUrl: _sanitaryPermitFile ?? '',
+        fireCertificationUrl: _fireCertificationFile ?? '',
+        marketClearanceUrl: _marketClearanceFile ?? '',
+        mayorPermitNumber: _mayorsPermitController.text,
+        sanitaryPermitNumber: _sanitaryPermitController.text,
+        fireCertNumber: _fireCertificationController.text,
+        marketClearanceNumber: _marketClearanceController.text,
+        validIdPhotoUrl: _idCardFile ?? '',
+        selfieUrl: '', // Not implemented in UI yet
+        submittedAt: DateTime.now(),
+        status: KycSubmissionStatus.pending,
       );
+      final processor = ref.read(kycProcessorProvider.notifier);
+      // 1. Immediately dismiss to home screen
+      Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+
+      // 2. Show toast globally since context will be unmounted
+      AppServices.scaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text('MEPO is processing your request, please wait.'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+
+      // 3. Trigger background processing on KycProcessor notifier
+      processor.submitAndProcess(submission);
     }
   }
 
@@ -139,39 +199,86 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
     }
   }
 
-  void _onUploadMayorsPermit() {
-    setState(() {
-      _mayorsPermitFile = 'mayors_permit.pdf';
-      _mayorsPermitController.text = 'mayors_permit.pdf';
-    });
+  Future<void> _onUploadMayorsPermit() async {
+    final file = await ImagePickerHelper.pickImage(context);
+    if (file != null) {
+      setState(() {
+        _mayorsPermitFile = file.path;
+        _mayorsPermitController.text = file.path
+            .split('/')
+            .last
+            .split('#')
+            .last;
+      });
+    }
   }
 
-  void _onUploadSanitaryPermit() {
-    setState(() {
-      _sanitaryPermitFile = 'sanitary_permit.pdf';
-      _sanitaryPermitController.text = 'sanitary_permit.pdf';
-    });
+  Future<void> _onUploadSanitaryPermit() async {
+    final file = await ImagePickerHelper.pickImage(context);
+    if (file != null) {
+      setState(() {
+        _sanitaryPermitFile = file.path;
+        _sanitaryPermitController.text = file.path
+            .split('/')
+            .last
+            .split('#')
+            .last;
+      });
+    }
   }
 
-  void _onUploadFireCertification() {
-    setState(() {
-      _fireCertificationFile = 'fire_certification.pdf';
-      _fireCertificationController.text = 'fire_certification.pdf';
-    });
+  Future<void> _onUploadFireCertification() async {
+    final file = await ImagePickerHelper.pickImage(context);
+    if (file != null) {
+      setState(() {
+        _fireCertificationFile = file.path;
+        _fireCertificationController.text = file.path
+            .split('/')
+            .last
+            .split('#')
+            .last;
+      });
+    }
   }
 
-  void _onUploadMarketClearance() {
-    setState(() {
-      _marketClearanceFile = 'market_clearance.pdf';
-      _marketClearanceController.text = 'market_clearance.pdf';
-    });
+  Future<void> _onUploadMarketClearance() async {
+    final file = await ImagePickerHelper.pickImage(context);
+    if (file != null) {
+      setState(() {
+        _marketClearanceFile = file.path;
+        _marketClearanceController.text = file.path
+            .split('/')
+            .last
+            .split('#')
+            .last;
+      });
+    }
+  }
+
+  Future<void> _onUploadIdCard() async {
+    final file = await ImagePickerHelper.pickImage(context);
+    if (file != null) {
+      setState(() {
+        _idCardFile = file.path;
+      });
+    }
   }
 
   void _onSendOtp() {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your phone number first.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('OTP sent to your phone'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text('We sent you the code to $phone'),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -180,6 +287,7 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
@@ -203,6 +311,11 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
                   ),
                   OnboardingBusinessInfoStep(
                     registeredNameController: _registeredNameController,
+                    blockNumberController: _blockNumberController,
+                    stallNumberController: _stallNumberController,
+                    selectedCategory: _selectedCategory,
+                    onCategoryChanged: (cat) =>
+                        setState(() => _selectedCategory = cat),
                     mayorsPermitFile: _mayorsPermitFile,
                     sanitaryPermitFile: _sanitaryPermitFile,
                     fireCertificationFile: _fireCertificationFile,
@@ -214,8 +327,12 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
                   ),
                   OnboardingIdCardStep(
                     selectedIdType: _selectedIdType,
-                    onIdTypeChanged: (type) =>
-                        setState(() => _selectedIdType = type),
+                    idCardFile: _idCardFile,
+                    onIdTypeChanged: (type) {
+                      setState(() => _selectedIdType = type);
+                      _onUploadIdCard();
+                    },
+                    onUploadIdCard: _onUploadIdCard,
                   ),
                   OnboardingPhoneStep(
                     phoneController: _phoneController,
@@ -225,14 +342,14 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
                 ],
               ),
             ),
-
-            // Bottom buttons
-            OnboardingBottomButtons(
-              currentStep: _currentStep,
-              onNext: _nextStep,
-              onPrevious: _previousStep,
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: OnboardingBottomButtons(
+          currentStep: _currentStep,
+          onNext: _nextStep,
+          onPrevious: _previousStep,
         ),
       ),
     );
@@ -249,13 +366,13 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
               width: 32,
               height: 32,
               decoration: const BoxDecoration(
-                color: Color(0xFFF6F8F7),
+                color: AppTheme.scaffoldBackground,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 16,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
           ),
@@ -264,7 +381,6 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
             child: Text(
               _steps[_currentStep],
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -288,7 +404,7 @@ class _VendorOnboardingScreenState extends ConsumerState<VendorOnboardingScreen>
               margin: EdgeInsets.only(right: index < _steps.length - 1 ? 8 : 0),
               decoration: BoxDecoration(
                 color: index <= _currentStep
-                    ? const Color(0xFF0B372B)
+                    ? AppTheme.primaryGreen
                     : const Color(0xFFE5E7EB),
                 borderRadius: BorderRadius.circular(2),
               ),

@@ -1,5 +1,7 @@
 # PalengkeGo
 
+[![CI](https://github.com/fragi/PalengkeGoAPP/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/fragi/PalengkeGoAPP/actions/workflows/flutter-ci.yml)
+
 A Flutter mobile app for local Filipino public markets (palengke). It connects customers and vendors in one ecosystem: customers browse stalls, compare fresh goods, build carts, check out, and track orders; vendors manage stall details, products, stock state, orders, and earnings.
 
 ## Features

@@ -1,6 +1,9 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/notifications/application/notification_provider.dart';
 
 class VendorNotificationsScreen extends ConsumerWidget {
@@ -11,105 +14,106 @@ class VendorNotificationsScreen extends ConsumerWidget {
     // ref.read only — ListenableBuilder below handles all reactivity.
     final notifService = ref.read(notificationServiceProvider);
 
-    return ListenableBuilder(
-      listenable: notifService,
-      builder: (context, _) {
-        final notifications = notifService.forVendor;
-        final unreadCount = notifService.vendorUnreadCount;
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: ListenableBuilder(
+        listenable: notifService,
+        builder: (context, _) {
+          final notifications = notifService.forVendor;
+          final unreadCount = notifService.vendorUnreadCount;
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
-          body: SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.maybePop(context),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
-                                  shape: BoxShape.circle,
+          return Scaffold(
+            backgroundColor: AppTheme.surface,
+            body: SafeArea(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  // Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.maybePop(context),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.surfaceContainerLow,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    size: 16,
+                                    color: AppTheme.primaryGreen,
+                                  ),
                                 ),
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  size: 16,
-                                  color: Color(0xFF0B372B),
-                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Notifications',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0B372B),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (unreadCount > 0)
-                          GestureDetector(
-                            onTap: () => notifService
-                                .markAllRead(NotificationTarget.vendor),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F5E9),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'Mark all read',
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Notifications',
                                 style: TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                  fontSize: 12,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B372B),
+                                  color: AppTheme.primaryGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (unreadCount > 0)
+                            GestureDetector(
+                              onTap: () => notifService.markAllRead(
+                                NotificationTarget.vendor,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  'Mark all read',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryGreen,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Morphing sticky banner
-                SliverPersistentHeader(
-                  pinned: true,
-                  floating: false,
-                  delegate:
-                      _VendorStatusBannerDelegate(unreadCount: unreadCount),
-                ),
+                  // Morphing sticky banner
+                  SliverPersistentHeader(
+                    pinned: true,
+                    floating: false,
+                    delegate: _VendorStatusBannerDelegate(
+                      unreadCount: unreadCount,
+                    ),
+                  ),
 
-                // Notifications list
-                if (notifications.isEmpty)
-                  const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyVendorNotifications(),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
+                  // Notifications list
+                  if (notifications.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyVendorNotifications(),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
                           final notif = notifications[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 14),
@@ -118,23 +122,22 @@ class VendorNotificationsScreen extends ConsumerWidget {
                               onTap: () => notifService.markRead(notif.id),
                             ),
                           );
-                        },
-                        childCount: notifications.length,
+                        }, childCount: notifications.length),
                       ),
                     ),
-                  ),
 
-                // Vendor pro-tip box (always shown at bottom)
-                if (notifications.isNotEmpty)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 32),
-                    sliver: SliverToBoxAdapter(child: _VendorProTip()),
-                  ),
-              ],
+                  // Vendor pro-tip box (always shown at bottom)
+                  if (notifications.isNotEmpty)
+                    const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      sliver: SliverToBoxAdapter(child: _VendorProTip()),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -160,7 +163,7 @@ class _EmptyVendorNotifications extends StatelessWidget {
             ),
             child: const Icon(
               Icons.check_circle_rounded,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
               size: 36,
             ),
           ),
@@ -168,20 +171,15 @@ class _EmptyVendorNotifications extends StatelessWidget {
           const Text(
             'All alerts cleared!',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'New order alerts will appear here.',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
         ],
       ),
@@ -217,7 +215,9 @@ class _VendorNotificationCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0B372B).withValues(alpha: isRead ? 0.04 : 0.12),
+              color: AppTheme.primaryGreen.withValues(
+                alpha: isRead ? 0.04 : 0.12,
+              ),
               blurRadius: isRead ? 6 : 16,
               offset: const Offset(0, 2),
             ),
@@ -250,12 +250,13 @@ class _VendorNotificationCard extends StatelessWidget {
                         child: Text(
                           notification.title,
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 14,
-                            fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                            fontWeight: isRead
+                                ? FontWeight.w500
+                                : FontWeight.w700,
                             color: isRead
                                 ? const Color(0xFF6B7280)
-                                : const Color(0xFF0B372B),
+                                : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
                         ),
@@ -278,7 +279,6 @@ class _VendorNotificationCard extends StatelessWidget {
                   Text(
                     notification.body,
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
@@ -306,7 +306,6 @@ class _VendorNotificationCard extends StatelessWidget {
                         child: Text(
                           _relativeTime(notification.createdAt),
                           style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: isRead
@@ -331,7 +330,6 @@ class _VendorNotificationCard extends StatelessWidget {
                             child: Text(
                               'Mark read',
                               style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: config.accent,
@@ -353,30 +351,35 @@ class _VendorNotificationCard extends StatelessWidget {
   ({IconData icon, Color accent, Color bg}) _typeConfig(NotificationType type) {
     return switch (type) {
       NotificationType.order => (
-          icon: Icons.shopping_bag_outlined,
-          accent: const Color(0xFF059669),
-          bg: const Color(0xFFF0FDF4),
-        ),
+        icon: Icons.shopping_bag_outlined,
+        accent: const Color(0xFF059669),
+        bg: const Color(0xFFF0FDF4),
+      ),
       NotificationType.stock => (
-          icon: Icons.inbox_outlined,
-          accent: const Color(0xFFEF4444),
-          bg: const Color(0xFFFEF2F2),
-        ),
+        icon: Icons.inbox_outlined,
+        accent: const Color(0xFFEF4444),
+        bg: const Color(0xFFFEF2F2),
+      ),
       NotificationType.review => (
-          icon: Icons.star_outline_rounded,
-          accent: const Color(0xFFF59E0B),
-          bg: const Color(0xFFFEF3C7),
-        ),
+        icon: Icons.star_outline_rounded,
+        accent: const Color(0xFFF59E0B),
+        bg: const Color(0xFFFEF3C7),
+      ),
       NotificationType.admin => (
-          icon: Icons.campaign_outlined,
-          accent: const Color(0xFF3B82F6),
-          bg: const Color(0xFFEFF6FF),
-        ),
+        icon: Icons.campaign_outlined,
+        accent: const Color(0xFF3B82F6),
+        bg: const Color(0xFFEFF6FF),
+      ),
       NotificationType.promo => (
-          icon: Icons.local_offer_outlined,
-          accent: const Color(0xFF059669),
-          bg: const Color(0xFFECFDF5),
-        ),
+        icon: Icons.local_offer_outlined,
+        accent: const Color(0xFF059669),
+        bg: const Color(0xFFECFDF5),
+      ),
+      NotificationType.recipe => (
+        icon: Icons.restaurant_menu_rounded,
+        accent: const Color(0xFFEA580C),
+        bg: const Color(0xFFFFF7ED),
+      ),
     };
   }
 }
@@ -410,9 +413,8 @@ class _VendorProTip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Vendor Pro-Tip',
+                  'Stall Holder Pro-Tip',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF0369A1),
@@ -422,7 +424,6 @@ class _VendorProTip extends StatelessWidget {
                 Text(
                   'Keeping your inventory updated reduces order cancellations and builds buyer trust.',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF075985),
@@ -468,12 +469,13 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
     final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
     final horizontalPadding = 16.0 * (1.0 - progress);
     final isAllCaughtUp = unreadCount == 0;
-    final bannerColor =
-        isAllCaughtUp ? const Color(0xFF6D9773) : const Color(0xFF0B372B);
+    final bannerColor = isAllCaughtUp
+        ? AppTheme.accentGreen
+        : AppTheme.primaryGreen;
 
     return SizedBox.expand(
       child: Container(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: Container(
@@ -510,7 +512,6 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                           ? 'STALL OPERATIONAL STATUS'
                           : 'URGENT NOTIFICATIONS',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: Color(0xB2FFFFFF),
@@ -523,7 +524,6 @@ class _VendorStatusBannerDelegate extends SliverPersistentHeaderDelegate {
                           ? 'All alerts cleared! Nice job.'
                           : '$unreadCount critical tasks require attention',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,

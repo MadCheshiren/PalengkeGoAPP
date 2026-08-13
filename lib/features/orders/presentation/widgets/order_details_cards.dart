@@ -1,5 +1,9 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/presentation/widgets/order_details_timeline.dart';
 
 class OrderDetailsStatusCard extends StatelessWidget {
@@ -41,7 +45,6 @@ class OrderDetailsStatusCard extends StatelessWidget {
                     const Text(
                       'Current Status',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1F2937),
@@ -51,7 +54,6 @@ class OrderDetailsStatusCard extends StatelessWidget {
                     Text(
                       statusDescription,
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF6B7280),
@@ -76,7 +78,6 @@ class OrderDetailsStatusCard extends StatelessWidget {
                       Text(
                         'PRIORITY',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF9A3412),
@@ -106,6 +107,42 @@ class OrderDetailsArrivalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCancelled =
+        order.status == OrderStatus.cancelled ||
+        order.status == OrderStatus.rejected;
+    final isCompleted = order.status == OrderStatus.completed;
+
+    final Color iconBg = isCancelled
+        ? const Color(0xFFFEF2F2)
+        : (isCompleted
+              ? AppTheme.surfaceContainerLow
+              : const Color(0xFFECFDF5));
+    final Color iconColor = isCancelled
+        ? const Color(0xFFEF4444)
+        : (isCompleted ? AppTheme.textSecondary : const Color(0xFF059669));
+    final IconData iconData = isCancelled
+        ? Icons.cancel_outlined
+        : (isCompleted
+              ? Icons.check_circle_outline_rounded
+              : (order.isPickup
+                    ? Icons.storefront_outlined
+                    : Icons.local_shipping_outlined));
+
+    String arrivalText;
+    if (isCancelled) {
+      arrivalText = 'Order Cancelled';
+    } else if (isCompleted) {
+      arrivalText = 'Order Completed';
+    } else if (order.estimatedReadyTime != null) {
+      arrivalText = order.isPickup
+          ? 'Ready at ${DateFormat('h:mm a').format(order.estimatedReadyTime!)}'
+          : 'Arriving at ${DateFormat('h:mm a').format(order.estimatedReadyTime!)}';
+    } else if (order.status == OrderStatus.pending) {
+      arrivalText = 'Waiting for stall holder confirmation';
+    } else {
+      arrivalText = 'Waiting for stall holder to set prep time';
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
@@ -114,16 +151,10 @@ class OrderDetailsArrivalCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
+              color: iconBg,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              order.isPickup
-                  ? Icons.storefront_outlined
-                  : Icons.local_shipping_outlined,
-              size: 20,
-              color: const Color(0xFF059669),
-            ),
+            child: Icon(iconData, size: 20, color: iconColor),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -133,7 +164,6 @@ class OrderDetailsArrivalCard extends StatelessWidget {
                 Text(
                   order.isPickup ? 'ESTIMATED READY TIME' : 'ESTIMATED ARRIVAL',
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF9CA3AF),
@@ -142,14 +172,13 @@ class OrderDetailsArrivalCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  order.isPickup
-                      ? 'Ready in 15-20 Mins'
-                      : '11:45 AM - 12:15 PM',
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
+                  arrivalText,
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
+                    color: isCancelled
+                        ? const Color(0xFFEF4444)
+                        : const Color(0xFF1F2937),
                   ),
                 ),
               ],
@@ -176,7 +205,6 @@ class OrderDetailsAddressCard extends StatelessWidget {
           Text(
             order.isPickup ? 'PICKUP LOCATION' : 'DELIVERY ADDRESS',
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: Color(0xFF9CA3AF),
@@ -187,10 +215,9 @@ class OrderDetailsAddressCard extends StatelessWidget {
           Text(
             order.deliveryAddress ??
                 (order.isPickup
-                    ? 'Vendor Stall at Wet Market Section, Pasig Mega Market'
+                    ? 'Stall Holder Stall at Wet Market Section, Pasig Mega Market'
                     : 'Address not provided'),
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xFF4B5563),
@@ -225,7 +252,6 @@ class OrderDetailsVendorCard extends StatelessWidget {
             const Text(
               'VENDOR STALL',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
@@ -237,12 +263,12 @@ class OrderDetailsVendorCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    order.vendorImage,
+                  child: AdaptiveImage(
+                    order.vendorImage.isNotEmpty ? order.vendorImage : null,
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
+                    placeholder: Container(
                       width: 48,
                       height: 48,
                       color: const Color(0xFFF3F4F6),
@@ -262,7 +288,6 @@ class OrderDetailsVendorCard extends StatelessWidget {
                       Text(
                         order.vendorName,
                         style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF1F2937),
@@ -272,7 +297,6 @@ class OrderDetailsVendorCard extends StatelessWidget {
                       const Text(
                         'Stall #8-14, Wet Market Section',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                           color: Color(0xFF6B7280),
@@ -292,17 +316,17 @@ class OrderDetailsVendorCard extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
-                        'Calling vendor dialer coming soon!',
-                        style: TextStyle(fontFamily: 'PlusJakartaSans'),
+                        'Calling stall holder dialer coming soon!',
+                        style: TextStyle(),
                       ),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
                 },
                 icon: const Icon(Icons.phone, size: 16),
-                label: const Text('Call Vendor'),
+                label: const Text('Call Stall Holder'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF0B372B),
+                  foregroundColor: AppTheme.primaryGreen,
                   side: const BorderSide(color: Color(0xFFE5E7EB)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -357,7 +381,6 @@ class OrderDetailsPaymentCard extends StatelessWidget {
                   Text(
                     'PAYMENT METHOD',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF9CA3AF),
@@ -368,7 +391,6 @@ class OrderDetailsPaymentCard extends StatelessWidget {
                   Text(
                     'Cash on Delivery',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1F2937),
@@ -392,9 +414,7 @@ class OrderDetailsNotesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (order.notes == null || order.notes!.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final hasNotes = order.notes != null && order.notes!.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -411,7 +431,6 @@ class OrderDetailsNotesCard extends StatelessWidget {
             const Text(
               'ORDER NOTES',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
@@ -425,17 +444,19 @@ class OrderDetailsNotesCard extends StatelessWidget {
                 const Icon(
                   Icons.note_alt_outlined,
                   size: 18,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    order.notes!,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    hasNotes
+                        ? order.notes!
+                        : 'No special instructions provided.',
+                    style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF4B5563),
+                      color: hasNotes
+                          ? const Color(0xFF1F2937)
+                          : const Color(0xFF9CA3AF),
                       height: 1.5,
                     ),
                   ),

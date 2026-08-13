@@ -10,7 +10,8 @@ class FloatingNewOrderNotification extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pendingOrders = ref.watch(vendorOrdersProvider)
+    final ordersAsync = ref.watch(vendorOrdersProvider);
+    final pendingOrders = (ordersAsync.value ?? [])
         .where((o) => o.status == OrderStatus.pending)
         .toList();
 
@@ -60,7 +61,6 @@ class FloatingNewOrderNotification extends ConsumerWidget {
                     Text(
                       '${pendingOrders.length} New Order${pendingOrders.length > 1 ? 's' : ''}!',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -69,19 +69,12 @@ class FloatingNewOrderNotification extends ConsumerWidget {
                     const SizedBox(height: 2),
                     const Text(
                       'Tap to review and accept',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.white),
                     ),
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white,
-              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white),
             ],
           ),
         ),

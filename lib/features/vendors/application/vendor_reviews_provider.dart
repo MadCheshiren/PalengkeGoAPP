@@ -11,17 +11,19 @@ final vendorReviewsProvider = Provider<List<VendorReview>>((ref) {
   // For the current mock data, the vendor stall maps to 'v1'.
   // When a real backend is added, swap MockDataService for an API call here.
   final stall = ref.watch(vendorStallProvider);
-  final vendorId = _stallNameToId(stall.name);
+  final vendorId = stallNameToId(stall.name);
   return MockDataService.getReviewsAsObjects(vendorId);
 });
 
 /// Reads and returns all typed [VendorReview] objects for a given vendor stall ID.
-final vendorReviewsFamilyProvider = Provider.family<List<VendorReview>, String>((ref, vendorId) {
-  return MockDataService.getReviewsAsObjects(vendorId);
-});
+final vendorReviewsFamilyProvider = Provider.family<List<VendorReview>, String>(
+  (ref, vendorId) {
+    return MockDataService.getReviewsAsObjects(vendorId);
+  },
+);
 
 /// Temporary name-to-id resolver until the vendor stall exposes its own ID field.
-String _stallNameToId(String stallName) {
+String stallNameToId(String stallName) {
   const nameToId = {
     'Diosa Fruit Stand': 'v1',
     "William Del Rosario Meat Shop": 'v2',

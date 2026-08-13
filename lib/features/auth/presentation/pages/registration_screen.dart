@@ -1,8 +1,15 @@
-import 'dart:ui' show ImageFilter;
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_form_fields.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_address_placeholder.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_terms_row.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_bottom_action_bar.dart';
+import 'package:palengkego/features/auth/presentation/widgets/registration_input_formatters.dart';
+import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
 
 class RegistrationScreen extends ConsumerStatefulWidget {
@@ -14,19 +21,23 @@ class RegistrationScreen extends ConsumerStatefulWidget {
 
 class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _surnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  bool _termsAccepted = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  DeliveryAddress? _selectedAddress;
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _surnameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -35,29 +46,67 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   }
 
   Future<void> _handleRegister() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // Form validators cover all field-level checks.
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (!_termsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the Terms & Privacy Policy.'),
+        ),
+      );
+      return;
+    }
+
+    if (_selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please set your delivery location first.'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-      final name = _nameController.text.trim();
-      await ref.read(authProvider.notifier).register(
-        email.isEmpty ? 'test@example.com' : email,
-        password.isEmpty ? 'password' : password,
-        name.isEmpty ? 'Test User' : name,
-      );
+      final firstName = _firstNameController.text.trim();
+      final surname = _surnameController.text.trim();
+      final email = _emailController.text.trim().toLowerCase();
+      final password = _passwordController.text;
+      final name = '$firstName $surname';
+      await ref.read(authProvider.notifier).register(email, password, name);
+
+      // Save the selected address if any
+      if (_selectedAddress != null) {
+        ref
+            .read(preferencesProvider.notifier)
+            .updateAddress(
+              primaryAddress: _selectedAddress!.primaryAddress,
+              streetAddress: _selectedAddress!.streetAddress,
+              notes: _selectedAddress!.notes,
+            );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Registration successful!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
 
       if (!mounted) return;
 
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context, true);
-      } else {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
-      }
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -76,77 +125,160 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8F7),
+      backgroundColor: AppTheme.scaffoldBackground,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
-            // Simple header with title only (no logo, no back button - entry point)
-            const SizedBox(height: 24),
+            // Header with back button
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: AppTheme.primaryGreen,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
             // Scrollable form
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Header text
-                      Text(
+                      Image.asset('assets/images/logonobg.png', height: 80),
+                      const SizedBox(height: 16),
+                      const Text(
                         'Create an Account',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 30,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                           height: 1.2,
                           letterSpacing: -0.75,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Join PalengkeGo for fresh market delivery.',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                           height: 1.43,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 48),
-                      // Full Name
-                      _buildField(
-                        label: 'Full Name',
-                        hintText: 'Enter your full name',
-                        prefixIcon: Icons.person_outline_rounded,
-                        controller: _nameController,
+                      // Name
+                      Row(
+                        children: [
+                          Expanded(
+                            child: RegistrationTextField(
+                              label: 'First Name',
+                              hintText: 'First name',
+                              prefixIcon: Icons.person_outline_rounded,
+                              controller: _firstNameController,
+                              // Allow letters, spaces, hyphens, and periods (for names like "Ma. Elena")
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r"[a-zA-ZÀ-ÿ .\-']"),
+                                ),
+                              ],
+                              textCapitalization: TextCapitalization.words,
+                              validator: (v) {
+                                final val = (v ?? '').trim();
+                                if (val.isEmpty) {
+                                  return 'First name is required';
+                                }
+                                if (val.length < 2) return 'Too short';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: RegistrationTextField(
+                              label: 'Surname',
+                              hintText: 'Surname',
+                              prefixIcon: Icons.person_outline_rounded,
+                              controller: _surnameController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r"[a-zA-ZÀ-ÿ .\-']"),
+                                ),
+                              ],
+                              textCapitalization: TextCapitalization.words,
+                              validator: (v) {
+                                final val = (v ?? '').trim();
+                                if (val.isEmpty) return 'Surname is required';
+                                if (val.length < 2) return 'Too short';
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       // Email
-                      _buildField(
+                      RegistrationTextField(
                         label: 'Email Address',
                         hintText: 'Enter your email',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         controller: _emailController,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                          LowercaseFormatter(),
+                        ],
+                        validator: (v) {
+                          final val = (v ?? '').trim();
+                          if (val.isEmpty) return 'Email is required';
+                          final ok = RegExp(
+                            r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
+                          ).hasMatch(val);
+                          return ok ? null : 'Enter a valid email address';
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Phone
-                      _buildField(
+                      RegistrationTextField(
                         label: 'Phone Number',
-                        hintText: '+63 900 000 0000',
+                        hintText: 'xxx xxx xxxx',
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
                         controller: _phoneController,
+                        prefixText: '+63 ',
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                          PhoneSpaceFormatter(),
+                        ],
+                        validator: (v) {
+                          final val = (v ?? '').replaceAll(RegExp(r'\D'), '');
+                          if (val.isEmpty) return 'Phone number is required';
+                          if (val.length < 10) {
+                            return 'Enter a 10-digit PH number';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Password
-                      _buildPasswordField(
+                      RegistrationPasswordField(
                         label: 'Password',
                         hintText: 'Create a password',
                         controller: _passwordController,
@@ -156,10 +288,25 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             _obscurePassword = !_obscurePassword;
                           });
                         },
+                        validator: (v) {
+                          final val = v ?? '';
+                          if (val.isEmpty) return 'Password is required';
+                          if (val.length < 8) return 'At least 8 characters';
+                          if (!RegExp(r'[A-Z]').hasMatch(val)) {
+                            return 'Add an uppercase letter';
+                          }
+                          if (!RegExp(r'[0-9]').hasMatch(val)) {
+                            return 'Add a number';
+                          }
+                          if (!RegExp(r'[!@#&*~^%]').hasMatch(val)) {
+                            return 'Add a special character (!@#&*~^%)';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Confirm Password
-                      _buildPasswordField(
+                      RegistrationPasswordField(
                         label: 'Confirm Password',
                         hintText: 'Confirm your password',
                         controller: _confirmPasswordController,
@@ -169,373 +316,44 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             _obscureConfirmPassword = !_obscureConfirmPassword;
                           });
                         },
+                        validator: (v) {
+                          if ((v ?? '').isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (v != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       // Set Address Button
-                      _addressPlaceholder(),
+                      RegistrationAddressPlaceholder(
+                        selectedAddress: _selectedAddress,
+                        onSelected: (address) {
+                          setState(() => _selectedAddress = address);
+                        },
+                      ),
                       const SizedBox(height: 24),
                       // Terms
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF64748B),
-                            ),
-                            children: [
-                              const TextSpan(
-                                text: 'By registering, you agree to our ',
-                              ),
-                              TextSpan(
-                                text: 'Terms & Privacy Policy',
-                                style: TextStyle(
-                                  color: const Color(0xFF0B372B),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      RegistrationTermsRow(
+                        accepted: _termsAccepted,
+                        onChanged: (val) {
+                          setState(() => _termsAccepted = val);
+                        },
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+                      RegistrationBottomActionBar(
+                        isLoading: _isLoading,
+                        onRegister: _handleRegister,
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
             ),
-            // Bottom action bar
-            _bottomActionBar(),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildField({
-    required String label,
-    required String hintText,
-    required IconData prefixIcon,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    TextEditingController? controller,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF64748B),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            textInputAction: textInputAction,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF94A3B8),
-              ),
-              prefixIcon: Icon(
-                prefixIcon,
-                size: 18,
-                color: const Color(0xFF94A3B8),
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 14,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField({
-    required String label,
-    required String hintText,
-    required TextEditingController controller,
-    required bool obscureText,
-    required VoidCallback onToggleVisibility,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF334155),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextFormField(
-            controller: controller,
-            obscureText: obscureText,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF94A3B8),
-              ),
-              prefixIcon: const Padding(
-                padding: EdgeInsets.only(left: 12),
-                child: Icon(
-                  Icons.lock_outline,
-                  size: 16,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 0,
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  obscureText
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  size: 18,
-                  color: const Color(0xFF64748B),
-                ),
-                onPressed: onToggleVisibility,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 15,
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _addressPlaceholder() {
-    return GestureDetector(
-      onTap: () async {
-        final result = await Navigator.of(
-          context,
-        ).pushNamed(AppRoutes.setDeliveryAddress);
-        // Handle the returned address data if needed
-        if (result is DeliveryAddress) {
-          // Update the address display or store the data
-          setState(() {
-            // Update with selected address
-          });
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0B372B).withValues(alpha: 0.05),
-          border: Border.all(
-            color: const Color(0xFF0B372B),
-            width: 1,
-            style: BorderStyle.solid,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0B372B).withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.location_on_outlined,
-                size: 20,
-                color: Color(0xFF0B372B),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Set Your Delivery Address',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0B372B),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Naga City, Camarines Sur',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 12,
-              color: Color(0xFF0B372B),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _bottomActionBar() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        border: const Border(
-          top: BorderSide(color: Color(0xFFF1F5F9), width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 12),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Column(
-            children: [
-              Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
-                      offset: const Offset(0, 4),
-                      blurRadius: 6,
-                      spreadRadius: -4,
-                    ),
-                    BoxShadow(
-                      color: const Color(0xFF0B372B).withValues(alpha: 0.2),
-                      offset: const Offset(0, 10),
-                      blurRadius: 15,
-                      spreadRadius: -3,
-                    ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleRegister,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0B372B),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    disabledBackgroundColor: const Color(
-                      0xFF0B372B,
-                    ).withValues(alpha: 0.5),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.0,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Register Account',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed(AppRoutes.login);
-                },
-                child: Center(
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: 'Already have an account? ',
-                          style: TextStyle(color: Color(0xFF475569)),
-                        ),
-                        TextSpan(
-                          text: 'Log In',
-                          style: TextStyle(
-                            color: const Color(0xFF0B372B),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

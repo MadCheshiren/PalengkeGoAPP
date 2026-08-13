@@ -1,4 +1,6 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 
 class PickupVerificationCard extends StatelessWidget {
   const PickupVerificationCard({super.key});
@@ -8,7 +10,7 @@ class PickupVerificationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -17,7 +19,6 @@ class PickupVerificationCard extends StatelessWidget {
           const Text(
             'PICK-UP VERIFICATION',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: Colors.white70,
@@ -30,7 +31,6 @@ class PickupVerificationCard extends StatelessWidget {
               const Text(
                 'PG-882',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -48,7 +48,7 @@ class PickupVerificationCard extends StatelessWidget {
                 child: const Icon(
                   Icons.qr_code,
                   size: 40,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
@@ -57,7 +57,6 @@ class PickupVerificationCard extends StatelessWidget {
           Text(
             'Show this code to Juan at Stall 12',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               color: Colors.white.withValues(alpha: 0.8),
             ),
@@ -76,19 +75,19 @@ class RiderInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+            child: AdaptiveImage(
+              '', // No real rider data yet
               width: 56,
               height: 56,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
+              placeholder: Container(
                 width: 56,
                 height: 56,
                 color: const Color(0xFF1a4d3e),
@@ -103,13 +102,12 @@ class RiderInfoCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'Ricardo Dalisay',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -129,15 +127,18 @@ class RiderInfoCard extends StatelessWidget {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.star, size: 12, color: Color(0xFF0B372B)),
+                          Icon(
+                            Icons.star,
+                            size: 12,
+                            color: AppTheme.primaryGreen,
+                          ),
                           SizedBox(width: 2),
                           Text(
                             '4.9',
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF0B372B),
+                              color: AppTheme.primaryGreen,
                             ),
                           ),
                         ],
@@ -148,11 +149,7 @@ class RiderInfoCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 const Text(
                   'Honda Click • ABC 1234',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 12,
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
                 ),
               ],
             ),
@@ -176,7 +173,7 @@ class RiderInfoCard extends StatelessWidget {
                   );
                 },
                 backgroundColor: const Color(0xFFFACC15),
-                iconColor: const Color(0xFF0B372B),
+                iconColor: AppTheme.primaryGreen,
               ),
             ],
           ),
@@ -191,7 +188,7 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.backgroundColor = Colors.white,
-    this.iconColor = const Color(0xFF0B372B),
+    this.iconColor = AppTheme.primaryGreen,
   });
 
   final IconData icon;

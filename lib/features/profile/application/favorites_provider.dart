@@ -29,21 +29,25 @@ class FavoritesNotifier extends Notifier<Set<String>> {
   bool isFavorite(String vendorId) => state.contains(vendorId);
 
   void _persist(Set<String> ids) {
-    ref.read(sharedPreferencesProvider).setStringList(_kFavoritesKey, ids.toList());
+    ref
+        .read(sharedPreferencesProvider)
+        .setStringList(_kFavoritesKey, ids.toList());
   }
 }
 
-final favoritesProvider =
-    NotifierProvider<FavoritesNotifier, Set<String>>(FavoritesNotifier.new);
+final favoritesProvider = NotifierProvider<FavoritesNotifier, Set<String>>(
+  FavoritesNotifier.new,
+);
 
 /// Derives the list of favorited [MarketVendor] objects from the market repo,
 /// excluding any blocked vendors.
-final favoriteVendorsProvider = Provider<List<MarketVendor>>((ref) {
+final favoriteVendorsProvider = Provider<AsyncValue<List<MarketVendor>>>((ref) {
   final favoriteIds = ref.watch(favoritesProvider);
   final blockedIds = ref.watch(blockedVendorsProvider);
-  final repo = ref.watch(marketRepositoryProvider);
-  final allVendors = repo.getVendorsByCategory('All');
-  return allVendors
-      .where((v) => favoriteIds.contains(v.id) && !blockedIds.contains(v.id))
-      .toList();
+  final vendorsAsync = ref.watch(allVendorsProvider);
+  return vendorsAsync.whenData((allVendors) {
+    return allVendors
+        .where((v) => favoriteIds.contains(v.id) && !blockedIds.contains(v.id))
+        .toList();
+  });
 });

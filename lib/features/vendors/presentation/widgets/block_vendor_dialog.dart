@@ -54,7 +54,6 @@ class BlockVendorDialog extends StatelessWidget {
               'Block $vendorName?',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -63,10 +62,9 @@ class BlockVendorDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'You will no longer see products from this vendor, and they won\'t be able to message you. This action can be undone in your settings.',
+              'You will no longer see products from this stall holder, and they won\'t be able to message you. This action can be undone in your settings.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: Color(0xFF6B7280),
@@ -89,7 +87,6 @@ class BlockVendorDialog extends StatelessWidget {
                     child: const Text(
                       'Cancel',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF4B5563),
@@ -112,7 +109,6 @@ class BlockVendorDialog extends StatelessWidget {
                     child: const Text(
                       'Block',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,

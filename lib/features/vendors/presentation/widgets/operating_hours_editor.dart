@@ -1,7 +1,8 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/vendors/domain/day_schedule.dart';
 
-class OperatingHoursEditor extends StatelessWidget {
+class OperatingHoursEditor extends StatefulWidget {
   final List<DaySchedule> schedules;
   final VoidCallback onApplyMondayToAll;
   final VoidCallback onChanged;
@@ -13,6 +14,13 @@ class OperatingHoursEditor extends StatelessWidget {
     required this.onChanged,
   });
 
+  @override
+  State<OperatingHoursEditor> createState() => _OperatingHoursEditorState();
+}
+
+class _OperatingHoursEditorState extends State<OperatingHoursEditor> {
+  bool _isExpanded = false;
+
   String _formatTime(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
@@ -20,13 +28,28 @@ class OperatingHoursEditor extends StatelessWidget {
     return '$hour:$minute $period';
   }
 
+  String _timeToString(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  TimeOfDay _stringToTime(String timeStr) {
+    final parts = timeStr.split(':');
+    if (parts.length == 2) {
+      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    }
+    return const TimeOfDay(hour: 6, minute: 0);
+  }
+
   Future<void> _selectTime(
     BuildContext context,
     int index,
     bool isOpenTime,
   ) async {
-    final schedule = schedules[index];
-    final initialTime = isOpenTime ? schedule.openTime : schedule.closeTime;
+    final schedule = widget.schedules[index];
+    final timeStr = isOpenTime ? schedule.openTime : schedule.closeTime;
+    final initialTime = _stringToTime(timeStr);
 
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -35,9 +58,9 @@ class OperatingHoursEditor extends StatelessWidget {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF0B372B),
+              primary: AppTheme.primaryGreen,
               onPrimary: Colors.white,
-              onSurface: Color(0xFF0B372B),
+              onSurface: AppTheme.primaryGreen,
             ),
           ),
           child: child!,
@@ -46,12 +69,13 @@ class OperatingHoursEditor extends StatelessWidget {
     );
 
     if (picked != null) {
+      final formatted = _timeToString(picked);
       if (isOpenTime) {
-        schedule.openTime = picked;
+        widget.schedules[index] = schedule.copyWith(openTime: formatted);
       } else {
-        schedule.closeTime = picked;
+        widget.schedules[index] = schedule.copyWith(closeTime: formatted);
       }
-      onChanged();
+      widget.onChanged();
     }
   }
 
@@ -67,14 +91,13 @@ class OperatingHoursEditor extends StatelessWidget {
               children: [
                 Icon(
                   Icons.schedule_rounded,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                   size: 20,
                 ),
                 SizedBox(width: 8),
                 Text(
                   'Operating Hours',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
@@ -82,140 +105,161 @@ class OperatingHoursEditor extends StatelessWidget {
                 ),
               ],
             ),
-            TextButton.icon(
-              icon: const Icon(
-                Icons.copy_rounded,
-                size: 14,
-                color: Color(0xFF0B372B),
-              ),
-              label: const Text(
-                'Apply Mon to All',
-                style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0B372B),
-                ),
-              ),
-              onPressed: onApplyMondayToAll,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...List.generate(schedules.length, (index) {
-          final schedule = schedules[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
+            Row(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    schedule.name,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                if (_isExpanded)
+                  TextButton.icon(
+                    icon: const Icon(
+                      Icons.copy_rounded,
+                      size: 14,
+                      color: AppTheme.primaryGreen,
                     ),
+                    label: const Text(
+                      'Apply Mon to All',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryGreen,
+                      ),
+                    ),
+                    onPressed: widget.onApplyMondayToAll,
                   ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: schedule.isOpen
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () => _selectTime(context, index, true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: const Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                                child: Text(
-                                  _formatTime(schedule.openTime),
-                                  style: const TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF0B372B),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4),
-                              child: Text(
-                                '-',
-                                style: TextStyle(color: Color(0xFF64748B)),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () => _selectTime(context, index, false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: const Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                                child: Text(
-                                  _formatTime(schedule.closeTime),
-                                  style: const TextStyle(
-                                    fontFamily: 'PlusJakartaSans',
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF0B372B),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : const Text(
-                          'Closed',
-                          style: TextStyle(
-                            fontFamily: 'PlusJakartaSans',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF94A3B8),
-                          ),
-                        ),
-                ),
-                Switch(
-                  value: schedule.isOpen,
-                  onChanged: (val) {
-                    schedule.isOpen = val;
-                    onChanged();
+                IconButton(
+                  icon: Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: AppTheme.primaryGreen,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
                   },
-                  activeThumbColor: const Color(0xFF0B372B),
-                  activeTrackColor: const Color(
-                    0xFF0B372B,
-                  ).withValues(alpha: 0.3),
                 ),
               ],
             ),
-          );
-        }),
+          ],
+        ),
+        if (_isExpanded) ...[
+          const SizedBox(height: 12),
+          ...List.generate(widget.schedules.length, (index) {
+            final schedule = widget.schedules[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      schedule.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: schedule.isOpen
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                onTap: () => _selectTime(context, index, true),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFFCBD5E1),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _formatTime(
+                                      _stringToTime(schedule.openTime),
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTheme.primaryGreen,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(
+                                  '-',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () => _selectTime(context, index, false),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFFCBD5E1),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _formatTime(
+                                      _stringToTime(schedule.closeTime),
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTheme.primaryGreen,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Text(
+                            'Closed',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.muted,
+                            ),
+                          ),
+                  ),
+                  Switch(
+                    value: schedule.isOpen,
+                    onChanged: (val) {
+                      widget.schedules[index] = schedule.copyWith(isOpen: val);
+                      widget.onChanged();
+                    },
+                    activeThumbColor: AppTheme.primaryGreen,
+                    activeTrackColor: AppTheme.primaryGreen.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ],
     );
   }

@@ -3,10 +3,10 @@ import 'package:palengkego/features/market/data/mock_market_repository.dart';
 
 void main() {
   group('MockMarketRepository', () {
-    test('returns featured vendors as typed market vendors', () {
+    test('returns featured vendors as typed market vendors', () async {
       final repository = MockMarketRepository();
 
-      final vendors = repository.getFeaturedVendors();
+      final vendors = await repository.getFeaturedVendors();
 
       expect(vendors, isNotEmpty);
       expect(vendors.first.id, 'v1');
@@ -15,46 +15,57 @@ void main() {
       expect(vendors.first.rating, 4.8);
     });
 
-    test('filters vendors by category', () {
+    test('filters vendors by category', () async {
       final repository = MockMarketRepository();
 
-      final vendors = repository.getVendorsByCategory('Fish');
+      final vendors = await repository.getVendorsByCategory('Fish');
 
       expect(vendors, isNotEmpty);
-      expect(vendors.every((vendor) => vendor.category == 'Fish'), isTrue);
+      for (final vendor in vendors) {
+        final products = await repository.getProductsForVendor(vendor.id);
+        final matches =
+            vendor.category.toLowerCase().contains('fish') ||
+            products.any(
+              (product) => product.category.toLowerCase().contains('fish'),
+            );
+        expect(matches, isTrue);
+      }
     });
 
-    test('all category returns every featured vendor', () {
+    test('all category returns every featured vendor', () async {
       final repository = MockMarketRepository();
 
-      final allVendors = repository.getVendorsByCategory('All');
-      final featuredVendors = repository.getFeaturedVendors();
+      final allVendors = await repository.getVendorsByCategory('All');
+      final featuredVendors = await repository.getFeaturedVendors();
 
       expect(allVendors.length, featuredVendors.length);
     });
 
-    test('returns products for a vendor', () {
+    test('returns products for a vendor', () async {
       final repository = MockMarketRepository();
 
-      final products = repository.getProductsForVendor('v1');
+      final products = await repository.getProductsForVendor('v1');
 
       expect(products, isNotEmpty);
       expect(products.every((product) => product.vendorId == 'v1'), isTrue);
       expect(products.first.name, 'Sweet Mangoes');
     });
 
-    test('returns no discounted products when no active discounts exist', () {
+    test(
+      'returns no discounted products when no active discounts exist',
+      () async {
+        final repository = MockMarketRepository();
+
+        final products = await repository.getDiscountedProducts();
+
+        expect(products, isEmpty);
+      },
+    );
+
+    test('returns every vendor product for product search', () async {
       final repository = MockMarketRepository();
 
-      final products = repository.getDiscountedProducts();
-
-      expect(products, isEmpty);
-    });
-
-    test('returns every vendor product for product search', () {
-      final repository = MockMarketRepository();
-
-      final products = repository.getAllProducts();
+      final products = await repository.getAllProducts();
 
       expect(products, isNotEmpty);
       expect(

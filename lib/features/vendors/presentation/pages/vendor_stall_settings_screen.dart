@@ -1,7 +1,11 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/config/categories.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/domain/day_schedule.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_photo_editor.dart';
 import 'package:palengkego/features/vendors/presentation/widgets/stall_info_form.dart';
@@ -16,37 +20,30 @@ class VendorStallSettingsScreen extends ConsumerStatefulWidget {
       _VendorStallSettingsScreenState();
 }
 
-class _VendorStallSettingsScreenState extends ConsumerState<VendorStallSettingsScreen> {
+class _VendorStallSettingsScreenState
+    extends ConsumerState<VendorStallSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
 
-  String _selectedCategory = 'Fish & Seafood';
-  final List<String> _categories = [
-    'Fish & Seafood',
-    'Meat & Poultry',
-    'Vegetables',
-    'Fruits',
-    'Rice & Grains',
-    'Dried Goods & Spices',
-    'Maritatas',
-    'Sari-Sari',
-  ];
+  String _selectedCategory = 'Fresh Fish';
+  final List<String> _categories = AppCategories.stall;
 
   final List<DaySchedule> _schedules = [
-    DaySchedule(name: 'Monday'),
-    DaySchedule(name: 'Tuesday'),
-    DaySchedule(name: 'Wednesday'),
-    DaySchedule(name: 'Thursday'),
-    DaySchedule(name: 'Friday'),
-    DaySchedule(name: 'Saturday'),
-    DaySchedule(name: 'Sunday'),
+    const DaySchedule(name: 'Monday'),
+    const DaySchedule(name: 'Tuesday'),
+    const DaySchedule(name: 'Wednesday'),
+    const DaySchedule(name: 'Thursday'),
+    const DaySchedule(name: 'Friday'),
+    const DaySchedule(name: 'Saturday'),
+    const DaySchedule(name: 'Sunday'),
   ];
 
   String? _bannerImage;
   String? _avatarImage;
+  String? _thumbnailImage;
 
   @override
   void initState() {
@@ -66,6 +63,7 @@ class _VendorStallSettingsScreenState extends ConsumerState<VendorStallSettingsS
         _selectedCategory = stall.category;
         _bannerImage = stall.bannerImage;
         _avatarImage = stall.avatarImage;
+        _thumbnailImage = stall.thumbnailImage;
       });
     });
   }
@@ -82,23 +80,21 @@ class _VendorStallSettingsScreenState extends ConsumerState<VendorStallSettingsS
     final monday = _schedules[0];
     setState(() {
       for (int i = 1; i < _schedules.length; i++) {
-        _schedules[i].isOpen = monday.isOpen;
-        _schedules[i].openTime = monday.openTime;
-        _schedules[i].closeTime = monday.closeTime;
+        _schedules[i] = _schedules[i].copyWith(
+          isOpen: monday.isOpen,
+          openTime: monday.openTime,
+          closeTime: monday.closeTime,
+        );
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF0B372B),
+        backgroundColor: AppTheme.primaryGreen,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: const Text(
           "Applied Monday's hours to all days",
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 13,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.white),
         ),
       ),
     );
@@ -106,29 +102,29 @@ class _VendorStallSettingsScreenState extends ConsumerState<VendorStallSettingsS
 
   void _saveChanges() {
     if (_formKey.currentState!.validate()) {
-      ref.read(vendorStallProvider.notifier).updateStall(
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        category: _selectedCategory,
-        bannerImage: _bannerImage ?? '',
-        avatarImage: _avatarImage ?? '',
-      );
+      ref
+          .read(vendorStallProvider.notifier)
+          .updateStall(
+            name: _nameController.text.trim(),
+            description: _descriptionController.text.trim(),
+            category: _selectedCategory,
+            bannerImage: _bannerImage ?? '',
+            avatarImage: _avatarImage ?? '',
+            thumbnailImage: _thumbnailImage ?? '',
+            schedule: List.from(_schedules),
+          );
 
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFF0B372B),
+          backgroundColor: AppTheme.primaryGreen,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           content: const Text(
             'Stall settings and operating hours saved!',
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ),
       );
@@ -138,56 +134,62 @@ class _VendorStallSettingsScreenState extends ConsumerState<VendorStallSettingsS
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const AppScreenHeader(title: 'Stall Settings'),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StallPhotoEditor(
-                        bannerImage: _bannerImage,
-                        avatarImage: _avatarImage,
-                        onBannerChanged: (url) =>
-                            setState(() => _bannerImage = url),
-                        onAvatarChanged: (url) =>
-                            setState(() => _avatarImage = url),
-                      ),
-                      const SizedBox(height: 24),
-                      StallInfoForm(
-                        nameController: _nameController,
-                        descriptionController: _descriptionController,
-                        locationController: _locationController,
-                        selectedCategory: _selectedCategory,
-                        categories: _categories,
-                        onCategoryChanged: (category) =>
-                            setState(() => _selectedCategory = category),
-                      ),
-                      const SizedBox(height: 32),
-                      OperatingHoursEditor(
-                        schedules: _schedules,
-                        onApplyMondayToAll: _applyMondayToAll,
-                        onChanged: () => setState(() {}),
-                      ),
-                      const SizedBox(height: 32),
-                      StallSettingsSaveButton(onSave: _saveChanges),
-                      const SizedBox(height: 24),
-                    ],
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const AppScreenHeader(title: 'Stall Settings'),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        StallPhotoEditor(
+                          bannerImage: _bannerImage,
+                          avatarImage: _avatarImage,
+                          thumbnailImage: _thumbnailImage,
+                          onBannerChanged: (url) =>
+                              setState(() => _bannerImage = url),
+                          onAvatarChanged: (url) =>
+                              setState(() => _avatarImage = url),
+                          onThumbnailChanged: (url) =>
+                              setState(() => _thumbnailImage = url),
+                        ),
+                        const SizedBox(height: 24),
+                        StallInfoForm(
+                          nameController: _nameController,
+                          descriptionController: _descriptionController,
+                          locationController: _locationController,
+                          selectedCategory: _selectedCategory,
+                          categories: _categories,
+                          onCategoryChanged: (category) =>
+                              setState(() => _selectedCategory = category),
+                        ),
+                        const SizedBox(height: 32),
+                        OperatingHoursEditor(
+                          schedules: _schedules,
+                          onApplyMondayToAll: _applyMondayToAll,
+                          onChanged: () => setState(() {}),
+                        ),
+                        const SizedBox(height: 32),
+                        StallSettingsSaveButton(onSave: _saveChanges),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -18,6 +18,22 @@ import 'package:palengkego/features/recipes/presentation/pages/cookbook_screen.d
 import 'package:palengkego/features/orders/presentation/pages/order_details_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_add_product_screen.dart';
 import 'package:palengkego/features/vendors/presentation/pages/vendor_dashboard_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_profile_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_products_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_reviews_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_license_screen.dart';
+import 'package:palengkego/features/vendors/domain/vendor_product.dart';
+import 'package:palengkego/features/recipes/presentation/pages/recommended_ingredient_stores_screen.dart';
+
+class RecommendedIngredientStoresRouteArgs {
+  const RecommendedIngredientStoresRouteArgs({
+    required this.ingredientName,
+    this.recipeTitle,
+  });
+
+  final String ingredientName;
+  final String? recipeTitle;
+}
 
 class MainRouteArgs {
   const MainRouteArgs({this.initialIndex = 0});
@@ -26,9 +42,13 @@ class MainRouteArgs {
 }
 
 class PaymentMethodsRouteArgs {
-  const PaymentMethodsRouteArgs({this.currentMethod = 'cod'});
+  const PaymentMethodsRouteArgs({
+    this.currentMethod = 'cod',
+    this.fulfillmentMethod = 'delivery',
+  });
 
   final String currentMethod;
+  final String fulfillmentMethod;
 }
 
 class OrderConfirmationRouteArgs {
@@ -54,6 +74,21 @@ class OrderDetailsRouteArgs {
   const OrderDetailsRouteArgs({required this.order});
 
   final MarketOrder order;
+}
+
+class VendorProfileRouteArgs {
+  const VendorProfileRouteArgs({required this.vendorId});
+  final String vendorId;
+}
+
+class VendorReviewsRouteArgs {
+  const VendorReviewsRouteArgs({required this.vendorId});
+  final String vendorId;
+}
+
+class VendorAddProductRouteArgs {
+  const VendorAddProductRouteArgs({this.existingProduct});
+  final VendorProduct? existingProduct;
 }
 
 class AppRouter {
@@ -82,9 +117,17 @@ class AppRouter {
         final currentMethod = args is PaymentMethodsRouteArgs
             ? args.currentMethod
             : 'cod';
+        final fulfillmentMethod = args is PaymentMethodsRouteArgs
+            ? args.fulfillmentMethod
+            : 'delivery';
         return _materialRoute(
           settings,
-          AuthGuard(child: PaymentMethodsScreen(currentMethod: currentMethod)),
+          AuthGuard(
+            child: PaymentMethodsScreen(
+              currentMethod: currentMethod,
+              fulfillmentMethod: fulfillmentMethod,
+            ),
+          ),
         );
       case AppRoutes.addCreditCard:
         return _materialRoute(
@@ -116,10 +159,7 @@ class AppRouter {
           AuthGuard(child: OrderDetailsScreen(order: args.order)),
         );
       case AppRoutes.setDeliveryAddress:
-        return _materialRoute(
-          settings,
-          const AuthGuard(child: SetDeliveryAddressScreen()),
-        );
+        return _materialRoute(settings, const SetDeliveryAddressScreen());
       case AppRoutes.cookbook:
         return _slideRoute(settings, const CookbookScreen());
       case AppRoutes.orderDetails:
@@ -132,11 +172,14 @@ class AppRouter {
           AuthGuard(child: OrderDetailsScreen(order: args.order)),
         );
       case AppRoutes.vendorAddProduct:
+        final args = settings.arguments as VendorAddProductRouteArgs?;
         return _slideRoute(
           settings,
-          const AuthGuard(
+          AuthGuard(
             allowedRoles: {UserRole.vendor},
-            child: VendorAddProductScreen(),
+            child: VendorAddProductScreen(
+              existingProduct: args?.existingProduct,
+            ),
           ),
         );
       case AppRoutes.vendorDashboard:
@@ -145,6 +188,48 @@ class AppRouter {
           const AuthGuard(
             allowedRoles: {UserRole.vendor},
             child: VendorDashboardScreen(),
+          ),
+        );
+      case AppRoutes.vendorProfile:
+        final args = settings.arguments;
+        if (args is! VendorProfileRouteArgs) return _errorRoute(settings);
+        return _materialRoute(
+          settings,
+          VendorProfileScreen(vendorId: args.vendorId),
+        );
+      case AppRoutes.vendorProducts:
+        return _materialRoute(
+          settings,
+          const AuthGuard(
+            allowedRoles: {UserRole.vendor},
+            child: VendorProductsScreen(),
+          ),
+        );
+      case AppRoutes.vendorReviews:
+        final args = settings.arguments;
+        if (args is! VendorReviewsRouteArgs) return _errorRoute(settings);
+        return _materialRoute(
+          settings,
+          VendorReviewsScreen(vendorId: args.vendorId),
+        );
+      case AppRoutes.vendorLicense:
+        return _materialRoute(
+          settings,
+          const AuthGuard(
+            allowedRoles: {UserRole.vendor},
+            child: VendorLicenseScreen(),
+          ),
+        );
+      case AppRoutes.recommendedIngredientStores:
+        final args = settings.arguments;
+        if (args is! RecommendedIngredientStoresRouteArgs) {
+          return _errorRoute(settings);
+        }
+        return _slideRoute(
+          settings,
+          RecommendedIngredientStoresScreen(
+            ingredientName: args.ingredientName,
+            recipeTitle: args.recipeTitle,
           ),
         );
       default:

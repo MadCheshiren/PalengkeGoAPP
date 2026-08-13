@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/features/home/presentation/widgets/discounted_item_card.dart';
 import 'package:palengkego/features/market/domain/market_product.dart';
-import 'package:palengkego/features/vendors/data/vendor_repository.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
-import 'package:palengkego/features/vendors/domain/vendor_product.dart';
+import 'package:palengkego/features/vendors/domain/sales_summary.dart';
 import 'package:palengkego/features/vendors/domain/vendor_profile.dart';
+import 'package:palengkego/features/vendors/domain/vendor_repository.dart';
+import 'package:palengkego/features/vendors/domain/vendor_review.dart';
+import 'package:palengkego/features/vendors/domain/vendor_stall.dart';
 
 void main() {
   const product = MarketProduct(
@@ -15,8 +17,6 @@ void main() {
     name: 'Sweet Mangoes',
     price: 200,
     unit: 'kg',
-    weight: '1kg',
-    pricePerKg: 'PHP 200/kg',
     description: 'Fresh mangoes',
     category: 'Fruits',
     imageUrl: '',
@@ -80,4 +80,27 @@ class _FakeVendorRepository implements VendorRepository {
 
   @override
   Future<void> deleteVendorProduct(String productId) async {}
+
+  @override
+  Future<VendorStall> getVendorStall(String stallId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateVendorStall(VendorStall stall) async {}
+
+  @override
+  Future<List<VendorReview>> getReviews(String stallId) async => [];
+
+  @override
+  Future<void> addReview(VendorReview review) async {}
+
+  @override
+  Future<List<SalesSummary>> getSalesSummary(
+    String stallId, {
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    return [];
+  }
 }

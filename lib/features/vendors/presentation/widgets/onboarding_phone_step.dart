@@ -1,4 +1,6 @@
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class OnboardingPhoneStep extends StatelessWidget {
   final TextEditingController phoneController;
@@ -19,6 +21,8 @@ class OnboardingPhoneStep extends StatelessWidget {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     Widget? prefix,
+    Widget? suffix,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,7 +30,6 @@ class OnboardingPhoneStep extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF374151),
@@ -37,32 +40,13 @@ class OnboardingPhoneStep extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontSize: 14,
-            color: Color(0xFF111827),
-          ),
-          decoration: InputDecoration(
+          inputFormatters: inputFormatters,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
+          decoration: appInputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              color: Color(0xFF9CA3AF),
-            ),
-            filled: true,
+            hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
             fillColor: const Color(0xFFF3F4F6),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
-            ),
+            borderless: true,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
@@ -73,6 +57,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                     child: prefix,
                   )
                 : null,
+            suffixIcon: suffix,
           ),
         ),
       ],
@@ -89,43 +74,56 @@ class OnboardingPhoneStep extends StatelessWidget {
           _buildTextField(
             controller: phoneController,
             label: 'Phone Number *',
-            hint: 'Input',
+            hint: '9xxxxxxxxx',
             keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
+            prefix: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '+63',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(width: 1, height: 20, color: const Color(0xFFD1D5DB)),
+                const SizedBox(width: 12),
+              ],
+            ),
+            suffix: Padding(
+              padding: const EdgeInsets.only(right: 8.0, top: 6.0, bottom: 6.0),
+              child: TextButton(
+                onPressed: onSendOtp,
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFF7ED),
+                  foregroundColor: const Color(0xFFF59E0B),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                child: const Text(
+                  'Send OTP',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: otpController,
-                  label: 'Phone Number Verification',
-                  hint: 'Input',
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: onSendOtp,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7ED),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'Send OTP',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFF59E0B),
-                    ),
-                  ),
-                ),
-              ),
+          _buildTextField(
+            controller: otpController,
+            label: 'Phone Number Verification',
+            hint: 'Enter 6-digit code',
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
             ],
           ),
         ],

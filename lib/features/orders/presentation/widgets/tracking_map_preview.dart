@@ -1,9 +1,12 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/features/orders/domain/market_order.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
 
 class TrackingMapPreview extends StatelessWidget {
-  const TrackingMapPreview({super.key, required this.isPickup});
+  const TrackingMapPreview({super.key, required this.order});
 
-  final bool isPickup;
+  final MarketOrder order;
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +38,28 @@ class TrackingMapPreview extends StatelessWidget {
               top: 12,
               left: 12,
               child: _MapBadge(
-                label: 'ESTIMATED ARRIVAL',
-                value: isPickup ? '8 mins' : '12-18 mins',
+                label: order.isPickup
+                    ? 'ESTIMATED READY TIME'
+                    : 'ESTIMATED ARRIVAL',
+                value: (() {
+                  if (order.status == OrderStatus.cancelled ||
+                      order.status == OrderStatus.rejected) {
+                    return 'Cancelled';
+                  }
+                  if (order.status == OrderStatus.completed) {
+                    return 'Completed';
+                  }
+                  if (order.estimatedReadyTime != null) {
+                    final diff = order.estimatedReadyTime!
+                        .difference(DateTime.now())
+                        .inMinutes;
+                    return diff > 0 ? '$diff mins' : 'Ready';
+                  }
+                  return 'TBD';
+                })(),
               ),
             ),
-            if (!isPickup)
+            if (!order.isPickup)
               const Positioned(
                 top: 12,
                 right: 12,
@@ -49,10 +69,10 @@ class TrackingMapPreview extends StatelessWidget {
               child: Icon(
                 Icons.location_on,
                 size: 48,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
-            if (isPickup)
+            if (order.isPickup)
               Positioned(
                 top: 100,
                 right: 80,
@@ -62,13 +82,12 @@ class TrackingMapPreview extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     'STALL 12',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -76,6 +95,27 @@ class TrackingMapPreview extends StatelessWidget {
                   ),
                 ),
               ),
+            Positioned(
+              bottom: 12,
+              left: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Interactive Map Coming Soon',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryGreen,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -110,7 +150,6 @@ class _MapBadge extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 10,
               fontWeight: FontWeight.w600,
               color: Color(0xFF6B7280),
@@ -120,10 +159,9 @@ class _MapBadge extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
+              color: AppTheme.primaryGreen,
             ),
           ),
         ],

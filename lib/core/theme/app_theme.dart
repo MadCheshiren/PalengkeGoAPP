@@ -9,17 +9,25 @@ class AppTheme {
 
   // Background and Surface
   static const Color scaffoldBackground = Color(0xFFF6F8F7); // surfaceLight
+  static const Color surface = Color(0xFFF8FAFC); // screen surface
   static const Color surfaceColor = Colors.white;
   static const Color surfaceContainerLow = Color(0xFFF1F5F9);
   static const Color surfaceContainer = Color(0xFFE2E8F0);
+
+  // Borders
+  static const Color border = Color(0xFFE2E8F0);
 
   // Typography Colors
   static const Color textPrimary = Color(
     0xFF0B372B,
   ); // onSurface - Deep Emerald
   static const Color textSecondary = Color(0xFF64748B); // onSurfaceVariant
+  static const Color muted = Color(0xFF94A3B8); // tertiary gray
 
   // Semantic Colors
+  static const Color success = Color(0xFF166534);
+  static const Color warning = Color(0xFFB45309);
+  static const Color error = Color(0xFFB42318);
   static const Color statusOpen = Color(0xFF22C55E);
   static const Color statusClosed = Color(0xFF94A3B8);
   static const Color notificationBadge = Color(0xFFEF4444);
@@ -29,7 +37,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: scaffoldBackground,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: primaryGreen,
         secondary: accentYellow,
         surface: surfaceColor,

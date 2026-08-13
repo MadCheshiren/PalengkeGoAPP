@@ -1,13 +1,17 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_account_details_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_sales_report_screen.dart';
+import 'package:palengkego/features/vendors/presentation/pages/vendor_license_screen.dart';
 import 'vendor_earnings_screen.dart';
 import 'vendor_reviews_screen.dart';
 import 'vendor_stall_settings_screen.dart';
-import 'vendor_account_details_screen.dart';
 import 'vendor_help_support_screen.dart';
 
 /// Vendor Account Screen
@@ -33,19 +37,17 @@ class VendorAccountScreen extends ConsumerWidget {
                 height: 88,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF0B372B),
-                  border: Border.all(
-                    color: const Color(0xFFD5E7DE),
-                    width: 3,
-                  ),
-                  image: stall.avatarImage != null
+                  color: AppTheme.primaryGreen,
+                  border: Border.all(color: const Color(0xFFD5E7DE), width: 3),
+                  image:
+                      stall.avatarImage != null && stall.avatarImage!.isNotEmpty
                       ? DecorationImage(
-                          image: NetworkImage(stall.avatarImage!),
+                          image: adaptiveImageProvider(stall.avatarImage)!,
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                child: stall.avatarImage == null
+                child: stall.avatarImage == null || stall.avatarImage!.isEmpty
                     ? const Icon(
                         Icons.storefront_rounded,
                         color: Colors.white,
@@ -56,21 +58,19 @@ class VendorAccountScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 stall.name,
-                    style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0B372B),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primaryGreen,
+                ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 stall.location,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                 ),
               ),
             ],
@@ -87,17 +87,16 @@ class VendorAccountScreen extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.verified_rounded,
-                  color: Color(0xFF22C55E),
+                  color: AppTheme.statusOpen,
                   size: 14,
                 ),
                 SizedBox(width: 4),
                 Text(
-                  'Verified Vendor',
+                  'Verified Stall Holder',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF166534),
+                    color: AppTheme.success,
                   ),
                 ),
               ],
@@ -111,7 +110,7 @@ class VendorAccountScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: AppTheme.border),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -126,7 +125,7 @@ class VendorAccountScreen extends ConsumerWidget {
                   value: '152',
                   label: 'Orders',
                   icon: Icons.receipt_long_rounded,
-                  iconColor: Color(0xFF22C55E),
+                  iconColor: AppTheme.statusOpen,
                 ),
                 _StatItem(
                   value: '28',
@@ -147,20 +146,29 @@ class VendorAccountScreen extends ConsumerWidget {
             subtitle: 'See what customers are saying',
             onTap: () {
               Navigator.of(context).push(
-                PageTransitions.slideFromRight(
-                  const VendorReviewsScreen(),
-                ),
+                PageTransitions.slideFromRight(const VendorReviewsScreen()),
               );
             },
           ),
           _buildMenuItem(
             context,
             icon: Icons.account_balance_wallet_rounded,
-            title: 'Earnings & Payouts',
+            title: 'Earnings',
             subtitle: 'View your sales and payout history',
             onTap: () {
               Navigator.of(context).push(
                 PageTransitions.slideFromRight(const VendorEarningsScreen()),
+              );
+            },
+          ),
+          _buildMenuItem(
+            context,
+            icon: Icons.receipt_long_rounded,
+            title: 'Detailed Sales Report',
+            subtitle: 'View and export individual transactions',
+            onTap: () {
+              Navigator.of(context).push(
+                PageTransitions.slideFromRight(const VendorSalesReportScreen()),
               );
             },
           ),
@@ -174,6 +182,17 @@ class VendorAccountScreen extends ConsumerWidget {
                 PageTransitions.slideFromRight(
                   const VendorStallSettingsScreen(),
                 ),
+              );
+            },
+          ),
+          _buildMenuItem(
+            context,
+            icon: Icons.assignment_rounded,
+            title: 'Stall License',
+            subtitle: 'Renew and manage stall rental license',
+            onTap: () {
+              Navigator.of(context).push(
+                PageTransitions.slideFromRight(const VendorLicenseScreen()),
               );
             },
           ),
@@ -194,11 +213,25 @@ class VendorAccountScreen extends ConsumerWidget {
             context,
             icon: Icons.help_outline_rounded,
             title: 'Help & Support',
-            subtitle: 'Get help with your vendor account',
+            subtitle: 'Get help with your stall holder account',
             onTap: () {
               Navigator.of(context).push(
                 PageTransitions.slideFromRight(const VendorHelpSupportScreen()),
               );
+            },
+          ),
+          _buildMenuItem(
+            context,
+            icon: Icons.swap_horiz_rounded,
+            title: 'Switch to Customer View',
+            subtitle: 'Return to shopping mode',
+            onTap: () async {
+              await ref.read(authProvider.notifier).enterCustomerMode();
+              if (context.mounted) {
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.main, (route) => false);
+              }
             },
           ),
 
@@ -227,7 +260,6 @@ class VendorAccountScreen extends ConsumerWidget {
                   Text(
                     'Log Out',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFFEF4444),
@@ -258,7 +290,7 @@ class VendorAccountScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppTheme.border),
         ),
         child: Row(
           children: [
@@ -266,11 +298,11 @@ class VendorAccountScreen extends ConsumerWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Icon(icon, color: const Color(0xFF0B372B), size: 22),
+              child: Icon(icon, color: AppTheme.primaryGreen, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -280,7 +312,6 @@ class VendorAccountScreen extends ConsumerWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF1F2937),
@@ -290,10 +321,9 @@ class VendorAccountScreen extends ConsumerWidget {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF94A3B8),
+                      color: AppTheme.muted,
                     ),
                   ),
                 ],
@@ -302,7 +332,7 @@ class VendorAccountScreen extends ConsumerWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: Color(0xFF94A3B8),
+              color: AppTheme.muted,
             ),
           ],
         ),
@@ -317,27 +347,18 @@ class VendorAccountScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Log Out',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
         content: const Text(
-          'Are you sure you want to log out of your vendor account?',
-          style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
-            color: Color(0xFF6B7280),
-          ),
+          'Are you sure you want to log out of your stall holder account?',
+          style: TextStyle(color: Color(0xFF6B7280)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
               'Cancel',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                color: Color(0xFF6B7280),
-              ),
+              style: TextStyle(color: Color(0xFF6B7280)),
             ),
           ),
           ElevatedButton(
@@ -359,10 +380,7 @@ class VendorAccountScreen extends ConsumerWidget {
             ),
             child: const Text(
               'Log Out',
-              style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -393,20 +411,18 @@ class _StatItem extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: const TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF94A3B8),
+            color: AppTheme.muted,
           ),
         ),
       ],

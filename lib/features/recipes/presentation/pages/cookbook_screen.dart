@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
@@ -49,18 +50,17 @@ class CookbookScreen extends ConsumerWidget {
                         child: const Icon(
                           Icons.arrow_back_ios_new_rounded,
                           size: 16,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Text(
+                    const Text(
                       'My Cookbook',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ],
@@ -91,8 +91,8 @@ class CookbookScreen extends ConsumerWidget {
             Container(
               width: 160,
               height: 160,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
                 shape: BoxShape.circle,
               ),
               child: Stack(
@@ -102,8 +102,8 @@ class CookbookScreen extends ConsumerWidget {
                   Container(
                     width: 130,
                     height: 130,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC8E6C9),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFC8E6C9),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -141,24 +141,22 @@ class CookbookScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 32),
-            Text(
+            const Text(
               'Your cookbook is empty',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1F2937),
+                color: Color(0xFF1F2937),
               ),
             ),
             const SizedBox(height: 12),
-            Text(
+            const Text(
               'Heart recipes you want to save for later\nso you can easily cook them anytime!',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: const Color(0xFF6B7280),
+                color: Color(0xFF6B7280),
                 height: 1.5,
               ),
             ),
@@ -169,20 +167,16 @@ class CookbookScreen extends ConsumerWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.maybePop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B372B),
+                  backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 0,
                 ),
-                child: Text(
+                child: const Text(
                   'Explore Recipes',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -262,21 +256,19 @@ class CookbookScreen extends ConsumerWidget {
                 children: [
                   Text(
                     recipe.title,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1F2937),
+                      color: Color(0xFF1F2937),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     recipe.category,
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF6B7280),
+                      color: Color(0xFF6B7280),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -290,11 +282,10 @@ class CookbookScreen extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Text(
                         recipe.time,
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF6B7280),
+                          color: Color(0xFF6B7280),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -306,11 +297,10 @@ class CookbookScreen extends ConsumerWidget {
                       const SizedBox(width: 4),
                       Text(
                         recipe.difficulty,
-                        style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF6B7280),
+                          color: Color(0xFF6B7280),
                         ),
                       ),
                     ],
@@ -333,7 +323,7 @@ class CookbookScreen extends ConsumerWidget {
                   SnackBar(
                     content: Text(
                       'Removed "${recipe.title}" from your Cookbook.',
-                      style: const TextStyle(fontFamily: 'PlusJakartaSans'),
+                      style: const TextStyle(),
                     ),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -342,7 +332,7 @@ class CookbookScreen extends ConsumerWidget {
                     duration: const Duration(seconds: 2),
                     action: SnackBarAction(
                       label: 'Undo',
-                      textColor: const Color(0xFFFFB902),
+                      textColor: AppTheme.starRating,
                       onPressed: () {
                         ref
                             .read(savedRecipesProvider.notifier)

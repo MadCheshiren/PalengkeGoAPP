@@ -1,3 +1,5 @@
+import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palengkego/features/checkout/domain/payment_selection.dart';
@@ -226,13 +228,13 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
               width: 32,
               height: 32,
               decoration: const BoxDecoration(
-                color: Color(0xFFF6F8F7),
+                color: AppTheme.scaffoldBackground,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 16,
-                color: Color(0xFF0B372B),
+                color: AppTheme.primaryGreen,
               ),
             ),
           ),
@@ -241,7 +243,6 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
               child: Text(
                 'Add Card',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -259,7 +260,6 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: Color(0xFF374151),
@@ -276,52 +276,20 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
     TextCapitalization textCapitalization = TextCapitalization.none,
     bool obscureText = false,
   }) {
-    return TextFormField(
+    return AppTextField(
       controller: controller,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       obscureText: obscureText,
       inputFormatters: inputFormatters,
       validator: validator,
-      style: const TextStyle(
-        fontFamily: 'PlusJakartaSans',
-        fontSize: 14,
-        color: Color(0xFF111827),
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(
-          fontFamily: 'PlusJakartaSans',
-          fontSize: 14,
-          color: Color(0xFF9CA3AF),
-        ),
-        filled: true,
-        fillColor: const Color(0xFFF3F4F6),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0B372B), width: 1),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
+      hintText: hint,
+      hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+      fillColor: const Color(0xFFF3F4F6),
+      borderless: true,
+      errorBorderColor: const Color(0xFFEF4444),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
@@ -340,14 +308,13 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
           width: double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFF0B372B),
+            color: AppTheme.primaryGreen,
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Center(
             child: Text(
               'Save',
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,

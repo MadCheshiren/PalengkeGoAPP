@@ -1,3 +1,5 @@
+import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/services/app_services.dart';
 
@@ -27,7 +29,7 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
     'Scam or Fraud',
     'Harassment or Abuse',
     'Fake Items / Counterfeits',
-    'Other'
+    'Other',
   ];
 
   String? _selectedReason;
@@ -63,9 +65,8 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Report Vendor',
+                    'Report Stall Holder',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -92,7 +93,6 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
               Text(
                 'Why are you reporting ${widget.vendorName}?',
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF6B7280),
@@ -109,11 +109,18 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFF0FDF4) : Colors.white,
+                      color: isSelected
+                          ? const Color(0xFFF0FDF4)
+                          : Colors.white,
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB),
+                        color: isSelected
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFFE5E7EB),
                         width: isSelected ? 1.5 : 1,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -124,10 +131,13 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                           child: Text(
                             reason,
                             style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 15,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                              color: isSelected ? const Color(0xFF166534) : const Color(0xFF374151),
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppTheme.success
+                                  : const Color(0xFF374151),
                             ),
                           ),
                         ),
@@ -146,33 +156,17 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
               TextField(
                 controller: _detailsController,
                 maxLines: 3,
-                decoration: InputDecoration(
+                decoration: appInputDecoration(
                   hintText: 'Add any additional details (optional)',
                   hintStyle: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     color: Color(0xFF9CA3AF),
                     fontSize: 14,
                   ),
-                  filled: true,
                   fillColor: const Color(0xFFF9FAFB),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF0B372B)),
-                  ),
+                  borderColor: const Color(0xFFE5E7EB),
                   contentPadding: const EdgeInsets.all(16),
                 ),
-                style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
-                  fontSize: 14,
-                ),
+                style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -184,10 +178,12 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                       : () {
                           final vendorName = widget.vendorName;
                           Navigator.pop(context, true);
-                          AppServices.showSnackBar('Report submitted for $vendorName.');
+                          AppServices.showSnackBar(
+                            'Report submitted for $vendorName.',
+                          );
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0B372B),
+                    backgroundColor: AppTheme.primaryGreen,
                     disabledBackgroundColor: const Color(0xFFE5E7EB),
                     foregroundColor: Colors.white,
                     disabledForegroundColor: const Color(0xFF9CA3AF),
@@ -198,11 +194,7 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                   ),
                   child: const Text(
                     'Submit Report',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),

@@ -1,4 +1,6 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
 
 class CartSummaryBar extends StatelessWidget {
   const CartSummaryBar({
@@ -22,7 +24,7 @@ class CartSummaryBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+        border: Border(top: BorderSide(color: AppTheme.border, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -38,7 +40,7 @@ class CartSummaryBar extends StatelessWidget {
                     height: 20,
                     child: Checkbox(
                       value: allSelected,
-                      activeColor: const Color(0xFF0B372B),
+                      activeColor: AppTheme.primaryGreen,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -49,7 +51,6 @@ class CartSummaryBar extends StatelessWidget {
                   const Text(
                     'All',
                     style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF101828),
@@ -64,18 +65,16 @@ class CartSummaryBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Total',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
+                  Text(
+                    AppLocalizations.of(context).cartTotal,
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                   Text(
-                    'PHP ${subtotal.toStringAsFixed(2)}',
+                    '₱${subtotal.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF101828),
@@ -90,18 +89,17 @@ class CartSummaryBar extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: hasSelectedItems ? onCheckout : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0B372B),
+                  backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  disabledBackgroundColor: const Color(0xFF94A3B8),
+                  disabledBackgroundColor: AppTheme.muted,
                   disabledForegroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'Checkout',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
+                child: Text(
+                  AppLocalizations.of(context).cartCheckout,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),

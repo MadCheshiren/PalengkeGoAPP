@@ -1,40 +1,146 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/profile/domain/delivery_address.dart';
 
 class CheckoutDeliveryAddressCard extends StatelessWidget {
-  const CheckoutDeliveryAddressCard({super.key, required this.deliveryAddress});
+  const CheckoutDeliveryAddressCard({
+    super.key,
+    required this.deliveryAddress,
+    required this.onChange,
+  });
 
   final DeliveryAddress deliveryAddress;
+  final VoidCallback onChange;
+
+  IconData? _getIconForLabel(String label) {
+    final lower = label.toLowerCase();
+    if (lower == 'home') return Icons.home_rounded;
+    if (lower == 'work') return Icons.work_rounded;
+    if (lower == 'school') return Icons.school_rounded;
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final icon = _getIconForLabel(deliveryAddress.label);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.02),
+            offset: Offset(0, 2),
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            deliveryAddress.contactName,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
+          // Map Header Snippet
+          SizedBox(
+            height: 90,
+            width: double.infinity,
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(15),
+                  ),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFD9FBE6), Color(0xFFE9F7EF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: CustomPaint(
+                      painter: _MapPatternPainter(),
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                ),
+                const Center(
+                  child: Icon(
+                    Icons.place_rounded,
+                    size: 32,
+                    color: AppTheme.primaryGreen,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            deliveryAddress.displayLine,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 13,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF4B5563),
+          // Address details
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                if (icon != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.surfaceContainerLow,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: AppTheme.textSecondary, size: 20),
+                  ),
+                  const SizedBox(width: 16),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        deliveryAddress.label.isNotEmpty
+                            ? deliveryAddress.label
+                            : 'Delivery Address',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        deliveryAddress.displayLine,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: onChange,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Change',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryGreen,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -43,124 +149,26 @@ class CheckoutDeliveryAddressCard extends StatelessWidget {
   }
 }
 
-class CheckoutDeliveryMapCard extends StatelessWidget {
-  final VoidCallback? onTap;
-  const CheckoutDeliveryMapCard({super.key, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 140,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8F5E9),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFD9FBE6), Color(0xFFE9F7EF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: CustomPaint(
-                  painter: _MapPatternPainter(),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            ),
-            const Center(
-              child: Icon(
-                Icons.place_rounded,
-                size: 40,
-                color: Color(0xFF0B372B),
-              ),
-            ),
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(999),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.08),
-                      offset: Offset(0, 1),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.edit_outlined,
-                      size: 14,
-                      color: Color(0xFF0B372B),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Edit',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _MapPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = const Color(0xFF9CA3AF).withValues(alpha: 0.18)
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round;
-    final smallRoadPaint = Paint()
-      ..color = const Color(0xFF9CA3AF).withValues(alpha: 0.12)
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.2)
       ..strokeWidth = 6
+      ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawLine(
-      Offset(-20, size.height * 0.35),
-      Offset(size.width * 0.65, size.height * 0.15),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.25, size.height),
-      Offset(size.width * 0.85, -10),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(-10, size.height * 0.78),
-      Offset(size.width + 10, size.height * 0.58),
-      smallRoadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.62, size.height + 10),
-      Offset(size.width * 0.18, -10),
-      smallRoadPaint,
-    );
+    final path = Path();
+    path.moveTo(0, size.height * 0.4);
+    path.lineTo(size.width * 0.6, size.height);
+
+    path.moveTo(size.width * 0.2, 0);
+    path.lineTo(size.width, size.height * 0.8);
+
+    path.moveTo(0, size.height * 0.7);
+    path.lineTo(size.width, size.height * 0.5);
+
+    canvas.drawPath(path, paint);
   }
 
   @override

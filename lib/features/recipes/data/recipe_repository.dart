@@ -1,9 +1,13 @@
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
+/// Content repository for recipes.
+///
+/// Mock mode returns static content instantly; Supabase mode streams the
+/// public `recipes` table over the network, so every method is async.
 abstract class RecipeRepository {
-  List<Recipe> getRecipes();
+  Future<List<Recipe>> getRecipes();
 
-  Recipe getFeaturedRecipe();
+  Future<Recipe> getFeaturedRecipe();
 
-  List<Recipe> getMoreRecipes();
+  Future<List<Recipe>> getMoreRecipes();
 }

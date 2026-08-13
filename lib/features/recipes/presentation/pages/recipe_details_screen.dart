@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/features/recipes/presentation/widgets/recipe_hero_card.dart';
 import 'package:palengkego/features/recipes/presentation/widgets/recipe_ingredients_list.dart';
@@ -5,8 +6,12 @@ import 'package:palengkego/features/recipes/presentation/widgets/recipe_stats_ro
 import 'package:palengkego/features/recipes/presentation/widgets/recipe_steps_list.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
+import 'package:palengkego/features/market/application/market_provider.dart';
+import 'package:palengkego/features/recipes/application/recipe_purchases_provider.dart';
+import 'package:palengkego/core/navigation/app_routes.dart';
 
 class RecipeDetailsScreen extends ConsumerStatefulWidget {
   final Recipe recipe;
@@ -19,25 +24,41 @@ class RecipeDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
-  final Set<String> checkedIngredients = {};
+  final Set<String> _manuallyToggled = {};
 
   @override
   Widget build(BuildContext context) {
+    final purchased = ref.watch(purchasedIngredientsProvider);
+    final Set<String> checkedIngredients = {};
+
+    if (widget.recipe.ingredients != null) {
+      for (final ingredient in widget.recipe.ingredients!) {
+        if (isIngredientPurchased(ingredient.name, purchased) ||
+            _manuallyToggled.contains(ingredient.name)) {
+          checkedIngredients.add(ingredient.name);
+        }
+      }
+    }
+
     final recipeObject = widget.recipe;
     final savedRecipes = ref.watch(savedRecipesProvider);
     final isSaved = savedRecipes.any((r) => r.title == recipeObject.title);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final hasIngredients =
-        recipeObject.ingredients != null && recipeObject.ingredients!.isNotEmpty;
+        recipeObject.ingredients != null &&
+        recipeObject.ingredients!.isNotEmpty;
 
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         scaffoldMessenger.clearSnackBars();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppTheme.surface,
         bottomNavigationBar: hasIngredients
-            ? _AddToCartBar(recipe: recipeObject)
+            ? _AddToCartBar(
+                recipe: recipeObject,
+                checkedIngredients: checkedIngredients,
+              )
             : null,
         body: CustomScrollView(
           slivers: [
@@ -58,7 +79,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: AppTheme.surfaceContainerLow,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -71,17 +92,16 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                           child: const Icon(
                             Icons.arrow_back_ios_new_rounded,
                             size: 18,
-                            color: Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
                       ),
                       const Text(
                         'Recipe Details',
                         style: TextStyle(
-                          fontFamily: 'PlusJakartaSans',
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         ),
                       ),
                       GestureDetector(
@@ -96,9 +116,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                                 isSaved
                                     ? 'Removed "${recipeObject.title}" from Cookbook.'
                                     : 'Added "${recipeObject.title}" to Cookbook.',
-                                style: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
-                                ),
+                                style: const TextStyle(),
                               ),
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
@@ -114,7 +132,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                           decoration: BoxDecoration(
                             color: isSaved
                                 ? const Color(0xFFFEE2E2)
-                                : const Color(0xFFF1F5F9),
+                                : AppTheme.surfaceContainerLow,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
@@ -131,7 +149,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                             size: 20,
                             color: isSaved
                                 ? const Color(0xFFEF4444)
-                                : const Color(0xFF0B372B),
+                                : AppTheme.primaryGreen,
                           ),
                         ),
                       ),
@@ -156,11 +174,14 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                   checkedIngredients: checkedIngredients,
                   onIngredientToggled: (name) {
                     setState(() {
-                      if (checkedIngredients.contains(name)) {
-                        checkedIngredients.remove(name);
+                      if (_manuallyToggled.contains(name)) {
+                        _manuallyToggled.remove(name);
                       } else {
-                        checkedIngredients.add(name);
+                        _manuallyToggled.add(name);
                       }
+                      ref
+                          .read(manualPurchasedIngredientsProvider.notifier)
+                          .toggleIngredient(name);
                     });
                   },
                 ),
@@ -177,7 +198,6 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                     const Text(
                       'Procedure',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1F2937),
@@ -204,20 +224,23 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
 // ---------------------------------------------------------------------------
 class _AddToCartBar extends ConsumerWidget {
   final Recipe recipe;
-  const _AddToCartBar({required this.recipe});
+  final Set<String> checkedIngredients;
+  const _AddToCartBar({required this.recipe, required this.checkedIngredients});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartService = ref.read(cartServiceProvider);
+    final cartNotifier = ref.read(cartItemsProvider.notifier);
     final ingredients = recipe.ingredients ?? [];
+
+    final missingIngredients = ingredients
+        .where((ing) => !checkedIngredients.contains(ing.name))
+        .toList();
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFF1F5F9)),
-        ),
+        border: Border(top: BorderSide(color: AppTheme.surfaceContainerLow)),
         boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.06),
@@ -229,58 +252,151 @@ class _AddToCartBar extends ConsumerWidget {
       child: SizedBox(
         height: 50,
         child: ElevatedButton.icon(
-          onPressed: () {
-            if (ingredients.isEmpty) return;
+          onPressed: missingIngredients.isEmpty
+              ? null
+              : () async {
+                  final allProducts = await ref.read(
+                    allProductsProvider.future,
+                  );
+                  final allVendors = await ref.read(allVendorsProvider.future);
+                  int itemsAdded = 0;
+                  List<String> notFound = [];
 
-            // Add each ingredient as a cart item from the "Recipe Market" vendor
-            for (final ingredient in ingredients) {
-              cartService.addToCart(
-                vendorName: 'Recipe Market',
-                productName: ingredient.name,
-                price: 0,
-                weight: ingredient.description,
-                pricePerKg: '',
-                image: ingredient.imageUrl ?? '',
-              );
-            }
+                  for (final ingredient in missingIngredients) {
+                    final ingredientName = ingredient.name.toLowerCase().trim();
 
-            ScaffoldMessenger.of(context).clearSnackBars();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${ingredients.length} ingredient${ingredients.length == 1 ? '' : 's'} added to cart!',
-                  style: const TextStyle(fontFamily: 'PlusJakartaSans'),
-                ),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: const Color(0xFF0B372B),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                duration: const Duration(seconds: 2),
-                action: SnackBarAction(
-                  label: 'View Cart',
-                  textColor: const Color(0xFF6FCF97),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-            );
-          },
-          icon: const Icon(Icons.shopping_cart_outlined, size: 18),
+                    final match = allProducts
+                        .where(
+                          (p) =>
+                              p.name.toLowerCase().contains(ingredientName) ||
+                              ingredientName.contains(p.name.toLowerCase()),
+                        )
+                        .firstOrNull;
+
+                    if (match != null) {
+                      final vendorName =
+                          allVendors
+                              .where((v) => v.id == match.vendorId)
+                              .firstOrNull
+                              ?.name ??
+                          match.vendorId;
+                      cartNotifier.addToCart(
+                        CartItem(
+                          productId: match.id,
+                          vendorName: vendorName,
+                          productName: match.name,
+                          price: match.price,
+                          unit: match.unit,
+                          quantity: 1,
+                          image: match.imageUrl,
+                        ),
+                      );
+                      // Mark ingredient as purchased for instant recipe scratch-off
+                      ref
+                          .read(manualPurchasedIngredientsProvider.notifier)
+                          .markAsPurchased(ingredient.name);
+                      itemsAdded++;
+                    } else {
+                      notFound.add(ingredient.name);
+                    }
+                  }
+
+                  if (!context.mounted) return;
+
+                  ScaffoldMessenger.of(context).clearSnackBars();
+
+                  if (notFound.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              itemsAdded > 0
+                                  ? 'Added $itemsAdded items, but some were missing:'
+                                  : 'Missing ingredients not found in market:',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              notFound.join(', '),
+                              style: const TextStyle(color: Color(0xFFFCA5A5)),
+                            ),
+                          ],
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: const Color(0xFFEF4444),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        duration: const Duration(seconds: 4),
+                        action: itemsAdded > 0
+                            ? SnackBarAction(
+                                label: 'Dismiss',
+                                textColor: Colors.white70,
+                                onPressed: () => ScaffoldMessenger.of(
+                                  context,
+                                ).hideCurrentSnackBar(),
+                              )
+                            : null,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '$itemsAdded ingredient${itemsAdded == 1 ? '' : 's'} added to cart!',
+                          style: const TextStyle(),
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppTheme.primaryGreen,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        duration: const Duration(seconds: 2),
+                        action: SnackBarAction(
+                          label: 'Dismiss',
+                          textColor: const Color(0xFF6FCF97),
+                          onPressed: () => ScaffoldMessenger.of(
+                            context,
+                          ).hideCurrentSnackBar(),
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Navigate to cart
+                  Navigator.of(context).pushNamed(AppRoutes.cart);
+                },
+          icon: Icon(
+            missingIngredients.isEmpty
+                ? Icons.check_circle_outline
+                : Icons.shopping_cart_outlined,
+            size: 18,
+          ),
           label: Text(
-            'Add ${ingredients.length} Ingredients to Cart',
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
+            missingIngredients.isEmpty
+                ? 'All ingredients ready!'
+                : 'Add ${missingIngredients.length} Ingredients to Cart',
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0B372B),
-            foregroundColor: Colors.white,
+            backgroundColor: missingIngredients.isEmpty
+                ? AppTheme.border
+                : AppTheme.primaryGreen,
+            foregroundColor: missingIngredients.isEmpty
+                ? AppTheme.textSecondary
+                : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
             elevation: 0,
+            disabledBackgroundColor: AppTheme.border,
+            disabledForegroundColor: AppTheme.textSecondary,
           ),
         ),
       ),

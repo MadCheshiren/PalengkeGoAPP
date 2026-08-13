@@ -1,15 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class DaySchedule {
-  final String name;
-  bool isOpen;
-  TimeOfDay openTime;
-  TimeOfDay closeTime;
+part 'day_schedule.freezed.dart';
+part 'day_schedule.g.dart';
 
-  DaySchedule({
-    required this.name,
-    this.isOpen = true,
-    this.openTime = const TimeOfDay(hour: 6, minute: 0),
-    this.closeTime = const TimeOfDay(hour: 18, minute: 0),
-  });
+@freezed
+abstract class DaySchedule with _$DaySchedule {
+  const factory DaySchedule({
+    required String name,
+    @Default(true) bool isOpen,
+
+    /// Store as string "HH:mm" for easy JSON serialization in Firestore
+    @Default("06:00") String openTime,
+    @Default("18:00") String closeTime,
+  }) = _DaySchedule;
+
+  factory DaySchedule.fromJson(Map<String, dynamic> json) =>
+      _$DayScheduleFromJson(json);
 }

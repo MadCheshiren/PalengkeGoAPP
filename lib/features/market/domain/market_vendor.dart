@@ -11,6 +11,8 @@ class MarketVendor {
     this.marketSection,
     this.reviewCount = 0,
     this.topReviewText,
+    this.isOpen = true,
+    this.tags,
   });
 
   final String id;
@@ -24,11 +26,13 @@ class MarketVendor {
   final String? marketSection;
   final int reviewCount;
   final String? topReviewText;
+  final bool isOpen;
+  final List<String>? tags;
 
   factory MarketVendor.fromMap(Map<String, dynamic> map) {
     return MarketVendor(
       id: map['id'] as String? ?? '',
-      name: map['name'] as String? ?? 'Vendor',
+      name: map['name'] as String? ?? 'Stall Holder',
       category: map['category'] as String? ?? 'General',
       rating: (map['rating'] as num?)?.toDouble() ?? 0,
       isVerified: map['isVerified'] as bool? ?? false,
@@ -38,6 +42,8 @@ class MarketVendor {
       marketSection: map['marketSection'] as String?,
       reviewCount: map['reviewCount'] as int? ?? 0,
       topReviewText: map['topReviewText'] as String?,
+      isOpen: map['isOpen'] as bool? ?? true,
+      tags: (map['tags'] as List?)?.map((e) => e as String).toList(),
     );
   }
 
@@ -54,6 +60,8 @@ class MarketVendor {
       if (marketSection != null) 'marketSection': marketSection,
       'reviewCount': reviewCount,
       if (topReviewText != null) 'topReviewText': topReviewText,
+      'isOpen': isOpen,
+      if (tags != null) 'tags': tags,
     };
   }
 }

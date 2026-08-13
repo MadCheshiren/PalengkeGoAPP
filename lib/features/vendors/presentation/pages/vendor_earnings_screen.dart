@@ -1,11 +1,14 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:palengkego/core/utils/page_transitions.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/features/vendors/application/vendor_stall_provider.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/features/vendors/application/sales_report_export_service.dart';
-import 'vendor_payouts_screen.dart';
+import 'package:palengkego/features/orders/domain/order_status.dart';
+import 'package:palengkego/features/vendors/application/vendor_orders_provider.dart';
 
-import 'package:file_saver/file_saver.dart';
-import 'package:flutter/foundation.dart';
-
+import 'package:palengkego/core/utils/file_export_util.dart';
 // ── Per-period mock data ──────────────────────────────────────────────────────
 
 class _PeriodData {
@@ -55,14 +58,15 @@ const _monthData = _PeriodData(
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
-class VendorEarningsScreen extends StatefulWidget {
+class VendorEarningsScreen extends ConsumerStatefulWidget {
   const VendorEarningsScreen({super.key});
 
   @override
-  State<VendorEarningsScreen> createState() => _VendorEarningsScreenState();
+  ConsumerState<VendorEarningsScreen> createState() =>
+      _VendorEarningsScreenState();
 }
 
-class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
+class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
   String _selectedTab = 'Today';
 
   _PeriodData get _currentData {
@@ -71,236 +75,157 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
     return _todayData;
   }
 
-  SalesReportData get _currentReport => SalesReportData(
-    period: _selectedTab,
-    total: _exportSafeCurrency(_currentData.total),
-    change: _exportSafeCurrency(_currentData.change),
-    payouts: const [
-      SalesReportPayout(
-        method: 'Bank Transfer',
-        amount: 'PHP 4,900.00',
-        date: 'May 21, 2024',
-      ),
-      SalesReportPayout(
-        method: 'Bank Transfer',
-        amount: 'PHP 5,850.00',
-        date: 'May 14, 2024',
-      ),
-      SalesReportPayout(
-        method: 'Bank Transfer',
-        amount: 'PHP 4,100.00',
-        date: 'Apr 29, 2024',
-      ),
-    ],
-  );
-  String _exportSafeCurrency(String value) {
-    return value
-        .replaceAll('\u20B1', 'PHP ')
-        .replaceAll('₱', 'PHP ')
-        .replaceAll('â‚±', 'PHP ');
-  }
-
   @override
   Widget build(BuildContext context) {
     final data = _currentData;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ──────────────────────────────────────────────────
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF6F8F7),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 16,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Earnings',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _showExportDialog,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.file_download_outlined,
-                        size: 20,
-                        color: Color(0xFF0B372B),
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: AppTheme.surface,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header ──────────────────────────────────────────────────
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                          color: AppTheme.scaffoldBackground,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 16,
+                          color: AppTheme.primaryGreen,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Earnings',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _showExportDialog,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.file_download_outlined,
+                          size: 20,
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
 
-              // ── Period tabs ──────────────────────────────────────────────
-              Row(
-                children: [
-                  _buildTab('Today'),
-                  const SizedBox(width: 8),
-                  _buildTab('Week'),
-                  const SizedBox(width: 8),
-                  _buildTab('Month'),
-                ],
-              ),
-              const SizedBox(height: 20),
+                // ── Period tabs ──────────────────────────────────────────────
+                Row(
+                  children: [
+                    _buildTab('Today'),
+                    const SizedBox(width: 8),
+                    _buildTab('Week'),
+                    const SizedBox(width: 8),
+                    _buildTab('Month'),
+                  ],
+                ),
+                const SizedBox(height: 20),
 
-              // ── Total earnings card — animates on tab change ─────────────
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0, 0.06),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOut,
+                // ── Total earnings card — animates on tab change ─────────────
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(0, 0.06),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
+                      child: child,
+                    ),
+                  ),
+                  child: _EarningsCard(
+                    key: ValueKey(_selectedTab),
+                    total: data.total,
+                    change: data.change,
+                    isPositive: data.isPositive,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // ── Bar chart ────────────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Daily Sales',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: Text(
+                          key: ValueKey('${_selectedTab}label'),
+                          _selectedTab == 'Today'
+                              ? 'Today, Jun 18'
+                              : _selectedTab == 'Week'
+                              ? 'Jun 12 - Jun 18'
+                              : 'June 2024',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF9CA3AF),
                           ),
                         ),
-                    child: child,
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: _EarningsCard(
+                const SizedBox(height: 16),
+
+                // Animated bar chart
+                _AnimatedBarChart(
                   key: ValueKey(_selectedTab),
-                  total: data.total,
-                  change: data.change,
-                  isPositive: data.isPositive,
+                  labels: data.labels,
+                  values: data.values,
+                  highlightIndex: data.highlightIndex,
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Bar chart ────────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Daily Sales',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        key: ValueKey('${_selectedTab}label'),
-                        _selectedTab == 'Today'
-                            ? 'Today, Jun 18'
-                            : _selectedTab == 'Week'
-                            ? 'Jun 12 - Jun 18'
-                            : 'June 2024',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(
-                          fontFamily: 'PlusJakartaSans',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF9CA3AF),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Animated bar chart
-              _AnimatedBarChart(
-                key: ValueKey(_selectedTab),
-                labels: data.labels,
-                values: data.values,
-                highlightIndex: data.highlightIndex,
-              ),
-              const SizedBox(height: 24),
-
-              // ── Recent payouts ────────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Recent Payouts',
-                    style: TextStyle(
-                      fontFamily: 'PlusJakartaSans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      PageTransitions.slideFromRight(
-                        const VendorPayoutsScreen(),
-                      ),
-                    ),
-                    child: const Text(
-                      'View All',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildPayoutCard(
-                method: 'Bank Transfer',
-                amount: '₱4,900.00',
-                date: 'May 21, 2024',
-              ),
-              const SizedBox(height: 12),
-              _buildPayoutCard(
-                method: 'Bank Transfer',
-                amount: '₱5,850.00',
-                date: 'May 14, 2024',
-              ),
-              const SizedBox(height: 12),
-              _buildPayoutCard(
-                method: 'Bank Transfer',
-                amount: '₱4,100.00',
-                date: 'Apr 29, 2024',
-              ),
-            ],
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
@@ -324,7 +249,6 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
               const Text(
                 'Export Sales Report',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -338,10 +262,7 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
                 ),
                 title: const Text(
                   'Export as PDF',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -351,14 +272,11 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
               ListTile(
                 leading: const Icon(
                   Icons.table_chart,
-                  color: Color(0xFF10B981),
+                  color: AppTheme.primaryGreen,
                 ),
                 title: const Text(
                   'Export as Excel',
-                  style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -374,38 +292,32 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
 
   Future<void> _exportToPdf() async {
     try {
-      final report = _currentReport;
-      final bytes = await SalesReportExportService.buildPdf(report);
+      final stallName = ref.read(vendorStallProvider).name;
+      final orders = (ref.read(vendorOrdersProvider).value ?? [])
+          .where((o) => o.status == OrderStatus.completed)
+          .toList();
+      final bytes = await SalesReportExportService.buildPdf(
+        _selectedTab,
+        stallName,
+        orders,
+      );
       final filename = SalesReportExportService.buildFilename(
-        report,
+        _selectedTab,
         DateTime.now(),
+        stallName,
       );
 
-      // On mobile: open native Save As picker (no permissions needed).
-      // On web/desktop: save directly to Downloads.
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS)) {
-        await FileSaver.instance.saveAs(
-          name: filename,
-          bytes: bytes,
-          fileExtension: 'pdf',
-          mimeType: MimeType.pdf,
-        );
-      } else {
-        await FileSaver.instance.saveFile(
-          name: filename,
-          bytes: bytes,
-          fileExtension: 'pdf',
-          mimeType: MimeType.pdf,
-        );
-      }
+      final path = await FileExportUtil.saveFileToPublicDirectory(
+        filename: '$filename.pdf',
+        bytes: bytes,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('PDF saved as $filename.pdf'),
-          backgroundColor: const Color(0xFF10B981),
+          content: Text('PDF saved directly to: $path'),
+          backgroundColor: AppTheme.primaryGreen,
+          duration: const Duration(seconds: 4),
         ),
       );
     } catch (e) {
@@ -418,38 +330,32 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
 
   Future<void> _exportToExcel() async {
     try {
-      final report = _currentReport;
-      final fileBytes = SalesReportExportService.buildExcel(report);
+      final stallName = ref.read(vendorStallProvider).name;
+      final orders = (ref.read(vendorOrdersProvider).value ?? [])
+          .where((o) => o.status == OrderStatus.completed)
+          .toList();
+      final fileBytes = SalesReportExportService.buildExcel(
+        _selectedTab,
+        stallName,
+        orders,
+      );
       final filename = SalesReportExportService.buildFilename(
-        report,
+        _selectedTab,
         DateTime.now(),
+        stallName,
       );
 
-      // On mobile: open native Save As picker (no permissions needed).
-      // On web/desktop: save directly to Downloads.
-      if (!kIsWeb &&
-          (defaultTargetPlatform == TargetPlatform.android ||
-              defaultTargetPlatform == TargetPlatform.iOS)) {
-        await FileSaver.instance.saveAs(
-          name: filename,
-          bytes: fileBytes,
-          fileExtension: 'xlsx',
-          mimeType: MimeType.microsoftExcel,
-        );
-      } else {
-        await FileSaver.instance.saveFile(
-          name: filename,
-          bytes: fileBytes,
-          fileExtension: 'xlsx',
-          mimeType: MimeType.microsoftExcel,
-        );
-      }
+      final path = await FileExportUtil.saveFileToPublicDirectory(
+        filename: '$filename.xlsx',
+        bytes: fileBytes,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Excel saved as $filename.xlsx'),
-          backgroundColor: const Color(0xFF10B981),
+          content: Text('Excel saved directly to: $path'),
+          backgroundColor: AppTheme.primaryGreen,
+          duration: const Duration(seconds: 4),
         ),
       );
     } catch (e) {
@@ -469,84 +375,17 @@ class _VendorEarningsScreenState extends State<VendorEarningsScreen> {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF0B372B) : const Color(0xFFF3F4F6),
+          color: isSelected ? AppTheme.primaryGreen : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'PlusJakartaSans',
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF6B7280),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPayoutCard({
-    required String method,
-    required String amount,
-    required String date,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.account_balance_rounded,
-              color: Color(0xFF166534),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  method,
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  date,
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
-                    fontSize: 12,
-                    color: Color(0xFF166534),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            amount,
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0B372B),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -572,7 +411,7 @@ class _EarningsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B372B),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -581,17 +420,15 @@ class _EarningsCard extends StatelessWidget {
           const Text(
             'Total Earnings',
             style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF6D9773),
+              color: AppTheme.accentGreen,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             total,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 28,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -606,17 +443,16 @@ class _EarningsCard extends StatelessWidget {
                     : Icons.arrow_downward_rounded,
                 size: 12,
                 color: isPositive
-                    ? const Color(0xFF6D9773)
+                    ? AppTheme.accentGreen
                     : const Color(0xFFEF4444),
               ),
               const SizedBox(width: 4),
               Text(
                 change,
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 12,
                   color: isPositive
-                      ? const Color(0xFF6D9773)
+                      ? AppTheme.accentGreen
                       : const Color(0xFFEF4444),
                 ),
               ),
@@ -714,13 +550,12 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0B372B),
+                            color: AppTheme.primaryGreen,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             _topLabel(),
                             style: const TextStyle(
-                              fontFamily: 'PlusJakartaSans',
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -740,8 +575,8 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                           height: barH.clamp(4, _maxBarHeight),
                           decoration: BoxDecoration(
                             color: isHighlighted
-                                ? const Color(0xFF0B372B)
-                                : const Color(0xFFE2E8F0),
+                                ? AppTheme.primaryGreen
+                                : AppTheme.border,
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
@@ -752,13 +587,12 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                     Text(
                       widget.labels[i],
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 9,
                         fontWeight: isHighlighted
                             ? FontWeight.w700
                             : FontWeight.w400,
                         color: isHighlighted
-                            ? const Color(0xFF0B372B)
+                            ? AppTheme.primaryGreen
                             : const Color(0xFF9CA3AF),
                       ),
                     ),

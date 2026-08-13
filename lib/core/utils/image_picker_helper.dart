@@ -1,8 +1,13 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 
-/// Reusable helper that shows a bottom sheet with Camera / Gallery options
+enum AttachmentSource { camera, gallery, file }
+
+/// Reusable helper that shows a bottom sheet with Camera / Gallery / File options
 /// and returns the picked [File], or null if cancelled.
 class ImagePickerHelper {
   static final ImagePicker _picker = ImagePicker();
@@ -12,17 +17,44 @@ class ImagePickerHelper {
     final source = await _showSourceSheet(context);
     if (source == null) return null;
 
+    if (source == AttachmentSource.file) {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png', 'jpeg'],
+      );
+      if (result != null) {
+        final platformFile = result.files.single;
+        if (kIsWeb) {
+          if (platformFile.bytes != null) {
+            final xFile = XFile.fromData(platformFile.bytes!);
+            return File('${xFile.path}#${platformFile.name}');
+          }
+          return File(platformFile.name);
+        } else if (platformFile.path != null) {
+          return File(platformFile.path!);
+        }
+        return File(platformFile.name);
+      }
+      return null;
+    }
+
     final XFile? picked = await _picker.pickImage(
-      source: source,
+      source: source == AttachmentSource.camera
+          ? ImageSource.camera
+          : ImageSource.gallery,
       imageQuality: 80,
       maxWidth: 1024,
     );
 
-    return picked == null ? null : File(picked.path);
+    if (picked == null) return null;
+    if (kIsWeb) {
+      return File('${picked.path}#${picked.name}');
+    }
+    return File(picked.path);
   }
 
-  static Future<ImageSource?> _showSourceSheet(BuildContext context) {
-    return showModalBottomSheet<ImageSource>(
+  static Future<AttachmentSource?> _showSourceSheet(BuildContext context) {
+    return showModalBottomSheet<AttachmentSource>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
@@ -46,9 +78,8 @@ class ImagePickerHelper {
               ),
               const SizedBox(height: 20),
               const Text(
-                'Select Photo',
+                'Select Attachment',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -58,15 +89,21 @@ class ImagePickerHelper {
               _SourceTile(
                 icon: Icons.camera_alt_rounded,
                 label: 'Take a Photo',
-                onTap: () => Navigator.pop(context, ImageSource.camera),
+                onTap: () => Navigator.pop(context, AttachmentSource.camera),
               ),
               const SizedBox(height: 12),
               _SourceTile(
                 icon: Icons.photo_library_rounded,
                 label: 'Choose from Gallery',
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
+                onTap: () => Navigator.pop(context, AttachmentSource.gallery),
               ),
               const SizedBox(height: 12),
+              _SourceTile(
+                icon: Icons.folder_rounded,
+                label: 'Choose a Document/File',
+                onTap: () => Navigator.pop(context, AttachmentSource.file),
+              ),
+              const SizedBox(height: 16),
               _SourceTile(
                 icon: Icons.close_rounded,
                 label: 'Cancel',
@@ -96,8 +133,9 @@ class _SourceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isDestructive ? const Color(0xFFEF4444) : const Color(0xFF0B372B);
+    final color = isDestructive
+        ? const Color(0xFFEF4444)
+        : AppTheme.primaryGreen;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -121,7 +159,6 @@ class _SourceTile extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'PlusJakartaSans',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: color,

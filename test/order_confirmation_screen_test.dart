@@ -4,13 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
-import 'package:palengkego/core/services/cart_service.dart';
-import 'package:palengkego/core/services/order_service.dart';
+import 'package:palengkego/core/services/preferences_provider.dart';
 import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/cart/application/cart_provider.dart';
+import 'package:palengkego/features/cart/data/mock_cart_repository.dart';
+import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/checkout/presentation/pages/checkout_screen.dart';
-import 'package:palengkego/features/orders/application/order_provider.dart';
+import 'package:palengkego/l10n/app_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   Future<void> pumpUntilFound(
@@ -30,38 +33,44 @@ void main() {
   testWidgets(
     'Full Checkout to OrderConfirmationScreen flow with multiple vendors and hover',
     (WidgetTester tester) async {
-      final cart = CartService();
-      final orders = OrderService();
+      SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      MockCartRepository.clearTestState();
+      final cart = MockCartRepository();
 
-      cart.clearCart();
-
-      // Add items from two different vendors to global cart
+      // Add items from two different vendors to the shared cart
       cart.addToCart(
-        vendorName: 'Diosa Fruit Stand',
-        productName: 'Sweet Mangoes',
-        price: 150.0,
-        weight: '1kg',
-        pricePerKg: 'PHP 150/kg',
-        image: 'https://example.com/mango.jpg',
+        const CartItem(
+          productId: 'm1',
+          vendorName: 'Diosa Fruit Stand',
+          productName: 'Sweet Mangoes',
+          price: 150.0,
+          unit: 'kg',
+          image: 'https://example.com/mango.jpg',
+        ),
       );
-
       cart.addToCart(
-        vendorName: 'William Del Rosario Meat Shop',
-        productName: 'Pork Belly',
-        price: 280.0,
-        weight: '1kg',
-        pricePerKg: 'PHP 280/kg',
-        image: 'https://example.com/pork.jpg',
+        const CartItem(
+          productId: 'p1',
+          vendorName: 'William Del Rosario Meat Shop',
+          productName: 'Pork Belly',
+          price: 280.0,
+          unit: 'kg',
+          image: 'https://example.com/pork.jpg',
+        ),
       );
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            cartServiceProvider.overrideWithValue(cart),
-            orderServiceProvider.overrideWithValue(orders),
+            cartRepositoryProvider.overrideWithValue(cart),
             authProvider.overrideWith(() => _TestAuthNotifier()),
+            sharedPreferencesProvider.overrideWithValue(prefs),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             initialRoute: AppRoutes.checkout,
             onGenerateRoute: (settings) {
               if (settings.name == AppRoutes.splash) {

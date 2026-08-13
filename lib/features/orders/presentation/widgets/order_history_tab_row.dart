@@ -48,7 +48,6 @@ class OrderHistoryTabRow extends StatelessWidget {
                   tab.label,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected

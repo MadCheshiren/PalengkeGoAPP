@@ -1,4 +1,8 @@
+import 'package:palengkego/core/theme/app_theme.dart';
+import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/features/auth/domain/app_user.dart';
+import 'package:palengkego/features/auth/presentation/pages/auth_guard.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 
 class VendorHelpSupportScreen extends StatefulWidget {
@@ -42,34 +46,29 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
             children: [
               Icon(
                 Icons.check_circle_rounded,
-                color: Color(0xFF22C55E),
+                color: AppTheme.statusOpen,
                 size: 24,
               ),
               SizedBox(width: 8),
               Text(
                 'Report Submitted',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
-                  color: Color(0xFF0B372B),
+                  color: AppTheme.primaryGreen,
                 ),
               ),
             ],
           ),
           content: Text(
             'Thank you for reporting. Our support team has received your ticket regarding "$_selectedTopic" and will review it shortly.',
-            style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              color: Color(0xFF475569),
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Color(0xFF475569), fontSize: 14),
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0B372B),
+                backgroundColor: AppTheme.primaryGreen,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -77,7 +76,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
               child: const Text(
                 'OK',
                 style: TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -91,306 +89,227 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const AppScreenHeader(title: 'Help & Support'),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Section Title: FAQs
-                    const Text(
-                      'Frequently Asked Questions',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
+    return AuthGuard(
+      allowedRoles: {UserRole.vendor},
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const AppScreenHeader(title: 'Help & Support'),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section Title: FAQs
+                      const Text(
+                        'Frequently Asked Questions',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    // Flat FAQ Expansion tiles
-                    _buildFaqTile(
-                      question: 'How do I update my products?',
-                      answer:
-                          'Go to the Inventory tab in your dashboard, tap the edit icon on the product you want to change, and update the details, price, or stock status.',
-                    ),
-                    _buildFaqTile(
-                      question: 'How do I manage orders?',
-                      answer:
-                          'Active orders will show up in your Orders tab. Tap an order to view items, and change the status (e.g., Prepared, Ready for Pickup) as you process it.',
-                    ),
-                    _buildFaqTile(
-                      question: 'How do payouts work?',
-                      answer:
-                          'Payouts are processed weekly every Monday directly to your registered bank account. You can track all your transactions in the Earnings page.',
-                    ),
-                    _buildFaqTile(
-                      question: 'Can I change my stall location?',
-                      answer:
-                          'Stall locations are assigned by the market administration. If you need to relocate, please contact the support team or visit the administration office.',
-                    ),
-                    _buildFaqTile(
-                      question: 'How do I contact a customer?',
-                      answer:
-                          "On the order details page of an active order, tap the phone/chat icon next to the customer's name to contact them directly regarding their order.",
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Section Title: Contact Us
-                    const Text(
-                      'Contact Support',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
+                      // Flat FAQ Expansion tiles
+                      _buildFaqTile(
+                        question: 'How do I update my products?',
+                        answer:
+                            'Go to the Inventory tab in your dashboard, tap the edit icon on the product you want to change, and update the details, price, or stock status.',
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                      _buildFaqTile(
+                        question: 'How do I manage orders?',
+                        answer:
+                            'Active orders will show up in your Orders tab. Tap an order to view items, and change the status (e.g., Prepared, Ready for Pickup) as you process it.',
+                      ),
+                      _buildFaqTile(
+                        question: 'How do payouts work?',
+                        answer:
+                            'Payouts are processed weekly every Monday directly to your registered bank account. You can track all your transactions in the Earnings page.',
+                      ),
+                      _buildFaqTile(
+                        question: 'Can I change my stall location?',
+                        answer:
+                            'Stall locations are assigned by the market administration. If you need to relocate, please contact the support team or visit the administration office.',
+                      ),
+                      _buildFaqTile(
+                        question: 'How do I contact a customer?',
+                        answer:
+                            "On the order details page of an active order, tap the phone/chat icon next to the customer's name to contact them directly regarding their order.",
+                      ),
 
-                    // Chat Button
-                    GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).clearSnackBars();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: const Color(0xFF0B372B),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            content: const Text(
-                              'Live chat support is coming soon!',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      const SizedBox(height: 32),
+
+                      // Section Title: Contact Us
+                      const Text(
+                        'Contact Support',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Contact Rows
+                      _buildContactRow(
+                        icon: Icons.email_outlined,
+                        label: 'Email Us',
+                        value: 'support@palengkego.ph',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildContactRow(
+                        icon: Icons.phone_outlined,
+                        label: 'Call Us',
+                        value: '+63 917 999 8888',
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Section Title: Report a Problem
+                      const Text(
+                        'Report a Problem',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Report Form Card
+                      Container(
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0B372B),
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppTheme.border),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Chat with Support',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Contact Rows
-                    _buildContactRow(
-                      icon: Icons.email_outlined,
-                      label: 'Email Us',
-                      value: 'support@palengkego.ph',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildContactRow(
-                      icon: Icons.phone_outlined,
-                      label: 'Call Us',
-                      value: '+63 917 999 8888',
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Section Title: Report a Problem
-                    const Text(
-                      'Report a Problem',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Report Form Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Form(
-                        key: _reportFormKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Topic',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF475569),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () => _showTopicPicker(context),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
+                        child: Form(
+                          key: _reportFormKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Topic',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: const Color(0xFFCBD5E1),
+                              ),
+                              const SizedBox(height: 8),
+                              GestureDetector(
+                                onTap: () => _showTopicPicker(context),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(0xFFCBD5E1),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        _selectedTopic,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF1F2937),
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: AppTheme.textSecondary,
+                                        size: 18,
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      _selectedTopic,
-                                      style: const TextStyle(
-                                        fontFamily: 'PlusJakartaSans',
-                                        fontSize: 13,
-                                        color: Color(0xFF1F2937),
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      color: Color(0xFF64748B),
-                                      size: 18,
-                                    ),
-                                  ],
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Describe the Issue',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Describe the Issue',
-                              style: TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF475569),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _reportController,
-                              maxLines: 4,
-                              style: const TextStyle(
-                                fontFamily: 'PlusJakartaSans',
-                                fontSize: 13,
-                                color: Color(0xFF1F2937),
-                              ),
-                              decoration: InputDecoration(
+                              const SizedBox(height: 8),
+                              AppTextField(
+                                controller: _reportController,
+                                maxLines: 4,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF1F2937),
+                                ),
                                 hintText: 'Explain the issue in detail...',
                                 hintStyle: const TextStyle(
-                                  fontFamily: 'PlusJakartaSans',
                                   fontSize: 13,
-                                  color: Color(0xFF94A3B8),
+                                  color: AppTheme.muted,
                                 ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFF0B372B),
-                                    width: 1,
-                                  ),
-                                ),
+                                borderRadius: 10,
+                                borderColor: const Color(0xFFCBD5E1),
                                 contentPadding: const EdgeInsets.all(12),
+                                validator: (val) {
+                                  if (val == null || val.trim().isEmpty) {
+                                    return 'Please provide a description of the issue';
+                                  }
+                                  if (val.trim().length < 10) {
+                                    return 'Please explain in at least 10 characters';
+                                  }
+                                  return null;
+                                },
                               ),
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return 'Please provide a description of the issue';
-                                }
-                                if (val.trim().length < 10) {
-                                  return 'Please explain in at least 10 characters';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            GestureDetector(
-                              onTap: _submitReport,
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0B372B),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Submit Report',
-                                    style: TextStyle(
-                                      fontFamily: 'PlusJakartaSans',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                              const SizedBox(height: 16),
+                              GestureDetector(
+                                onTap: _submitReport,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryGreen,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'Submit Report',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -400,19 +319,18 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          iconColor: const Color(0xFF0B372B),
-          collapsedIconColor: const Color(0xFF64748B),
+          iconColor: AppTheme.primaryGreen,
+          collapsedIconColor: AppTheme.textSecondary,
           title: Text(
             question,
             style: const TextStyle(
-              fontFamily: 'PlusJakartaSans',
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF1F2937),
@@ -424,7 +342,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
               child: Text(
                 answer,
                 style: const TextStyle(
-                  fontFamily: 'PlusJakartaSans',
                   fontSize: 13,
                   color: Color(0xFF475569),
                   height: 1.5,
@@ -447,7 +364,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: Row(
         children: [
@@ -455,10 +372,10 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppTheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFF0B372B), size: 18),
+            child: Icon(icon, color: AppTheme.primaryGreen, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -468,17 +385,15 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1E293B),
@@ -509,7 +424,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                 child: Text(
                   'Select Topic',
                   style: TextStyle(
-                    fontFamily: 'PlusJakartaSans',
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
@@ -521,7 +435,6 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                   title: Text(
                     topic,
                     style: const TextStyle(
-                      fontFamily: 'PlusJakartaSans',
                       fontSize: 14,
                       color: Color(0xFF1E293B),
                     ),
@@ -529,7 +442,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                   trailing: _selectedTopic == topic
                       ? const Icon(
                           Icons.check_rounded,
-                          color: Color(0xFF0B372B),
+                          color: AppTheme.primaryGreen,
                         )
                       : null,
                   onTap: () {

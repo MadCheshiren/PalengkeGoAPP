@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingBottomButtons extends StatelessWidget {
@@ -34,16 +35,15 @@ class OnboardingBottomButtons extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF0B372B)),
+                    border: Border.all(color: AppTheme.primaryGreen),
                   ),
                   child: const Center(
                     child: Text(
                       'Back',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ),
@@ -57,14 +57,13 @@ class OnboardingBottomButtons extends StatelessWidget {
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Center(
                     child: Text(
                       'Save',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -76,22 +75,21 @@ class OnboardingBottomButtons extends StatelessWidget {
             ),
           ],
 
-          // Steps 1-2: Just Save (full width)
-          if (currentStep == 1 || currentStep == 2)
+          // Steps 1-3: Just Save/Submit (full width)
+          if (currentStep >= 1)
             Expanded(
               child: GestureDetector(
                 onTap: onNext,
                 child: Container(
                   height: 56,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
+                    color: AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'Save',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
+                      currentStep == 3 ? 'Submit' : 'Save',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -101,58 +99,6 @@ class OnboardingBottomButtons extends StatelessWidget {
                 ),
               ),
             ),
-
-          // Phone Number (Step 3): Submit + Verify
-          if (currentStep == 3) ...[
-            Expanded(
-              child: GestureDetector(
-                onTap: onNext,
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF0B372B)),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Submit',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0B372B),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: GestureDetector(
-                onTap: onNext, // Let verify just proceed
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0B372B),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Verify',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

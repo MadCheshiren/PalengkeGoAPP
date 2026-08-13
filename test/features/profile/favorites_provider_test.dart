@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/preferences_provider.dart';
+import 'package:palengkego/features/market/application/market_provider.dart';
+import 'package:palengkego/features/market/domain/market_vendor.dart';
 import 'package:palengkego/features/profile/application/blocked_vendors_provider.dart';
 import 'package:palengkego/features/profile/application/favorites_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -102,10 +104,18 @@ void main() {
   });
 
   group('favoriteVendorsProvider', () {
+    Future<List<MarketVendor>> readFavorites(
+      ProviderContainer container,
+    ) async {
+      // Ensure the underlying async vendor data is resolved first.
+      await container.read(allVendorsProvider.future);
+      return container.read(favoriteVendorsProvider).value ?? [];
+    }
+
     test('returns empty list when no favorites selected', () async {
       final container = await buildContainer();
 
-      final vendors = container.read(favoriteVendorsProvider);
+      final vendors = await readFavorites(container);
       expect(vendors, isEmpty);
     });
 
@@ -116,7 +126,7 @@ void main() {
       container.read(favoritesProvider.notifier).toggle('v1');
       container.read(favoritesProvider.notifier).toggle('v2');
 
-      final vendors = container.read(favoriteVendorsProvider);
+      final vendors = await readFavorites(container);
       expect(vendors.length, 2);
       expect(vendors.map((v) => v.id), containsAll(['v1', 'v2']));
     });
@@ -129,7 +139,7 @@ void main() {
 
       expect(container.read(favoritesProvider), contains('v1'));
       expect(container.read(blockedVendorsProvider), contains('v1'));
-      expect(container.read(favoriteVendorsProvider), isEmpty);
+      expect(await readFavorites(container), isEmpty);
     });
 
     test('vendor list updates when a favorite is removed', () async {
@@ -139,12 +149,12 @@ void main() {
       notifier.toggle('v1');
       notifier.toggle('v2');
 
-      expect(container.read(favoriteVendorsProvider).length, 2);
+      expect((await readFavorites(container)).length, 2);
 
       notifier.toggle('v1'); // remove
 
-      expect(container.read(favoriteVendorsProvider).length, 1);
-      expect(container.read(favoriteVendorsProvider).first.id, 'v2');
+      expect((await readFavorites(container)).length, 1);
+      expect((await readFavorites(container)).first.id, 'v2');
     });
   });
 }
