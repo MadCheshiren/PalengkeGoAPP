@@ -10,6 +10,9 @@ import 'package:palengkego/features/cart/application/cart_provider.dart';
 import 'package:palengkego/features/cart/data/mock_cart_repository.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/cart/presentation/pages/shopping_cart_screen.dart';
+import 'package:palengkego/features/recipes/application/recipe_provider.dart';
+import 'package:palengkego/features/recipes/domain/recipe.dart';
+import 'package:palengkego/features/recipes/presentation/pages/recipe_details_screen.dart';
 import 'package:palengkego/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -140,6 +143,86 @@ void main() {
 
       expect(find.text('Login Required'), findsNothing);
       expect(find.text('Checkout'), findsWidgets);
+    });
+  });
+
+  group('ShoppingCartScreen cook-with-your-cart strip', () {
+    const bangusRecipe = Recipe(
+      title: 'Sinigang na Bangus',
+      category: 'Seafood',
+      time: '60 min',
+      difficulty: 'Medium',
+      imageUrl: 'https://example.com/sinigang.jpg',
+      backgroundColor: Color(0xFFFFF7ED),
+      ingredients: [
+        RecipeIngredient(name: 'Bangus (Milkfish)', description: '1 large'),
+        RecipeIngredient(name: 'Tamarind', description: '1/2 cup mix'),
+        RecipeIngredient(name: 'Kangkong', description: '2 bunches'),
+      ],
+    );
+
+    void seedMatchingCart() {
+      MockCartRepository.clearTestState();
+      repository = MockCartRepository()
+        ..addToCart(
+          const CartItem(
+            productId: 'm2',
+            vendorName: 'Aling Nena',
+            productName: 'Bangus',
+            price: 180,
+            unit: 'kg',
+            image: 'https://example.com/bangus.jpg',
+          ),
+        );
+    }
+
+    Widget buildCartWithRecipes() {
+      return ProviderScope(
+        overrides: [
+          cartRepositoryProvider.overrideWithValue(repository),
+          authProvider.overrideWith(() => _TestAuthNotifier(MockUsers.customer)),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allRecipesProvider.overrideWith((ref) async => [bangusRecipe]),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+          home: ShoppingCartScreen(),
+        ),
+      );
+    }
+
+    setUp(() {
+      seedMatchingCart();
+    });
+
+    testWidgets('shows a dish card when a cart item matches a recipe', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+
+      await tester.pumpWidget(buildCartWithRecipes());
+      await tester.pumpAndSettle();
+
+      expect(find.text('You can cook this!'), findsOneWidget);
+      expect(find.text('Sinigang na Bangus'), findsOneWidget);
+      expect(find.text('1 of 3 ingredients'), findsOneWidget);
+    });
+
+    testWidgets('tapping the dish card opens the recipe details screen', (
+      tester,
+    ) async {
+      usePhoneViewport(tester);
+
+      await tester.pumpWidget(buildCartWithRecipes());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Sinigang na Bangus'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecipeDetailsScreen), findsOneWidget);
+      expect(find.text('Recipe Details'), findsOneWidget);
     });
   });
 }
