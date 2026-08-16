@@ -205,7 +205,7 @@ class DiscountedItemCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 10,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -214,7 +214,7 @@ class DiscountedItemCard extends ConsumerWidget {
                       '${formatCurrency.format(product.price)}/${UnitHelper.getUnitString(UnitHelper.isPieceProduct(product))}',
                       style: const TextStyle(
                         fontSize: 10,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                         decoration: TextDecoration.lineThrough,
                         fontWeight: FontWeight.w500,
                       ),
@@ -238,7 +238,7 @@ class DiscountedItemCard extends ConsumerWidget {
                         const Icon(
                           Icons.storefront,
                           size: 11,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 3),
                         Expanded(
@@ -252,7 +252,7 @@ class DiscountedItemCard extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF6B7280),
+                              color: AppTheme.textSecondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

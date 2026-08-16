@@ -97,7 +97,28 @@ beforeAll(async () => {
       stallId: STALL_A,
       status: 'completed',
       paymentStatus: 'paid',
+      paymentMethod: 'cod',
       items: [{ productId: 'p1', productName: 'Kangkong', quantity: 2, unitPrice: 15, unit: 'kg', image: '' }],
+      placedAt: new Date(),
+    });
+    // Gcash order (online payment — only the webhook may mark it paid).
+    await setDoc(doc(db, 'orders', 'order-gcash-pending'), {
+      customerUid: CUSTOMER_A,
+      stallId: STALL_A,
+      status: 'pending',
+      paymentStatus: 'pending',
+      paymentMethod: 'gcash',
+      items: [{ productId: 'p1', productName: 'Kangkong', quantity: 1, unitPrice: 15, unit: 'kg' }],
+      placedAt: new Date(),
+    });
+    // COD order that is still pending (the legitimate paid-on-completion path).
+    await setDoc(doc(db, 'orders', 'order-cod-pending'), {
+      customerUid: CUSTOMER_A,
+      stallId: STALL_A,
+      status: 'pending',
+      paymentStatus: 'pending',
+      paymentMethod: 'cod',
+      items: [{ productId: 'p1', productName: 'Kangkong', quantity: 1, unitPrice: 15, unit: 'kg' }],
       placedAt: new Date(),
     });
   });
@@ -149,9 +170,62 @@ describe('customer isolation', () => {
         stallId: STALL_A,
         status: 'pending',
         paymentStatus: 'pending',
+        paymentMethod: 'cod',
+        deliveryFee: 49,
+        serviceFee: 15,
+        priorityFee: 0,
         items: [{ productId: 'p1', productName: 'Kangkong', quantity: 1, unitPrice: 15, unit: 'kg' }],
       }),
     ).resolves.toBeUndefined();
+  });
+
+  test('cannot place an order with negative fees', async () => {
+    await denied(
+      setDoc(doc(auth(), 'orders', 'order-negative-fee'), {
+        customerUid: CUSTOMER_A,
+        stallId: STALL_A,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: 'cod',
+        deliveryFee: -49, // price manipulation
+        serviceFee: 15,
+        priorityFee: 0,
+        items: [{ productId: 'p1', productName: 'Kangkong', quantity: 1, unitPrice: 15, unit: 'kg' }],
+      }),
+    );
+  });
+
+  test('cannot place an order with an unknown payment method', async () => {
+    await denied(
+      setDoc(doc(auth(), 'orders', 'order-bad-method'), {
+        customerUid: CUSTOMER_A,
+        stallId: STALL_A,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: 'bitcoin',
+        deliveryFee: 49,
+        serviceFee: 15,
+        priorityFee: 0,
+        items: [{ productId: 'p1', productName: 'Kangkong', quantity: 1, unitPrice: 15, unit: 'kg' }],
+      }),
+    );
+  });
+
+  test('cannot place an order with an oversized note', async () => {
+    await denied(
+      setDoc(doc(auth(), 'orders', 'order-long-note'), {
+        customerUid: CUSTOMER_A,
+        stallId: STALL_A,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: 'cod',
+        notes: 'x'.repeat(501),
+        deliveryFee: 49,
+        serviceFee: 15,
+        priorityFee: 0,
+        items: [{ productId: 'p1', productName: 'Kangkong', quantity: 1, unitPrice: 15, unit: 'kg' }],
+      }),
+    );
   });
 
   test('cannot place an order under another user', async () => {
@@ -161,6 +235,9 @@ describe('customer isolation', () => {
         stallId: STALL_A,
         status: 'pending',
         paymentStatus: 'pending',
+        deliveryFee: 49,
+        serviceFee: 15,
+        priorityFee: 0,
         items: [],
       }),
     );
@@ -173,6 +250,7 @@ describe('customer isolation', () => {
         stallId: STALL_A,
         status: 'completed',
         paymentStatus: 'pending',
+        paymentMethod: 'cod',
         items: [],
       }),
     );
@@ -312,5 +390,58 @@ describe('account integrity', () => {
     await denied(
       updateDoc(doc(db, 'users', CUSTOMER_A), { role: 'admin' }),
     );
+  });
+});
+
+describe('order audit log + payment integrity', () => {
+  const customer = () => env.authenticatedContext(CUSTOMER_A).firestore();
+  const vendor = () => env.authenticatedContext(VENDOR).firestore();
+
+  test('a client cannot write a statusHistory entry (even stamped as itself)', async () => {
+    await denied(
+      setDoc(
+        doc(customer(), 'orders', 'order-cod-pending', 'statusHistory', 'h1'),
+        {
+          orderId: 'order-cod-pending',
+          previousStatus: 'pending',
+          newStatus: 'cancelled',
+          changedBy: CUSTOMER_A,
+          changedAt: new Date(),
+        },
+      ),
+    );
+  });
+
+  test('a client cannot forge a system audit entry', async () => {
+    await denied(
+      setDoc(
+        doc(customer(), 'orders', 'order-cod-pending', 'statusHistory', 'h2'),
+        {
+          orderId: 'order-cod-pending',
+          previousStatus: 'pending',
+          newStatus: 'cancelled',
+          changedBy: 'system',
+          changedAt: new Date(),
+        },
+      ),
+    );
+  });
+
+  test('a vendor cannot mark an online-paid order as paid at completion', async () => {
+    await denied(
+      updateDoc(doc(vendor(), 'orders', 'order-gcash-pending'), {
+        status: 'completed',
+        paymentStatus: 'paid',
+      }),
+    );
+  });
+
+  test('a vendor may complete and mark a COD order paid', async () => {
+    await expect(
+      updateDoc(doc(vendor(), 'orders', 'order-cod-pending'), {
+        status: 'completed',
+        paymentStatus: 'paid',
+      }),
+    ).resolves.toBeUndefined();
   });
 });

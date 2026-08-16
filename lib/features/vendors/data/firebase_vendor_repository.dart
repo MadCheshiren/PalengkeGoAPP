@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:palengkego/core/mock/mock_data.dart';
 import 'package:palengkego/features/vendors/domain/sales_summary.dart';
 import 'package:palengkego/features/vendors/domain/vendor_product.dart';
@@ -15,9 +16,10 @@ import 'package:palengkego/features/vendors/domain/vendor_stall.dart';
 ///   `ratings/{ratingId}`
 ///   `salesSummary/{stallId}/daily/{date}`
 class FirebaseVendorRepository implements VendorRepository {
-  FirebaseVendorRepository(this._firestore);
+  FirebaseVendorRepository(this._firestore, this._functions);
 
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   // ── Market listing (customer-facing) ────────────────────────────────────────
 
@@ -159,37 +161,24 @@ class FirebaseVendorRepository implements VendorRepository {
 
   @override
   Future<void> addReview(VendorReview review) async {
-    final ref = _firestore.collection('ratings').doc(review.id);
-    await ref.set({
-      'vendorId': review.vendorId,
-      'customerId': review.customerId,
-      'customerName': review.customerName,
-      'rating': review.rating,
-      'comment': review.comment,
-      'date': Timestamp.fromDate(review.date),
-      'orderId': review.orderId,
-      'reviewType': review.reviewType == ReviewType.product
-          ? 'product'
-          : 'vendor',
-      'productName': review.productName,
-    });
-
-    // Minimal mock-like update to stall rating for realtime reflection without transaction
-    // This is adequate for the current prototype scope
-    final stallRef = _firestore.collection('vendorStalls').doc(review.vendorId);
-    final stallDoc = await stallRef.get();
-    if (stallDoc.exists) {
-      final data = stallDoc.data()!;
-      final currentRating = (data['averageRating'] as num?)?.toDouble() ?? 5.0;
-      final currentCount = data['totalRatings'] as int? ?? 0;
-      final newCount = currentCount + 1;
-      final newRating =
-          ((currentRating * currentCount) + review.rating) / newCount;
-
-      await stallRef.update({
-        'averageRating': newRating,
-        'totalRatings': newCount,
+    // Trusted path: the `addReview` callable verifies the customer owns a
+    // completed order for this stall, enforces one review per order WITHOUT a
+    // check-then-write race (deterministic doc id + transactional create), and
+    // recomputes the stall rating aggregate in the same transaction.
+    try {
+      await _functions.httpsCallable('addReview').call({
+        'stallId': review.vendorId,
+        'orderId': review.orderId,
+        'rating': review.rating,
+        'comment': review.comment,
+        'reviewType': review.reviewType == ReviewType.product
+            ? 'product'
+            : 'vendor',
+        'productName': review.productName,
+        'customerName': review.customerName,
       });
+    } on FirebaseFunctionsException catch (e) {
+      throw Exception('Failed to submit review: ${e.message}');
     }
   }
 

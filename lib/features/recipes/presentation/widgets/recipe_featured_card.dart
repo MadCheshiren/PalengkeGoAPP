@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
@@ -17,8 +18,9 @@ class RecipeFeaturedCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final savedRecipes = ref.watch(savedRecipesProvider);
-    final isSaved = savedRecipes.any((r) => r.title == recipe.title);
+    final savedRecipes =
+        ref.watch(savedRecipesProvider).value ?? const <Recipe>[];
+    final isSaved = savedRecipes.any((r) => r.id == recipe.id);
 
     return GestureDetector(
       onTap: onTap,
@@ -38,37 +40,22 @@ class RecipeFeaturedCard extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
+              child: AdaptiveImage(
                 recipe.imageUrl,
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return Container(
-                    height: 200,
-                    color: recipe.backgroundColor,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF2E7D32),
-                      ),
+                placeholder: Container(
+                  height: 200,
+                  color: recipe.backgroundColor,
+                  child: const Center(
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 48,
+                      color: AppTheme.muted,
                     ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 200,
-                    color: recipe.backgroundColor,
-                    child: const Center(
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 48,
-                        color: Color(0xFF9CA3AF),
-                      ),
-                    ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
             Positioned.fill(

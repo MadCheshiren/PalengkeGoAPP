@@ -19,7 +19,7 @@ class SearchField extends ConsumerStatefulWidget {
 }
 
 class _SearchFieldState extends ConsumerState<SearchField> {
-  final TextEditingController _ctrl = TextEditingController();
+  late final TextEditingController _ctrl;
   final FocusNode _focus = FocusNode();
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlay;
@@ -28,6 +28,9 @@ class _SearchFieldState extends ConsumerState<SearchField> {
   @override
   void initState() {
     super.initState();
+    final initialText = widget.isInline ? ref.read(searchQueryProvider) : '';
+    _ctrl = TextEditingController(text: initialText);
+    _query = initialText;
     _ctrl.addListener(_onTextChanged);
     _focus.addListener(_onFocusChanged);
   }
@@ -36,9 +39,9 @@ class _SearchFieldState extends ConsumerState<SearchField> {
     final text = _ctrl.text;
     if (text != _query) {
       setState(() => _query = text);
-      // Keep searchQueryProvider in sync so other screens (market) can react
-      ref.read(searchQueryProvider.notifier).update(text);
-      if (!widget.isInline) {
+      if (widget.isInline) {
+        ref.read(searchQueryProvider.notifier).update(text);
+      } else {
         _overlay?.markNeedsBuild();
       }
     }
@@ -85,7 +88,11 @@ class _SearchFieldState extends ConsumerState<SearchField> {
   void _clear() {
     _ctrl.clear();
     setState(() => _query = '');
-    _overlay?.markNeedsBuild();
+    if (widget.isInline) {
+      ref.read(searchQueryProvider.notifier).clear();
+    } else {
+      _overlay?.markNeedsBuild();
+    }
   }
 
   OverlayEntry _buildOverlayEntry() {
@@ -94,8 +101,6 @@ class _SearchFieldState extends ConsumerState<SearchField> {
         layerLink: _layerLink,
         query: _ctrl.text,
         onSelect: (result) {
-          _ctrl.clear();
-          setState(() => _query = '');
           _focus.unfocus();
           _hideOverlay();
           final vendorId = result.isProduct
@@ -122,10 +127,11 @@ class _SearchFieldState extends ConsumerState<SearchField> {
     _hideOverlay();
     _ctrl.dispose();
     _focus.dispose();
-    // Clear the global query so other screens don't show stale results
-    Future.microtask(() {
-      if (mounted) ref.read(searchQueryProvider.notifier).clear();
-    });
+    if (widget.isInline) {
+      Future.microtask(() {
+        if (mounted) ref.read(searchQueryProvider.notifier).clear();
+      });
+    }
     super.dispose();
   }
 
@@ -392,7 +398,7 @@ class _SearchDropdown extends ConsumerWidget {
               'No results for "$q"',
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -471,7 +477,7 @@ class _ProductResultTile extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -497,7 +503,7 @@ class _ProductResultTile extends ConsumerWidget {
                   product.category,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -574,7 +580,7 @@ class _VendorResultTile extends StatelessWidget {
                     'Stall Holder',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w400,
                     ),
                   ),

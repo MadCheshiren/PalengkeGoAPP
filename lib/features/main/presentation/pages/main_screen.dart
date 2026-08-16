@@ -116,6 +116,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void _handleTabChange() {
     if (!mounted) return;
     final index = mainTabNotifier.value;
+    if (index == 3) {
+      // Entering the Recipes tab dismisses its unread badge. Guarded so a
+      // no-op never re-notifies (which would otherwise rebuild this screen).
+      final service = ref.read(notificationServiceProvider);
+      final hasUnread = service.forCustomer.any(
+        (n) => n.type == NotificationType.recipe && !n.isRead,
+      );
+      if (hasUnread) {
+        service.markAllOfTypeRead(NotificationType.recipe);
+      }
+    }
     final user = ref.read(authProvider);
     if (user == null && (index == 2 || index == 3)) {
       // Revert the value back to the previous safe tab (default to 0 - home)
@@ -228,13 +239,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         // from before cart was removed from tabs, especially on hot reload
         // Clamp to valid range (0-3: Home, Market, Orders, Recipes)
         final safeIndex = selectedIndex.clamp(0, _pages.length - 1);
-        if (safeIndex == 3) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref
-                .read(notificationServiceProvider)
-                .markAllOfTypeRead(NotificationType.recipe);
-          });
-        }
         return Scaffold(
           body: Stack(
             children: [

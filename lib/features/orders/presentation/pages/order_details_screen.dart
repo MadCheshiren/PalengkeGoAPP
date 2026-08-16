@@ -293,7 +293,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
               onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text(
                 'No, Keep It',
-                style: TextStyle(color: Color(0xFF6B7280)),
+                style: TextStyle(color: AppTheme.textSecondary),
               ),
             ),
             ElevatedButton(

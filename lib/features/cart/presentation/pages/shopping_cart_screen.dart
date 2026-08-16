@@ -13,6 +13,7 @@ import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/cart/domain/cart_item.dart';
 import 'package:palengkego/features/cart/presentation/widgets/cart_item_card.dart';
 import 'package:palengkego/features/cart/presentation/widgets/cart_summary_bar.dart';
+import 'package:palengkego/features/recipes/presentation/widgets/cart_recipe_suggestions.dart';
 
 import 'package:palengkego/core/widgets/login_required_sheet.dart';
 
@@ -279,6 +280,7 @@ class _ShoppingCartScreenState extends ConsumerState<ShoppingCartScreen> {
                         child: ListView(
                           padding: const EdgeInsets.fromLTRB(0, 12, 0, 100),
                           children: [
+                            const CartRecipeSuggestions(),
                             for (final entry in vendorGroups.entries) ...[
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(

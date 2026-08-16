@@ -27,7 +27,7 @@ class VendorReviewsEmptyState extends StatelessWidget {
       subtitleStyle: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w400,
-        color: Color(0xFF9CA3AF),
+        color: AppTheme.muted,
         height: 1.6,
       ),
     );
@@ -51,7 +51,7 @@ class VendorReviewsFilteredEmptyState extends StatelessWidget {
       titleStyle: const TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF6B7280),
+        color: AppTheme.textSecondary,
       ),
     );
   }

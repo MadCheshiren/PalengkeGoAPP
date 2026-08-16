@@ -3,6 +3,7 @@ import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/widgets/app_screen_header.dart';
 import 'package:palengkego/features/checkout/domain/payment_selection.dart';
@@ -13,6 +14,7 @@ import 'package:palengkego/features/checkout/domain/payment_selection.dart';
 /// Supports:
 /// - Cash on Delivery (default)
 /// - GCash (via Paymongo)
+/// - PayMaya (via Paymongo)
 /// - Credit/Debit Card
 class PaymentMethodsScreen extends StatefulWidget {
   final String? currentMethod;
@@ -61,8 +63,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     }
   }
 
-  Future<void> _addGCash() async {
-    // Mocking GCash account linking
+  /// Mock e-wallet account linking (GCash / PayMaya, both via Paymongo).
+  Future<void> _linkEWallet({
+    required String method,
+    required String title,
+    required Color brandColor,
+  }) async {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -82,9 +88,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Link GCash Account',
-                style: TextStyle(
+              Text(
+                'Link $title Account',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -125,7 +131,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007DFE), // GCash Blue
+                    backgroundColor: brandColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -147,18 +153,18 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     Navigator.pop(context); // Close loading dialog
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('GCash account linked successfully!'),
+                      SnackBar(
+                        content: Text('$title account linked successfully!'),
                       ),
                     );
 
                     setState(() {
-                      _selectedMethod = 'gcash';
+                      _selectedMethod = method;
                     });
 
                     Navigator.pop(
                       context,
-                      const PaymentSelectionResult(method: 'gcash'),
+                      PaymentSelectionResult(method: method),
                     );
                   },
                   child: const Text(
@@ -236,11 +242,36 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                       method: 'gcash',
                       title: 'GCash',
                       subtitle: 'Pay with GCash via Paymongo',
-                      icon: Icons.account_balance_wallet_outlined,
-                      iconBgColor: const Color(0xFF0079FF),
-                      iconColor: Colors.white,
+                      brandIcon: SvgPicture.asset(
+                        'assets/icons/gcash.svg',
+                        fit: BoxFit.contain,
+                        semanticsLabel: 'GCash',
+                      ),
                       isSelected: _selectedMethod == 'gcash',
-                      onTap: _addGCash,
+                      onTap: () => _linkEWallet(
+                        method: 'gcash',
+                        title: 'GCash',
+                        brandColor: const Color(0xFF0079FF),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // PayMaya
+                    _buildPaymentOption(
+                      method: 'paymaya',
+                      title: 'PayMaya',
+                      subtitle: 'Pay with PayMaya via Paymongo',
+                      brandIcon: Image.asset(
+                        'assets/icons/paymaya.png',
+                        fit: BoxFit.contain,
+                        semanticLabel: 'PayMaya',
+                      ),
+                      isSelected: _selectedMethod == 'paymaya',
+                      onTap: () => _linkEWallet(
+                        method: 'paymaya',
+                        title: 'PayMaya',
+                        brandColor: const Color(0xFFED1C24),
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -269,9 +300,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     required String method,
     required String title,
     required String subtitle,
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
+    Widget? brandIcon,
+    IconData? icon,
+    Color? iconBgColor,
+    Color? iconColor,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -288,15 +320,30 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         ),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(12),
+            if (brandIcon != null)
+              // Brand marks render on a quiet white tile so the logo's own
+              // colors carry the identity (GCash blue, PayMaya red).
+              Container(
+                width: 48,
+                height: 48,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: brandIcon,
+              )
+            else
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 24, color: iconColor),
               ),
-              child: Icon(icon, size: 24, color: iconColor),
-            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -315,7 +362,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],

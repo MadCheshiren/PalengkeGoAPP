@@ -222,7 +222,7 @@ class VendorDashboardHome extends ConsumerWidget {
                                 fontWeight: FontWeight.w700,
                                 color: licenseStatus == LicenseStatus.suspended
                                     ? Colors.white
-                                    : const Color(0xFF0F172A),
+                                    : AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),

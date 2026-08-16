@@ -118,7 +118,7 @@ class ProfileScreen extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
-                                color: Color(0xFF6B7280),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                           ),
@@ -196,7 +196,7 @@ class ProfileScreen extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
-                              color: Color(0xFF6B7280),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                         ),
@@ -538,7 +538,7 @@ class ProfileScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w600,
                   color: isLogout
                       ? const Color(0xFFEF4444)
-                      : const Color(0xFF1F2937),
+                      : AppTheme.textPrimary,
                 ),
               ),
             ),
@@ -547,7 +547,7 @@ class ProfileScreen extends ConsumerWidget {
               size: 14,
               color: isLogout
                   ? const Color(0xFFEF4444)
-                  : const Color(0xFF9CA3AF),
+                  : AppTheme.muted,
             ),
           ],
         ),
@@ -566,14 +566,14 @@ class ProfileScreen extends ConsumerWidget {
         ),
         content: const Text(
           'Are you sure you want to log out?',
-          style: TextStyle(color: Color(0xFF6B7280)),
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Color(0xFF6B7280)),
+              style: TextStyle(color: AppTheme.textSecondary),
             ),
           ),
           ElevatedButton(

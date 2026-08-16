@@ -50,10 +50,12 @@ Widget _buildWidget(ProviderContainer container) {
   );
 }
 
-ProviderContainer _buildContainer() {
+ProviderContainer _buildContainer({SharedOrderStore? store}) {
   final container = ProviderContainer(
     overrides: [
-      orderRepositoryProvider.overrideWithValue(MockOrderRepository()),
+      orderRepositoryProvider.overrideWithValue(
+        MockOrderRepository(store: store),
+      ),
       authProvider.overrideWith(_TestAuthNotifier.new),
     ],
   );
@@ -70,16 +72,12 @@ void main() {
     FlutterSecureStorage.setMockInitialValues({});
   });
 
-  setUp(() {
-    SharedOrderStore.orders.clear();
-    SharedOrderStore.history.clear();
-  });
-
   group('FloatingOrderProgress', () {
     testWidgets('hides when there are no active orders', (tester) async {
-      final container = _buildContainer();
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
       // All seeded orders are completed → no active orders.
-      SharedOrderStore.orders.addAll([
+      store.orders.addAll([
         _order(
           '#1',
           'Aling Nena Vegetables',
@@ -95,8 +93,9 @@ void main() {
     });
 
     testWidgets('shows vendor name in single-order pill', (tester) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1', 'Aling Nena Vegetables'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1', 'Aling Nena Vegetables'));
 
       await tester.pumpWidget(_buildWidget(container));
       await tester.pumpAndSettle();
@@ -112,8 +111,9 @@ void main() {
     testWidgets('hides single-order pill when active order is cancelled', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1', 'Aling Nena Vegetables'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1', 'Aling Nena Vegetables'));
 
       await tester.pumpWidget(_buildWidget(container));
       await tester.pumpAndSettle();
@@ -132,8 +132,9 @@ void main() {
     testWidgets(
       'shows multi-order pill for two active orders from different vendors',
       (tester) async {
-        final container = _buildContainer();
-        SharedOrderStore.orders.addAll([
+        final store = SharedOrderStore();
+        final container = _buildContainer(store: store);
+        store.orders.addAll([
           _order('#1', 'Diosa Fruit Stand'),
           _order('#2', "Paul's Meat Shop"),
         ]);
@@ -151,8 +152,9 @@ void main() {
     testWidgets(
       'tapping multi-order pill opens tray listing all active orders',
       (tester) async {
-        final container = _buildContainer();
-        SharedOrderStore.orders.addAll([
+        final store = SharedOrderStore();
+        final container = _buildContainer(store: store);
+        store.orders.addAll([
           _order('#1', 'Diosa Fruit Stand'),
           _order('#2', "Paul's Meat Shop"),
         ]);
@@ -173,8 +175,9 @@ void main() {
     testWidgets(
       'tray shows Cancel buttons when orders are within the cancel window',
       (tester) async {
-        final container = _buildContainer();
-        SharedOrderStore.orders.addAll([
+        final store = SharedOrderStore();
+        final container = _buildContainer(store: store);
+        store.orders.addAll([
           _order('#1', 'Diosa Fruit Stand'),
           _order('#2', "Paul's Meat Shop"),
         ]);
@@ -192,8 +195,9 @@ void main() {
     testWidgets('tray hides Cancel buttons when cancel window has passed', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.addAll([
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.addAll([
         _order('#1', 'Diosa Fruit Stand').copyWith(
           placedAt: DateTime.now().subtract(const Duration(minutes: 10)),
         ),

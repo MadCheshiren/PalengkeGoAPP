@@ -78,7 +78,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 letterSpacing: 0.5,
               ),
             ),
@@ -94,7 +94,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
             const SizedBox(height: 2),
             Text(
               '$stall, $section',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             Row(
@@ -102,7 +102,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                 const Icon(
                   Icons.access_time_rounded,
                   size: 18,
-                  color: Color(0xFF6B7280),
+                  color: AppTheme.textSecondary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -115,7 +115,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF9CA3AF),
+                          color: AppTheme.muted,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -176,7 +176,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 letterSpacing: 0.5,
               ),
             ),
@@ -196,7 +196,7 @@ class OrderConfirmationInfoCard extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 letterSpacing: 0.5,
               ),
             ),
@@ -273,7 +273,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -293,7 +293,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                     Icon(
                       Icons.access_time_rounded,
                       size: 18,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                     SizedBox(width: 8),
                     Expanded(
@@ -306,7 +306,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF9CA3AF),
+                              color: AppTheme.muted,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -381,7 +381,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                             '$stall | $section',
                             style: const TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF6B7280),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -398,7 +398,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -459,7 +459,7 @@ class OrderConfirmationMultiOrderList extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF9CA3AF),
+                              color: AppTheme.muted,
                               letterSpacing: 0.5,
                             ),
                           ),

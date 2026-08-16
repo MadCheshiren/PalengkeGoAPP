@@ -146,7 +146,7 @@ class _VendorAccountDetailsScreenState
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1F2937),
+                                  color: AppTheme.textPrimary,
                                 ),
                               ),
                               leading: const Icon(

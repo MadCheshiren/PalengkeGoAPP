@@ -54,13 +54,15 @@ MarketOrder _otherVendorOrder(String id, {DateTime? placedAt}) {
   ).copyWith(vendorName: 'Aling Nena Vegetables');
 }
 
-ProviderContainer _buildContainer() {
+ProviderContainer _buildContainer({SharedOrderStore? store}) {
   final container = ProviderContainer(
     overrides: [
-      orderRepositoryProvider.overrideWithValue(MockOrderRepository()),
+      orderRepositoryProvider.overrideWithValue(
+        MockOrderRepository(store: store),
+      ),
       authProvider.overrideWith(_TestAuthNotifier.new),
       notificationServiceProvider.overrideWithValue(
-        NotificationService(isTest: true),
+        NotificationService(isTest: true, orderStore: store),
       ),
     ],
   );
@@ -87,20 +89,16 @@ Future<List<MarketOrder>> _readVendorOrders(ProviderContainer container) async {
 // ---------------------------------------------------------------------------
 
 void main() {
-  setUp(() {
-    SharedOrderStore.orders.clear();
-    SharedOrderStore.history.clear();
-  });
-
   setUpAll(() {
     FlutterSecureStorage.setMockInitialValues({});
   });
 
   group('VendorOrdersNotifier', () {
     test('loads only the current vendor orders from the repository', () async {
-      final container = _buildContainer();
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
       final now = DateTime.now();
-      SharedOrderStore.orders.addAll([
+      store.orders.addAll([
         _order('#1', status: OrderStatus.completed, placedAt: now),
         _order('#2', placedAt: now.add(const Duration(seconds: 5))),
         _otherVendorOrder('#3', placedAt: now.add(const Duration(seconds: 10))),
@@ -114,8 +112,9 @@ void main() {
     });
 
     test('acceptOrder marks a pending order as preparing', () async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await _readVendorOrders(container);
       await container.read(vendorOrdersProvider.notifier).acceptOrder('#1');
@@ -125,8 +124,9 @@ void main() {
     });
 
     test('rejectOrder cancels a pending order', () async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await _readVendorOrders(container);
       await container.read(vendorOrdersProvider.notifier).rejectOrder('#1');
@@ -136,8 +136,9 @@ void main() {
     });
 
     test('markOrderReady marks an order as ready', () async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1', status: OrderStatus.preparing));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1', status: OrderStatus.preparing));
 
       await _readVendorOrders(container);
       await container.read(vendorOrdersProvider.notifier).markOrderReady('#1');
@@ -147,8 +148,9 @@ void main() {
     });
 
     test('completeOrder marks an order completed and paid', () async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1', status: OrderStatus.ready));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1', status: OrderStatus.ready));
 
       await _readVendorOrders(container);
       await container.read(vendorOrdersProvider.notifier).completeOrder('#1');
@@ -161,8 +163,9 @@ void main() {
     test(
       'completeOrder rejects a pending order with a typed failure',
       () async {
-        final container = _buildContainer();
-        SharedOrderStore.orders.add(_order('#1'));
+        final store = SharedOrderStore();
+        final container = _buildContainer(store: store);
+        store.orders.add(_order('#1'));
 
         await _readVendorOrders(container);
         await expectLater(

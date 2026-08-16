@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/infrastructure/firebase_service.dart';
 import 'package:palengkego/core/services/data_refresh_signal.dart';
+import 'package:palengkego/core/utils/ingredient_noise_words.dart';
 import 'package:palengkego/features/market/domain/market_repository.dart';
 import 'package:palengkego/features/market/data/firebase_market_repository.dart';
 import 'package:palengkego/features/market/data/mock_market_repository.dart';
@@ -120,37 +121,6 @@ class RecommendedIngredientProduct {
   });
 }
 
-/// Noise words to exclude during ingredient tokenization.
-const _ingredientNoiseWords = <String>{
-  'fresh',
-  'sweet',
-  'large',
-  'medium',
-  'small',
-  'pack',
-  'can',
-  'bag',
-  'kg',
-  'g',
-  'ml',
-  'l',
-  'pcs',
-  'piece',
-  'pieces',
-  'tbsp',
-  'tsp',
-  'cup',
-  'cups',
-  'sliced',
-  'crushed',
-  'whole',
-  'with',
-  'and',
-  'sa',
-  'na',
-  'mix',
-};
-
 /// Calculates strict word-boundary token relevance score for a product given an ingredient query.
 /// Returns 0 if the product is not a genuine match (e.g. excludes "rice" for "ice", "milkfish" for "milk").
 int calculateIngredientRelevanceScore(
@@ -169,7 +139,7 @@ int calculateIngredientRelevanceScore(
 
   final ingTokens = ingClean
       .split(RegExp(r'\s+'))
-      .where((t) => t.isNotEmpty && !_ingredientNoiseWords.contains(t))
+      .where((t) => t.isNotEmpty && !ingredientNoiseWords.contains(t))
       .toList();
 
   // If query is only noise words (e.g. "fresh"), fall back to raw query tokens

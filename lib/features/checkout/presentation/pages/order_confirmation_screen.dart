@@ -79,7 +79,7 @@ class OrderConfirmationScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),

@@ -15,6 +15,7 @@ _MarketOrder _$MarketOrderFromJson(Map<String, dynamic> json) => _MarketOrder(
   customerName: json['customerName'] as String? ?? 'Customer',
   status: $enumDecode(_$OrderStatusEnumMap, json['status']),
   paymentStatus: $enumDecode(_$PaymentStatusEnumMap, json['paymentStatus']),
+  paymentMethod: json['paymentMethod'] as String? ?? 'cod',
   fulfillmentMethod: $enumDecode(
     _$FulfillmentMethodEnumMap,
     json['fulfillmentMethod'],
@@ -46,6 +47,7 @@ Map<String, dynamic> _$MarketOrderToJson(
   'customerName': instance.customerName,
   'status': _$OrderStatusEnumMap[instance.status]!,
   'paymentStatus': _$PaymentStatusEnumMap[instance.paymentStatus]!,
+  'paymentMethod': instance.paymentMethod,
   'fulfillmentMethod': _$FulfillmentMethodEnumMap[instance.fulfillmentMethod]!,
   'placedAt': instance.placedAt.toIso8601String(),
   'items': instance.items,
@@ -72,8 +74,10 @@ const _$OrderStatusEnumMap = {
 
 const _$PaymentStatusEnumMap = {
   PaymentStatus.pending: 'Pending',
+  PaymentStatus.processing: 'Processing',
   PaymentStatus.paid: 'Paid',
   PaymentStatus.failed: 'Failed',
+  PaymentStatus.refunded: 'Refunded',
 };
 
 const _$FulfillmentMethodEnumMap = {

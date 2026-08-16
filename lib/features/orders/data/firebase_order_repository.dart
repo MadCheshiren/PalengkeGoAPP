@@ -1,31 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:palengkego/core/config/fee_config.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
-import 'package:palengkego/features/orders/domain/order_policy.dart';
 import 'package:palengkego/features/orders/domain/order_repository.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
 import 'package:palengkego/features/orders/domain/order_status_history.dart';
 import 'package:palengkego/features/orders/domain/payment_status.dart';
 
-/// Firestore implementation of [OrderRepository].
+/// Firestore-backed [OrderRepository] that routes every MUTATION through the
+/// trusted Cloud Functions backend:
 ///
-/// Collections:
-///   `orders/{orderId}`
-///   `orders/{orderId}/statusHistory/{historyId}`
+///   placeOrders       → `placeOrder`       (server-side pricing + stock)
+///   updateOrderStatus → `updateOrderStatus` (state machine + audit log)
+///   cancelOrder       → `cancelOrder`      (window check + audit log)
+///
+/// The client never writes prices, stock, or statusHistory directly — it only
+/// READS orders/history from Firestore. The functions stamp the real acting
+/// uid on every statusHistory entry, so no audit entry can be forged.
 class FirebaseOrderRepository implements OrderRepository {
-  FirebaseOrderRepository(this._firestore);
+  FirebaseOrderRepository(this._firestore, this._auth, this._functions);
 
   final FirebaseFirestore _firestore;
-
-  static const _cancelWindow = FeeConfig.cancelWindow;
+  final FirebaseAuth _auth;
+  final FirebaseFunctions _functions;
 
   CollectionReference<Map<String, dynamic>> get _orders =>
       _firestore.collection('orders');
 
-  // ── Place orders ────────────────────────────────────────────────────────────
+  // ── Place orders (trusted path) ────────────────────────────────────────────
 
   @override
   Future<List<MarketOrder>> placeOrders({
@@ -38,116 +43,76 @@ class FirebaseOrderRepository implements OrderRepository {
     String? deliveryAddress,
     bool isPriority = false,
     double priorityFee = 0.0,
+    String paymentMethod = 'cod',
   }) async {
-    final now = DateTime.now();
-    // Pre-fetch stallIds
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw const OrderFailure(
+        OrderFailureType.unauthenticated,
+        message: 'You must be signed in to place an order.',
+      );
+    }
+
+    final callable = _functions.httpsCallable('placeOrder');
+
+    // The trusted path needs each vendor's stallId (it recomputes prices and
+    // stock server-side). An unresolvable vendor means we cannot safely place
+    // that order — fail loudly instead of placing a ghost order.
     final vendorStallIds = <String, String>{};
     for (final vendorName in groupedItems.keys) {
-      try {
-        final stallSnap = await _firestore
-            .collection('vendorStalls')
-            .where('name', isEqualTo: vendorName)
-            .limit(1)
-            .get();
-        if (stallSnap.docs.isNotEmpty) {
-          vendorStallIds[vendorName] = stallSnap.docs.first.id;
-        }
-      } catch (e) {
-        // Fallback
+      final stallSnap = await _firestore
+          .collection('vendorStalls')
+          .where('name', isEqualTo: vendorName)
+          .limit(1)
+          .get();
+      if (stallSnap.docs.isEmpty) {
+        throw OrderFailure(
+          OrderFailureType.orderNotFound,
+          message:
+              'The stall "$vendorName" is no longer available. Your order was not placed.',
+        );
       }
+      vendorStallIds[vendorName] = stallSnap.docs.first.id;
     }
 
     final created = <MarketOrder>[];
+    for (final entry in groupedItems.entries) {
+      final stallId = vendorStallIds[entry.key]!;
+      final lineItems = entry.value.$2;
 
-    await _firestore.runTransaction((transaction) async {
-      for (final entry in groupedItems.entries) {
-        final ref = _orders.doc();
-        final orderId = ref.id;
-        final vendorName = entry.key;
-        final vendorImage = entry.value.$1;
-        final lineItems = entry.value.$2;
+      final result = await _callTrusted(
+        callable,
+        {
+          'stallId': stallId,
+          'items': lineItems
+              .map(
+                (i) => {
+                  'productId': i.productId,
+                  'quantity': i.quantity,
+                  'unit': i.unit,
+                },
+              )
+              .toList(),
+          'fulfillmentMethod': isPickup ? 'pickup' : 'delivery',
+          'isPriority': isPickup ? false : isPriority,
+          'customerName': customerName,
+          'deliveryAddress': isPickup ? null : deliveryAddress,
+          'notes': vendorNotes?[entry.key],
+          'paymentMethod': paymentMethod,
+        },
+      );
 
-        final order = MarketOrder(
-          id: orderId,
-          vendorName: vendorName,
-          vendorImage: vendorImage,
-          customerName: customerName,
-          status: OrderStatus.pending,
-          paymentStatus: PaymentStatus.pending,
-          fulfillmentMethod: isPickup
-              ? FulfillmentMethod.pickup
-              : FulfillmentMethod.delivery,
-          deliveryAddress: isPickup ? null : (deliveryAddress ?? ''),
-          deliveryFee: isPickup ? 0.0 : FeeConfig.deliveryFee,
-          serviceFee: FeeConfig.serviceFee,
-          isPriority: isPickup ? false : isPriority,
-          priorityFee: isPickup ? 0.0 : priorityFee,
-          placedAt: now,
-          notes: vendorNotes?[vendorName],
-          items: lineItems,
+      final orderId =
+          ((result.data as Map<dynamic, dynamic>)['orderId'] as String?) ?? '';
+      if (orderId.isEmpty) {
+        throw const OrderFailure(
+          OrderFailureType.orderNotFound,
+          message: 'The order was created but could not be confirmed.',
         );
-
-        final stallId = vendorStallIds[entry.key];
-
-        // Deduct stock, keeping the exact quantity in the product's unit.
-        if (stallId != null) {
-          for (final item in order.items) {
-            if (!item.productId.startsWith('dummy') &&
-                !item.productId.startsWith('recipe_')) {
-              final productRef = _firestore
-                  .collection('vendorStalls')
-                  .doc(stallId)
-                  .collection('products')
-                  .doc(item.productId);
-
-              final productDoc = await transaction.get(productRef);
-              if (!productDoc.exists) {
-                throw const OrderFailure(
-                  OrderFailureType.orderNotFound,
-                  message: 'A product in your order is no longer available.',
-                );
-              }
-
-              final currentStock =
-                  (productDoc.data()?['stockQuantity'] as num?)?.toDouble() ??
-                  0;
-              final newStock = deductStock(
-                stockQuantity: currentStock,
-                requestedQuantity: item.quantity,
-                unit: item.unit,
-                productName: item.productName,
-              );
-
-              final updates = <String, dynamic>{'stockQuantity': newStock};
-              if (newStock <= 0) {
-                updates['isActive'] = false;
-              }
-
-              transaction.update(productRef, updates);
-            }
-          }
-        }
-
-        transaction.set(
-          ref,
-          _toFirestore(order, customerUid: customerUid, stallId: stallId),
-        );
-
-        // Initial status history entry.
-        final histRef = ref.collection('statusHistory').doc();
-        transaction.set(histRef, {
-          'orderId': orderId,
-          'previousStatus': null,
-          'newStatus': OrderStatus.pending.name,
-          'changedBy': customerUid,
-          'changedAt': FieldValue.serverTimestamp(),
-          'remarks': null,
-        });
-
-        created.add(order);
       }
-    });
-
+      final snap = await _orders.doc(orderId).get();
+      created.add(_fromFirestore(orderId, snap.data() ?? const {}));
+    }
     return created;
   }
 
@@ -171,7 +136,7 @@ class FirebaseOrderRepository implements OrderRepository {
     return snap.docs.map((d) => _fromFirestore(d.id, d.data())).toList();
   }
 
-  // ── Status update ───────────────────────────────────────────────────────────
+  // ── Status update (trusted path) ────────────────────────────────────────────
 
   @override
   Future<void> updateOrderStatus(
@@ -181,63 +146,15 @@ class FirebaseOrderRepository implements OrderRepository {
     String? remarks,
     DateTime? estimatedReadyTime,
   }) async {
-    final ref = _orders.doc(orderId);
-    final snap = await ref.get();
-    if (!snap.exists) {
-      throw const OrderFailure(
-        OrderFailureType.orderNotFound,
-        message: 'Order not found.',
-      );
-    }
-
-    final previous = OrderStatus.values.firstWhere(
-      (s) => s.name == (snap.data()!['status'] as String? ?? 'pending'),
-      orElse: () => OrderStatus.pending,
-    );
-
-    if (previous.isTerminal) {
-      throw OrderFailure(
-        OrderFailureType.alreadyTerminal,
-        message:
-            'Order #$orderId is already ${previous.label} and can no longer be changed.',
-      );
-    }
-    // Same-status re-record (e.g. a new estimated ready time) is not a
-    // transition, so it bypasses the graph but still persists the fields.
-    if (previous != newStatus && !previous.canTransitionTo(newStatus)) {
-      throw OrderFailure(
-        OrderFailureType.illegalStatusTransition,
-        message:
-            'Cannot change order #$orderId from ${previous.label} to ${newStatus.label}.',
-      );
-    }
-
-    final data = <String, dynamic>{
-      'status': newStatus.name,
-      if (newStatus == OrderStatus.completed)
-        'paymentStatus': PaymentStatus.paid.name,
-      'updatedAt': FieldValue.serverTimestamp(),
-      if (estimatedReadyTime != null)
-        'estimatedReadyTime': estimatedReadyTime.toIso8601String(),
-      if (newStatus == OrderStatus.cancelled ||
-          newStatus == OrderStatus.rejected)
-        'cancellationReason': remarks,
-    };
-
-    await _firestore.runTransaction((transaction) async {
-      transaction.update(ref, data);
-      transaction.set(ref.collection('statusHistory').doc(), {
-        'orderId': orderId,
-        'previousStatus': previous.name,
-        'newStatus': newStatus.name,
-        'changedBy': changedByUid ?? 'system',
-        'changedAt': FieldValue.serverTimestamp(),
-        'remarks': remarks,
-      });
+    await _callTrusted(_functions.httpsCallable('updateOrderStatus'), {
+      'orderId': orderId,
+      'newStatus': newStatus.name,
+      'remarks': ?remarks,
+      'estimatedReadyTime': ?estimatedReadyTime?.toIso8601String(),
     });
   }
 
-  // ── Cancel ──────────────────────────────────────────────────────────────────
+  // ── Cancel (trusted path) ───────────────────────────────────────────────────
 
   @override
   Future<void> cancelOrder(
@@ -245,47 +162,13 @@ class FirebaseOrderRepository implements OrderRepository {
     String? reason,
     DateTime? now,
   }) async {
-    final snap = await _orders.doc(orderId).get();
-    if (!snap.exists) {
-      throw const OrderFailure(
-        OrderFailureType.orderNotFound,
-        message: 'Order not found.',
-      );
-    }
-
-    final data = snap.data()!;
-    final status = OrderStatus.values.firstWhere(
-      (s) => s.name == (data['status'] as String? ?? 'pending'),
-      orElse: () => OrderStatus.pending,
-    );
-
-    if (status != OrderStatus.pending) {
-      throw OrderFailure(
-        status.isTerminal
-            ? OrderFailureType.alreadyTerminal
-            : OrderFailureType.illegalStatusTransition,
-        message:
-            'Order #$orderId is currently ${status.label} and cannot be cancelled anymore.',
-      );
-    }
-
-    final placedAt = (data['placedAt'] as Timestamp).toDate();
-    if ((now ?? DateTime.now()).isAfter(placedAt.add(_cancelWindow))) {
-      throw OrderFailure(
-        OrderFailureType.cancelWindowExpired,
-        message: 'The cancellation window for order #$orderId has expired.',
-      );
-    }
-
-    await updateOrderStatus(
-      orderId,
-      OrderStatus.cancelled,
-      changedByUid: 'customer',
-      remarks: reason,
-    );
+    await _callTrusted(_functions.httpsCallable('cancelOrder'), {
+      'orderId': orderId,
+      'reason': ?reason,
+    });
   }
 
-  // ── History ─────────────────────────────────────────────────────────────────
+  // ── History (read-only) ─────────────────────────────────────────────────────
 
   @override
   Future<List<OrderStatusHistory>> getOrderHistory(String orderId) async {
@@ -317,46 +200,73 @@ class FirebaseOrderRepository implements OrderRepository {
     }).toList();
   }
 
-  // ── Serialization ───────────────────────────────────────────────────────────
+  // ── Trusted-call plumbing ───────────────────────────────────────────────────
 
-  Map<String, dynamic> _toFirestore(
-    MarketOrder o, {
-    String customerUid = '',
-    String? stallId,
-  }) {
-    return {
-      'customerUid': customerUid,
-      'stallId': stallId,
-      'vendorName': o.vendorName,
-      'vendorImage': o.vendorImage,
-      'customerName': o.customerName,
-      'status': o.status.name,
-      'paymentStatus': o.paymentStatus.name,
-      'fulfillmentMethod': o.fulfillmentMethod.name,
-      'deliveryAddress': o.deliveryAddress,
-      'deliveryFee': o.deliveryFee,
-      'serviceFee': o.serviceFee,
-      'isPriority': o.isPriority,
-      'priorityFee': o.priorityFee,
-      'notes': o.notes,
-      'placedAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'estimatedReadyTime': o.estimatedReadyTime?.toIso8601String(),
-      'cancellationReason': o.cancellationReason,
-      'items': o.items
-          .map(
-            (i) => {
-              'productId': i.productId,
-              'productName': i.productName,
-              'quantity': i.quantity,
-              'unitPrice': i.unitPrice,
-              'unit': i.unit,
-              'image': i.image,
-            },
-          )
-          .toList(),
-    };
+  Future<HttpsCallableResult<dynamic>> _callTrusted(
+    HttpsCallable callable,
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      return await callable.call(payload);
+    } on FirebaseFunctionsException catch (e) {
+      throw _mapFunctionsException(e);
+    }
   }
+
+  /// Maps HTTPS-callable error codes onto the typed [OrderFailure] contract
+  /// the UI already understands.
+  OrderFailure _mapFunctionsException(FirebaseFunctionsException e) {
+    final code = e.code.replaceFirst('functions/', '');
+    switch (code) {
+      case 'unauthenticated':
+        return const OrderFailure(
+          OrderFailureType.unauthenticated,
+          message: 'You must be signed in to do that.',
+        );
+      case 'permission-denied':
+        return const OrderFailure(
+          OrderFailureType.unauthenticated,
+          message: 'You do not have permission to do that.',
+        );
+      case 'not-found':
+        return const OrderFailure(
+          OrderFailureType.orderNotFound,
+          message: 'A product in your order is no longer available.',
+        );
+      case 'out-of-range':
+        return OrderFailure(
+          OrderFailureType.outOfStock,
+          message: e.message ?? 'Not enough stock for one of your items.',
+        );
+      case 'failed-precondition':
+        return OrderFailure(
+          OrderFailureType.illegalStatusTransition,
+          message: e.message ?? 'This action is not allowed right now.',
+        );
+      case 'already-exists':
+        return OrderFailure(
+          OrderFailureType.alreadyTerminal,
+          message: e.message ?? 'This has already been done.',
+        );
+      case 'deadline-exceeded':
+        return OrderFailure(
+          OrderFailureType.cancelWindowExpired,
+          message: e.message ?? 'The cancellation window has expired.',
+        );
+      case 'resource-exhausted':
+        return OrderFailure(
+          OrderFailureType.rateLimited,
+          message: e.message ?? 'Too many requests — please try again shortly.',
+        );
+      default:
+        return OrderFailure(
+          OrderFailureType.orderNotFound,
+          message: e.message ?? 'Something went wrong. Please try again.',
+        );
+    }
+  }
+
+  // ── Serialization (read-only; clients never write order docs) ──────────────
 
   MarketOrder _fromFirestore(String id, Map<String, dynamic> data) {
     final items = (data['items'] as List<dynamic>? ?? [])
@@ -385,6 +295,7 @@ class FirebaseOrderRepository implements OrderRepository {
         (s) => s.name == (data['paymentStatus'] as String? ?? 'pending'),
         orElse: () => PaymentStatus.pending,
       ),
+      paymentMethod: data['paymentMethod'] as String? ?? 'cod',
       fulfillmentMethod: FulfillmentMethod.values.firstWhere(
         (f) => f.name == (data['fulfillmentMethod'] as String? ?? 'pickup'),
         orElse: () => FulfillmentMethod.pickup,

@@ -53,7 +53,7 @@ Future<void> showVendorProductSuccessSheet({
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 14,
-              color: Color(0xFF6B7280),
+              color: AppTheme.textSecondary,
               height: 1.5,
             ),
           ),

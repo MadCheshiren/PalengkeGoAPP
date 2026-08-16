@@ -47,7 +47,7 @@ class OrderDetailsStatusCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -56,7 +56,7 @@ class OrderDetailsStatusCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -166,7 +166,7 @@ class OrderDetailsArrivalCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -178,7 +178,7 @@ class OrderDetailsArrivalCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: isCancelled
                         ? const Color(0xFFEF4444)
-                        : const Color(0xFF1F2937),
+                        : AppTheme.textPrimary,
                   ),
                 ),
               ],
@@ -207,7 +207,7 @@ class OrderDetailsAddressCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF9CA3AF),
+              color: AppTheme.muted,
               letterSpacing: 0.5,
             ),
           ),
@@ -254,7 +254,7 @@ class OrderDetailsVendorCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 letterSpacing: 0.5,
               ),
             ),
@@ -275,7 +275,7 @@ class OrderDetailsVendorCard extends StatelessWidget {
                       child: const Icon(
                         Icons.store,
                         size: 24,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                       ),
                     ),
                   ),
@@ -290,7 +290,7 @@ class OrderDetailsVendorCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1F2937),
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -299,7 +299,7 @@ class OrderDetailsVendorCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -383,7 +383,7 @@ class OrderDetailsPaymentCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF9CA3AF),
+                      color: AppTheme.muted,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -393,13 +393,13 @@ class OrderDetailsPaymentCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 20, color: Color(0xFF9CA3AF)),
+            const Icon(Icons.chevron_right, size: 20, color: AppTheme.muted),
           ],
         ),
       ),
@@ -433,7 +433,7 @@ class OrderDetailsNotesCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 letterSpacing: 0.5,
               ),
             ),
@@ -455,8 +455,8 @@ class OrderDetailsNotesCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       color: hasNotes
-                          ? const Color(0xFF1F2937)
-                          : const Color(0xFF9CA3AF),
+                          ? AppTheme.textPrimary
+                          : AppTheme.muted,
                       height: 1.5,
                     ),
                   ),

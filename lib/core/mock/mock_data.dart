@@ -837,6 +837,12 @@ class MockDataService {
     }
   }
 
+  /// Maps the demo stall account's uid/stallId ('stall holder-001') to the
+  /// mock catalog vendor id ('v1') that keys its reviews and profile.
+  static String resolveMockVendorId(String stallIdOrUid) {
+    return stallIdOrUid == 'stall holder-001' ? 'v1' : stallIdOrUid;
+  }
+
   static void addReview(Map<String, dynamic> review) {
     reviews.add(review);
   }

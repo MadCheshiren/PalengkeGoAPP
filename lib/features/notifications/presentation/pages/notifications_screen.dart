@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/services/notification_service.dart';
 import 'package:palengkego/core/services/app_services.dart';
@@ -218,7 +219,7 @@ class _EmptyNotifications extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             'New order updates will appear here.',
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -294,7 +295,7 @@ class _NotificationCard extends ConsumerWidget {
                                 ? FontWeight.w500
                                 : FontWeight.w700,
                             color: isRead
-                                ? const Color(0xFF6B7280)
+                                ? AppTheme.textSecondary
                                 : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
@@ -321,7 +322,7 @@ class _NotificationCard extends ConsumerWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
-                          ? const Color(0xFF9CA3AF)
+                          ? AppTheme.muted
                           : const Color(0xFF1A5C45),
                       height: 1.45,
                     ),
@@ -347,7 +348,7 @@ class _NotificationCard extends ConsumerWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: isRead
-                            ? const Color(0xFF9CA3AF)
+                            ? AppTheme.muted
                             : const Color(0xFF0B7A50),
                       ),
                     ),
@@ -432,12 +433,12 @@ class _NotificationCard extends ConsumerWidget {
                       // Recipe Image
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
+                        child: AdaptiveImage(
                           recipe.imageUrl,
                           width: 70,
                           height: 70,
                           fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) => Container(
+                          placeholder: Container(
                             width: 70,
                             height: 70,
                             color: const Color(0xFFCBD5E1),
@@ -483,7 +484,7 @@ class _NotificationCard extends ConsumerWidget {
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 2),

@@ -355,7 +355,7 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
                         child: const Icon(
                           Icons.close_rounded,
                           size: 16,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ),
@@ -378,7 +378,7 @@ class _OrderTraySheetState extends ConsumerState<_OrderTraySheet> {
                             'All orders completed.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF9CA3AF),
+                              color: AppTheme.muted,
                             ),
                           ),
                         ),
@@ -506,7 +506,7 @@ class _OrderTrayRow extends StatelessWidget {
                   '${order.items.length} item${order.items.length == 1 ? '' : 's'} · ${order.statusLabel}',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -576,7 +576,7 @@ class _OrderTrayRow extends StatelessWidget {
       OrderStatus.preparing => const Color(0xFF8B5CF6),
       OrderStatus.ready => const Color(0xFF059669),
       OrderStatus.outForDelivery => const Color(0xFF059669),
-      OrderStatus.completed => const Color(0xFF6B7280),
+      OrderStatus.completed => AppTheme.textSecondary,
       OrderStatus.cancelled => const Color(0xFFEF4444),
       OrderStatus.rejected => const Color(0xFFEF4444),
     };

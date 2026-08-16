@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
 class RecipeHeroCard extends StatelessWidget {
@@ -15,12 +16,12 @@ class RecipeHeroCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.network(
+            child: AdaptiveImage(
               recipe.imageUrl,
               height: 280,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
+              placeholder: Container(
                 height: 280,
                 color: AppTheme.border,
                 child: const Icon(Icons.image, size: 60, color: AppTheme.muted),

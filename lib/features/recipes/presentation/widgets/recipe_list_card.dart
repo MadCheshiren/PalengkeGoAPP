@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
@@ -12,8 +14,9 @@ class RecipeListCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final savedRecipes = ref.watch(savedRecipesProvider);
-    final isSaved = savedRecipes.any((r) => r.title == recipe.title);
+    final savedRecipes =
+        ref.watch(savedRecipesProvider).value ?? const <Recipe>[];
+    final isSaved = savedRecipes.any((r) => r.id == recipe.id);
 
     return GestureDetector(
       onTap: onTap,
@@ -34,40 +37,23 @@ class RecipeListCard extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
+              child: AdaptiveImage(
                 recipe.imageUrl,
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    color: recipe.backgroundColor,
-                    child: const Center(
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 24,
-                        color: Color(0xFF9CA3AF),
-                      ),
+                placeholder: Container(
+                  width: 80,
+                  height: 80,
+                  color: recipe.backgroundColor,
+                  child: const Center(
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 24,
+                      color: AppTheme.muted,
                     ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    color: recipe.backgroundColor,
-                    child: const Center(
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 24,
-                        color: Color(0xFF9CA3AF),
-                      ),
-                    ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -80,7 +66,7 @@ class RecipeListCard extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -89,7 +75,7 @@ class RecipeListCard extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -98,7 +84,7 @@ class RecipeListCard extends ConsumerWidget {
                       const Icon(
                         Icons.access_time_rounded,
                         size: 14,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -106,14 +92,14 @@ class RecipeListCard extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 12),
                       const Icon(
                         Icons.bar_chart_rounded,
                         size: 14,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -121,7 +107,7 @@ class RecipeListCard extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -136,7 +122,7 @@ class RecipeListCard extends ConsumerWidget {
                     : Icons.favorite_border_rounded,
                 color: isSaved
                     ? const Color(0xFFEF4444)
-                    : const Color(0xFF9CA3AF),
+                    : AppTheme.muted,
                 size: 20,
               ),
               onPressed: () {
@@ -163,7 +149,7 @@ class RecipeListCard extends ConsumerWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: Color(0xFF9CA3AF),
+              color: AppTheme.muted,
             ),
           ],
         ),

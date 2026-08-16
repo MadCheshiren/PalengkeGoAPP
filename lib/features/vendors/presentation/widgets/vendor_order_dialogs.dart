@@ -28,7 +28,7 @@ Future<void> showVendorCancelOrderDialog(
         children: [
           const Text(
             'Please provide a reason to the customer (e.g., out of stock):',
-            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -49,7 +49,7 @@ Future<void> showVendorCancelOrderDialog(
           onPressed: () => Navigator.pop(ctx),
           child: const Text(
             'Go Back',
-            style: TextStyle(color: Color(0xFF6B7280)),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ),
         ElevatedButton(

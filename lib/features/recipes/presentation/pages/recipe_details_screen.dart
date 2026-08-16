@@ -41,8 +41,9 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
     }
 
     final recipeObject = widget.recipe;
-    final savedRecipes = ref.watch(savedRecipesProvider);
-    final isSaved = savedRecipes.any((r) => r.title == recipeObject.title);
+    final savedRecipes =
+        ref.watch(savedRecipesProvider).value ?? const <Recipe>[];
+    final isSaved = savedRecipes.any((r) => r.id == recipeObject.id);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final hasIngredients =
         recipeObject.ingredients != null &&
@@ -200,7 +201,7 @@ class _RecipeDetailsScreenState extends ConsumerState<RecipeDetailsScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),

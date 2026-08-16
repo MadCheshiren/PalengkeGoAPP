@@ -141,7 +141,7 @@ class CheckoutPickupCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -184,7 +184,7 @@ class CheckoutReadyTimeCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                     letterSpacing: 0.6,
                   ),
                 ),

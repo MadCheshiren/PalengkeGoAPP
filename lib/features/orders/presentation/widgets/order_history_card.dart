@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import '../../domain/market_order.dart';
 import '../../domain/order_status.dart';
 
@@ -50,12 +51,12 @@ class OrderHistoryCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
+                  child: AdaptiveImage(
                     order.vendorImage,
                     width: 40,
                     height: 40,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
+                    placeholder: Container(
                       width: 40,
                       height: 40,
                       color: const Color(0xFFE7ECE9),

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/mock/mock_data.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/vendors/application/vendor_provider.dart';
 import 'package:palengkego/features/vendors/domain/vendor_review.dart';
@@ -71,7 +72,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                   child: const Icon(
                     Icons.close_rounded,
                     size: 24,
-                    color: Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ),
@@ -100,7 +101,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
-                  color: Color(0xFF6B7280),
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -134,7 +135,7 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                 maxLines: 4,
                 decoration: appInputDecoration(
                   hintText: 'Share more details about your experience...',
-                  hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                  hintStyle: const TextStyle(color: AppTheme.muted),
                   fillColor: const Color(0xFFF9FAFB),
                   borderColor: const Color(0xFFE5E7EB),
                 ),
@@ -164,8 +165,8 @@ class _RatingModalState extends ConsumerState<RatingModal> {
                         return;
                       }
 
-                      final vendorId = vr.stallNameToId(
-                        widget.order.vendorName,
+                      final vendorId = MockDataService.resolveMockVendorId(
+                        widget.order.stallId ?? '',
                       );
                       if (kDebugMode) {
                         debugPrint('RatingModal: Resolved vendorId: $vendorId');

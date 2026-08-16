@@ -10,6 +10,7 @@ import 'package:palengkego/features/recipes/data/mock_recipe_repository.dart';
 import 'package:palengkego/features/recipes/data/recipe_repository.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 
+
 /// The audience this notification is aimed at.
 enum NotificationTarget { customer, vendor, both }
 
@@ -60,14 +61,27 @@ class AppNotification {
 class NotificationService extends ChangeNotifier {
   final FlutterLocalNotificationsPlugin? _localNotificationsPlugin;
 
-  NotificationService({bool isTest = false})
-    : _localNotificationsPlugin = isTest
-          ? null
-          : FlutterLocalNotificationsPlugin() {
-    if (_localNotificationsPlugin != null) {
-      _initLocalNotifications();
-    }
-  }
+  /// Recipe content source used for post-order recipe suggestions. Injected so
+  /// it follows the environment-selected backend (mock in dev, Supabase when
+  /// configured) instead of a hardcoded static.
+  final RecipeRepository recipeRepository;
+
+  /// Order book read when a completed order should unlock a recipe suggestion.
+  final SharedOrderStore orderStore;
+
+  NotificationService({
+    bool isTest = false,
+    RecipeRepository? recipeRepository,
+    SharedOrderStore? orderStore,
+  }) : recipeRepository = recipeRepository ?? MockRecipeRepository(),
+       orderStore = orderStore ?? SharedOrderStore(),
+       _localNotificationsPlugin = isTest
+             ? null
+             : FlutterLocalNotificationsPlugin() {
+         if (_localNotificationsPlugin != null) {
+           _initLocalNotifications();
+         }
+       }
 
   Future<void> _initLocalNotifications() async {
     const androidSettings = AndroidInitializationSettings(
@@ -112,44 +126,9 @@ class NotificationService extends ChangeNotifier {
     );
   }
 
-  final List<AppNotification> _notifications = [
-    AppNotification(
-      id: 'seed-1',
-      type: NotificationType.promo,
-      target: NotificationTarget.customer,
-      title: 'Organic Week!',
-      body:
-          '20% off on all leafy greens across the market. Valid until Sunday.',
-      createdAt: DateTime(2026, 7, 7, 10, 0),
-    ),
-    AppNotification(
-      id: 'seed-2',
-      type: NotificationType.promo,
-      target: NotificationTarget.customer,
-      title: 'Flash Sale on Seafood!',
-      body: '50% off on all seafood until 6 PM today. Stocks limited!',
-      createdAt: DateTime(2026, 7, 5, 14, 0),
-    ),
-    AppNotification(
-      id: 'seed-v1',
-      type: NotificationType.review,
-      target: NotificationTarget.vendor,
-      title: 'New 5-Star Rating!',
-      body:
-          'Ricardo D. left a review: "Super fresh tilapia and fast preparation. Will buy again!"',
-      createdAt: DateTime(2026, 7, 8, 8, 0),
-    ),
-    AppNotification(
-      id: 'seed-v2',
-      type: NotificationType.admin,
-      target: NotificationTarget.vendor,
-      title: 'Market Maintenance Notice',
-      body:
-          'The Wet Market section will undergo sanitization this Sunday from 8 PM to 11 PM.',
-      createdAt: DateTime(2026, 7, 7, 9, 0),
-      isRead: true,
-    ),
-  ];
+  /// In-app notifications. Starts empty — real notifications arrive from
+  /// [addNotification] / [onOrderStatusChanged]; no demo data in production code.
+  final List<AppNotification> _notifications = [];
 
   List<AppNotification> get all {
     final sorted = List<AppNotification>.from(_notifications);
@@ -287,19 +266,15 @@ class NotificationService extends ChangeNotifier {
     }
 
     if (newStatus == OrderStatus.completed) {
-      final ordIndex = SharedOrderStore.orders.indexWhere(
+      final ordIndex = orderStore.orders.indexWhere(
         (o) => o.id == orderId,
       );
       if (ordIndex != -1) {
-        final order = SharedOrderStore.orders[ordIndex];
+        final order = orderStore.orders[ordIndex];
         unawaited(_suggestNewRecipe(order.items, order.vendorName));
       }
     }
   }
-
-  /// Active recipe content source. The app root wires this to the
-  /// environment-selected repository (mock in dev, Supabase when configured).
-  static RecipeRepository recipeRepository = MockRecipeRepository();
 
   Future<void> _suggestNewRecipe(
     List<OrderLineItem> items,

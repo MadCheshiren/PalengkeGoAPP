@@ -10,26 +10,51 @@ import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
 import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
+import 'package:palengkego/features/profile/application/preferences_provider.dart';
 import 'package:palengkego/features/profile/application/profile_provider.dart';
 
-/// State + order placement logic for the checkout screen.
-class CheckoutController extends ChangeNotifier {
-  CheckoutController({required this.ref});
+/// Mutable checkout form state.
+class CheckoutState {
+  const CheckoutState({
+    this.deliveryMethod = 0, // 0 = Delivery, 1 = Pick-Up
+    this.isPriority = false,
+    this.placingOrder = false,
+  });
 
-  final WidgetRef ref;
+  final int deliveryMethod;
+  final bool isPriority;
+  final bool placingOrder;
 
-  int _deliveryMethod = 0; // 0 = Delivery, 1 = Pick-Up
-  bool _isPriority = false;
-  final Map<String, TextEditingController> _vendorNotesControllers = {};
-  bool _placingOrder = false;
-  bool _disposed = false;
-
-  int get deliveryMethod => _deliveryMethod;
-  bool get isPriority => _isPriority;
-  bool get placingOrder => _placingOrder;
+  CheckoutState copyWith({
+    int? deliveryMethod,
+    bool? isPriority,
+    bool? placingOrder,
+  }) {
+    return CheckoutState(
+      deliveryMethod: deliveryMethod ?? this.deliveryMethod,
+      isPriority: isPriority ?? this.isPriority,
+      placingOrder: placingOrder ?? this.placingOrder,
+    );
+  }
 
   double get priorityFee {
-    return (_deliveryMethod == 0 && _isPriority) ? FeeConfig.priorityFee : 0.0;
+    return (deliveryMethod == 0 && isPriority) ? FeeConfig.priorityFee : 0.0;
+  }
+}
+
+/// State + order placement logic for the checkout screen.
+class CheckoutController extends Notifier<CheckoutState> {
+  final Map<String, TextEditingController> _vendorNotesControllers = {};
+
+  @override
+  CheckoutState build() {
+    ref.onDispose(() {
+      for (final controller in _vendorNotesControllers.values) {
+        controller.dispose();
+      }
+      _vendorNotesControllers.clear();
+    });
+    return const CheckoutState();
   }
 
   TextEditingController notesControllerFor(String vendorName) {
@@ -40,13 +65,11 @@ class CheckoutController extends ChangeNotifier {
   }
 
   void setDeliveryMethod(int value) {
-    _deliveryMethod = value;
-    _notify();
+    state = state.copyWith(deliveryMethod: value);
   }
 
   void setPriority(bool value) {
-    _isPriority = value;
-    _notify();
+    state = state.copyWith(isPriority: value);
   }
 
   /// Groups the selected items by vendor and places the orders.
@@ -54,8 +77,7 @@ class CheckoutController extends ChangeNotifier {
   Future<List<MarketOrder>?> placeOrder({
     required List<CartItem> selectedItems,
   }) async {
-    _placingOrder = true;
-    _notify();
+    state = state.copyWith(placingOrder: true);
 
     final Map<String, String> vendorNotes = {};
     for (final entry in _vendorNotesControllers.entries) {
@@ -68,6 +90,21 @@ class CheckoutController extends ChangeNotifier {
     final profile = ref.read(currentProfileProvider).value;
     final customerName = profile?.displayName ?? 'Customer';
     final customerUid = ref.read(authProvider)?.uid ?? '';
+    final paymentMethod = ref.read(preferencesProvider).paymentMethod;
+
+    // Preferred address comes from customer preferences; fall back to the
+    // profile's saved default, then a sensible placeholder.
+    final isPickup = state.deliveryMethod == 1;
+    final userAddress =
+        ref.read(preferencesProvider).deliveryAddress.fullAddress;
+    final profileAddress = profile?.defaultAddress?.fullAddress;
+    final deliveryAddress = isPickup
+        ? null
+        : (userAddress.isNotEmpty
+            ? userAddress
+            : (profileAddress?.isNotEmpty == true
+                ? profileAddress!
+                : 'San Felipe, Naga City'));
 
     try {
       final Map<String, (String, List<OrderLineItem>)> groupedItems = {};
@@ -92,12 +129,14 @@ class CheckoutController extends ChangeNotifier {
           .read(orderRepositoryProvider)
           .placeOrders(
             groupedItems: groupedItems,
-            isPickup: _deliveryMethod == 1,
+            isPickup: isPickup,
             vendorNotes: vendorNotes.isNotEmpty ? vendorNotes : null,
             customerName: customerName,
             customerUid: customerUid,
-            isPriority: _deliveryMethod == 0 && _isPriority,
-            priorityFee: priorityFee,
+            deliveryAddress: deliveryAddress,
+            isPriority: !isPickup && state.isPriority,
+            priorityFee: state.priorityFee,
+            paymentMethod: paymentMethod,
           );
 
       ref.read(orderServiceProvider.notifier).refresh();
@@ -114,23 +153,12 @@ class CheckoutController extends ChangeNotifier {
       );
       return null;
     } finally {
-      _placingOrder = false;
-      _notify();
+      if (ref.mounted) {
+        state = state.copyWith(placingOrder: false);
+      }
     }
-  }
-
-  void _notify() {
-    if (!_disposed) {
-      notifyListeners();
-    }
-  }
-
-  @override
-  void dispose() {
-    _disposed = true;
-    for (final controller in _vendorNotesControllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
   }
 }
+
+final checkoutProvider =
+    NotifierProvider<CheckoutController, CheckoutState>(CheckoutController.new);

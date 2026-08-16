@@ -48,7 +48,6 @@ void main() {
   group('delivery / priority toggles', () {
     testWidgets('defaults to delivery with no priority fee', (tester) async {
       SharedPreferences.setMockInitialValues({});
-      late CheckoutController controller;
       final container = await containerWith(orders: _FakeOrderRepository());
       addTearDown(container.dispose);
 
@@ -58,15 +57,15 @@ void main() {
           child: MaterialApp(
             scaffoldMessengerKey: AppServices.scaffoldMessengerKey,
             home: Scaffold(
-              body: _ControllerHarness(onCreated: (c) => controller = c),
+              body: _ControllerHarness(onCreated: (_) {}),
             ),
           ),
         ),
       );
 
-      expect(controller.deliveryMethod, 0);
-      expect(controller.isPriority, isFalse);
-      expect(controller.priorityFee, 0.0);
+      expect(container.read(checkoutProvider).deliveryMethod, 0);
+      expect(container.read(checkoutProvider).isPriority, isFalse);
+      expect(container.read(checkoutProvider).priorityFee, 0.0);
     });
 
     testWidgets('pickup never charges the priority fee', (tester) async {
@@ -90,8 +89,8 @@ void main() {
       controller.setDeliveryMethod(1);
       controller.setPriority(true);
 
-      expect(controller.deliveryMethod, 1);
-      expect(controller.priorityFee, 0.0);
+      expect(container.read(checkoutProvider).deliveryMethod, 1);
+      expect(container.read(checkoutProvider).priorityFee, 0.0);
     });
 
     testWidgets('priority fee applies only for delivery', (tester) async {
@@ -113,13 +112,13 @@ void main() {
       );
 
       var notifications = 0;
-      controller.addListener(() => notifications++);
+      container.listen(checkoutProvider, (_, _) => notifications++);
 
       controller.setDeliveryMethod(0);
       controller.setPriority(true);
 
-      expect(controller.isPriority, isTrue);
-      expect(controller.priorityFee, FeeConfig.priorityFee);
+      expect(container.read(checkoutProvider).isPriority, isTrue);
+      expect(container.read(checkoutProvider).priorityFee, FeeConfig.priorityFee);
       expect(notifications, 2);
     });
   });
@@ -188,7 +187,7 @@ void main() {
       expect(call.isPriority, isTrue);
       expect(call.priorityFee, FeeConfig.priorityFee);
       expect(call.vendorNotes, {'Diosa Fruit Stand': 'No saging'});
-      expect(controller.placingOrder, isFalse);
+      expect(container.read(checkoutProvider).placingOrder, isFalse);
     });
 
     testWidgets('blank vendor notes are dropped from the placed order', (
@@ -249,7 +248,7 @@ void main() {
       final created = await controller.placeOrder(selectedItems: [cartItem]);
 
       expect(created, isNull);
-      expect(controller.placingOrder, isFalse);
+      expect(container.read(checkoutProvider).placingOrder, isFalse);
       await tester.pump();
       await tester.pump();
       expect(find.text('Mango is out of stock.'), findsOneWidget);
@@ -283,19 +282,11 @@ class _ControllerHarness extends ConsumerStatefulWidget {
 }
 
 class _ControllerHarnessState extends ConsumerState<_ControllerHarness> {
-  late final CheckoutController _controller;
-
   @override
   void initState() {
     super.initState();
-    _controller = CheckoutController(ref: ref);
-    widget.onCreated(_controller);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+    // The notifier is provider-owned; the harness merely surfaces it to the test.
+    widget.onCreated(ref.read(checkoutProvider.notifier));
   }
 
   @override
@@ -339,6 +330,7 @@ class _FakeOrderRepository implements OrderRepository {
     String? deliveryAddress,
     bool isPriority = false,
     double priorityFee = 0.0,
+    String paymentMethod = 'cod',
   }) async {
     lastPlaceOrderCall = (
       isPickup: isPickup,

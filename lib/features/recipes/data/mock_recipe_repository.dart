@@ -5,6 +5,7 @@ import 'package:palengkego/features/recipes/domain/recipe.dart';
 class MockRecipeRepository implements RecipeRepository {
   static const _recipes = <Recipe>[
     Recipe(
+      id: 'sinigang-na-hipon',
       title: 'Sinigang na Hipon',
       category: 'Seafood',
       time: '30 min',
@@ -56,6 +57,7 @@ class MockRecipeRepository implements RecipeRepository {
       ],
     ),
     Recipe(
+      id: 'chicken-adobo',
       title: 'Chicken Adobo',
       category: 'Chicken',
       time: '45 min',
@@ -107,6 +109,7 @@ class MockRecipeRepository implements RecipeRepository {
       ],
     ),
     Recipe(
+      id: 'ginisang-ampalaya',
       title: 'Ginisang Ampalaya',
       category: 'Vegetables',
       time: '20 min',
@@ -150,6 +153,7 @@ class MockRecipeRepository implements RecipeRepository {
       ],
     ),
     Recipe(
+      id: 'pork-sinigang',
       title: 'Pork Sinigang',
       category: 'Pork',
       time: '60 min',
@@ -194,6 +198,7 @@ class MockRecipeRepository implements RecipeRepository {
       ],
     ),
     Recipe(
+      id: 'mango-sticky-rice',
       title: 'Mango Sticky Rice',
       category: 'Dessert',
       time: '25 min',
@@ -243,6 +248,7 @@ class MockRecipeRepository implements RecipeRepository {
       ],
     ),
     Recipe(
+      id: 'mango-graham-shake',
       title: 'Mango Graham Shake',
       category: 'Dessert',
       time: '10 min',
@@ -287,6 +293,7 @@ class MockRecipeRepository implements RecipeRepository {
       ],
     ),
     Recipe(
+      id: 'turon',
       title: 'Turon (Banana Spring Rolls)',
       category: 'Dessert',
       time: '20 min',

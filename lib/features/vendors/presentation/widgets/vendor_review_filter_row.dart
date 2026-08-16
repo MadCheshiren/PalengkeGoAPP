@@ -89,7 +89,7 @@ class VendorReviewFilterRow extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             color: isSelected
                                 ? Colors.white
-                                : const Color(0xFF6B7280),
+                                : AppTheme.textSecondary,
                           ),
                         ),
                       ),

@@ -314,7 +314,7 @@ class VendorAccountScreen extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -351,14 +351,14 @@ class VendorAccountScreen extends ConsumerWidget {
         ),
         content: const Text(
           'Are you sure you want to log out of your stall holder account?',
-          style: TextStyle(color: Color(0xFF6B7280)),
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Color(0xFF6B7280)),
+              style: TextStyle(color: AppTheme.textSecondary),
             ),
           ),
           ElevatedButton(

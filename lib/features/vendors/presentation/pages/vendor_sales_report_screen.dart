@@ -238,7 +238,7 @@ class _VendorSalesReportScreenState
                   dateFormat.format(order.placedAt),
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -253,7 +253,7 @@ class _VendorSalesReportScreenState
             const SizedBox(height: 8),
             const Text(
               'Items:',
-              style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
             Text(itemsStr, style: const TextStyle(fontSize: 14)),
             const Divider(height: 16),
@@ -290,7 +290,7 @@ class _VendorSalesReportScreenState
             width: 80,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
           ),
           Expanded(

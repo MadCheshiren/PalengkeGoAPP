@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:palengkego/core/utils/ingredient_noise_words.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
 
 class ManualPurchasedIngredientsNotifier extends Notifier<Set<String>> {
@@ -53,37 +54,6 @@ final purchasedIngredientsProvider = Provider<Set<String>>((ref) {
   return purchasedNames;
 });
 
-/// Noise words to ignore when checking ingredient purchases.
-const _noiseWords = <String>{
-  'fresh',
-  'sweet',
-  'large',
-  'medium',
-  'small',
-  'pack',
-  'can',
-  'bag',
-  'kg',
-  'g',
-  'ml',
-  'l',
-  'pcs',
-  'piece',
-  'pieces',
-  'tbsp',
-  'tsp',
-  'cup',
-  'cups',
-  'sliced',
-  'crushed',
-  'whole',
-  'with',
-  'and',
-  'sa',
-  'na',
-  'mix',
-};
-
 /// Generic helper to test whether a recipe ingredient is purchased.
 /// Uses strict word boundary token matching to prevent false positives (e.g. "Beef Pares Rice" matching "Ice").
 bool isIngredientPurchased(String ingredientName, Set<String> purchasedItems) {
@@ -98,7 +68,7 @@ bool isIngredientPurchased(String ingredientName, Set<String> purchasedItems) {
 
   final ingTokens = ingClean
       .split(RegExp(r'\s+'))
-      .where((t) => t.isNotEmpty && !_noiseWords.contains(t))
+      .where((t) => t.isNotEmpty && !ingredientNoiseWords.contains(t))
       .toList();
 
   final queryTokens = ingTokens.isNotEmpty

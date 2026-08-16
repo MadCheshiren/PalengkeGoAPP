@@ -207,7 +207,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF9CA3AF),
+                            color: AppTheme.muted,
                           ),
                         ),
                       ),
@@ -383,7 +383,7 @@ class _VendorEarningsScreenState extends ConsumerState<VendorEarningsScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF6B7280),
+            color: isSelected ? Colors.white : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -593,7 +593,7 @@ class _AnimatedBarChartState extends State<_AnimatedBarChart>
                             : FontWeight.w400,
                         color: isHighlighted
                             ? AppTheme.primaryGreen
-                            : const Color(0xFF9CA3AF),
+                            : AppTheme.muted,
                       ),
                     ),
                   ],

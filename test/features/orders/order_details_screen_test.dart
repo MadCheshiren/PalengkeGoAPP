@@ -52,10 +52,12 @@ Widget _buildWidget(ProviderContainer container, MarketOrder order) {
   );
 }
 
-ProviderContainer _buildContainer() {
+ProviderContainer _buildContainer({SharedOrderStore? store}) {
   final container = ProviderContainer(
     overrides: [
-      orderRepositoryProvider.overrideWithValue(MockOrderRepository()),
+      orderRepositoryProvider.overrideWithValue(
+        MockOrderRepository(store: store),
+      ),
       authProvider.overrideWith(_TestAuthNotifier.new),
     ],
   );
@@ -72,17 +74,13 @@ void main() {
     FlutterSecureStorage.setMockInitialValues({});
   });
 
-  setUp(() {
-    SharedOrderStore.orders.clear();
-    SharedOrderStore.history.clear();
-  });
-
   group('OrderDetailsScreen', () {
     testWidgets('cancel confirmation updates the order status to cancelled', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await tester.pumpWidget(_buildWidget(container, _order('#1')));
       await tester.pumpAndSettle();
@@ -112,8 +110,9 @@ void main() {
     testWidgets('declining the cancel dialog keeps the order pending', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await tester.pumpWidget(_buildWidget(container, _order('#1')));
       await tester.pumpAndSettle();
@@ -139,8 +138,9 @@ void main() {
     testWidgets('status timeline follows live vendor status updates', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await tester.pumpWidget(_buildWidget(container, _order('#1')));
       await tester.pumpAndSettle();

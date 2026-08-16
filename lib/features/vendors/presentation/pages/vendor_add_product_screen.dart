@@ -271,7 +271,7 @@ class _VendorAddProductScreenState
                                 'Available for customers to buy',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF9CA3AF),
+                                  color: AppTheme.muted,
                                 ),
                               ),
                             ],
@@ -297,7 +297,7 @@ class _VendorAddProductScreenState
                           onPressed: c.isSaving ? null : _saveProduct,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryGreen,
-                            disabledBackgroundColor: const Color(0xFF9CA3AF),
+                            disabledBackgroundColor: AppTheme.muted,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),

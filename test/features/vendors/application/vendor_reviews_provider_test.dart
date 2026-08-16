@@ -36,7 +36,7 @@ class _VendorAuthNotifier extends AuthNotifier {
   @override
   AppUser? build() {
     return const AppUser(
-      uid: 'vendor-user',
+      uid: 'stall holder-001', // mock demo vendor account
       email: 'vendor@example.com',
       displayName: 'Diosa Fruit Stand',
       role: UserRole.vendor,

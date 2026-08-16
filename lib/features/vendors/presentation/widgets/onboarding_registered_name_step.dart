@@ -1,3 +1,4 @@
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:palengkego/core/widgets/app_text_field.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +44,7 @@ class OnboardingRegisteredNameStep extends StatelessWidget {
           style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
           decoration: appInputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+            hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
             fillColor: const Color(0xFFF3F4F6),
             borderless: true,
             contentPadding: const EdgeInsets.symmetric(

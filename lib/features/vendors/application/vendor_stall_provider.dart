@@ -15,8 +15,13 @@ import 'package:palengkego/features/vendors/domain/day_schedule.dart';
 class VendorStallNotifier extends Notifier<VendorStall> {
   Timer? _scheduleTimer;
 
+  /// Set when the user mutates the stall before the async initial fetch
+  /// resolves, so the fetch can never clobber their change.
+  bool _userMutated = false;
+
   @override
   VendorStall build() {
+    _userMutated = false;
     final user = ref.watch(authProvider);
     final isVendor = user != null && user.isVendor;
     final initialStall = VendorStall(
@@ -35,7 +40,7 @@ class VendorStallNotifier extends Notifier<VendorStall> {
       try {
         final repo = ref.read(vendorRepositoryProvider);
         final stall = await repo.getVendorStall(initialStall.stallId);
-        if (state.stallId == stall.stallId) {
+        if (!_userMutated && state.stallId == stall.stallId) {
           // Evaluate schedule against current time on load
           final computedIsOpen = stall.schedule.isEmpty
               ? stall.isOpen
@@ -100,6 +105,7 @@ class VendorStallNotifier extends Notifier<VendorStall> {
     bool? isOpen,
     List<DaySchedule>? schedule,
   }) async {
+    _userMutated = true;
     final newSchedule = schedule ?? state.schedule;
     // If schedule is provided, re-evaluate isOpen from it
     final effectiveIsOpen = newSchedule.isNotEmpty
@@ -129,6 +135,7 @@ class VendorStallNotifier extends Notifier<VendorStall> {
   }
 
   Future<void> toggleOpen() async {
+    _userMutated = true;
     state = state.copyWith(isOpen: !state.isOpen);
     await ref.read(vendorRepositoryProvider).updateVendorStall(state);
     ref.invalidate(vendorProfileProvider);

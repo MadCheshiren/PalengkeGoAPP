@@ -109,7 +109,7 @@ class VendorLicenseStatusCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                       color: status == LicenseStatus.suspended
                           ? Colors.white
-                          : const Color(0xFF0F172A),
+                          : AppTheme.textPrimary,
                     ),
                   ),
                   if (activeRenewal != null &&
@@ -190,7 +190,7 @@ class VendorLicenseStatusCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            color: isDark ? Colors.white : AppTheme.textPrimary,
           ),
         ),
       ],

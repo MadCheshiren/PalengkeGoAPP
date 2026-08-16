@@ -83,7 +83,7 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                       child: const Icon(
                         Icons.close_rounded,
                         size: 20,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -95,7 +95,7 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
-                  color: Color(0xFF6B7280),
+                  color: AppTheme.textSecondary,
                 ),
               ),
               const SizedBox(height: 20),
@@ -159,7 +159,7 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                 decoration: appInputDecoration(
                   hintText: 'Add any additional details (optional)',
                   hintStyle: const TextStyle(
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                     fontSize: 14,
                   ),
                   fillColor: const Color(0xFFF9FAFB),
@@ -186,7 +186,7 @@ class _FlagVendorBottomSheetState extends State<FlagVendorBottomSheet> {
                     backgroundColor: AppTheme.primaryGreen,
                     disabledBackgroundColor: const Color(0xFFE5E7EB),
                     foregroundColor: Colors.white,
-                    disabledForegroundColor: const Color(0xFF9CA3AF),
+                    disabledForegroundColor: AppTheme.muted,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

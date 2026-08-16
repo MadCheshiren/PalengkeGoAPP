@@ -10,8 +10,9 @@ import 'package:palengkego/features/recipes/domain/recipe.dart';
 /// Supabase mode (URL + anon key supplied) reads the public `recipes` table;
 /// dev/test/mock mode serves [MockRecipeRepository].
 final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
-  if (ref.watch(supabaseConfiguredProvider)) {
-    return SupabaseRecipeRepository(ref.watch(supabaseClientProvider));
+  final client = ref.watch(supabaseClientProvider);
+  if (client != null) {
+    return SupabaseRecipeRepository(client);
   }
   return MockRecipeRepository();
 });

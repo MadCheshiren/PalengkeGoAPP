@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
@@ -30,7 +31,7 @@ class RecipeIngredientsList extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(width: 12),
@@ -142,7 +143,7 @@ class RecipeIngredientsList extends StatelessWidget {
                                             fontWeight: FontWeight.w700,
                                             color: isChecked
                                                 ? AppTheme.primaryGreen
-                                                : const Color(0xFF1F2937),
+                                                : AppTheme.textPrimary,
                                             decoration: isChecked
                                                 ? TextDecoration.lineThrough
                                                 : null,
@@ -195,7 +196,7 @@ class RecipeIngredientsList extends StatelessWidget {
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w400,
-                                        color: Color(0xFF9CA3AF),
+                                        color: AppTheme.muted,
                                       ),
                                     ),
                                   ],
@@ -207,22 +208,22 @@ class RecipeIngredientsList extends StatelessWidget {
                               const SizedBox(width: 10),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageUrl,
+                              child: AdaptiveImage(
+                                imageUrl,
+                                width: 44,
+                                height: 44,
+                                fit: BoxFit.cover,
+                                placeholder: Container(
                                   width: 44,
                                   height: 44,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => Container(
-                                    width: 44,
-                                    height: 44,
-                                    color: AppTheme.surfaceContainerLow,
-                                    child: const Icon(
-                                      Icons.image,
-                                      size: 18,
-                                      color: Color(0xFFCBD5E1),
-                                    ),
+                                  color: AppTheme.surfaceContainerLow,
+                                  child: const Icon(
+                                    Icons.image,
+                                    size: 18,
+                                    color: Color(0xFFCBD5E1),
                                   ),
                                 ),
+                              ),
                               ),
                             ],
                           ],

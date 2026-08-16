@@ -15,6 +15,7 @@ void main() {
       expect(config.supabaseUrl, isEmpty);
       expect(config.supabaseAnonKey, isEmpty);
       expect(config.paymongoPublicKey, 'pk_test_placeholder');
+      expect(config.paymongoBackendUrl, isEmpty);
       expect(config.validate(), isNull);
     });
   });

@@ -12,12 +12,10 @@ import 'core/navigation/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/responsive_wrapper.dart';
 import 'core/services/app_services.dart';
-import 'core/services/notification_service.dart';
 import 'core/services/preferences_provider.dart';
 import 'core/presentation/pages/startup_error_screen.dart';
 import 'core/infrastructure/firebase_service.dart';
 import 'core/infrastructure/supabase_service.dart';
-import 'features/recipes/application/recipe_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,7 +117,10 @@ Future<void> main() async {
     return;
   }
 
-  await SharedOrderStore.load();
+  // Pre-load the order store so the mock order book survives restarts, then
+  // inject it through Riverpod instead of a global static.
+  final orderStore = SharedOrderStore();
+  await orderStore.load();
 
   runApp(
     ProviderScope(
@@ -127,6 +128,7 @@ Future<void> main() async {
         // Inject the pre-initialized instance so all notifiers can access
         // SharedPreferences synchronously in their build() methods.
         sharedPreferencesProvider.overrideWithValue(prefs),
+        orderStoreProvider.overrideWithValue(orderStore),
       ],
       child: const PalengkeGoApp(),
     ),
@@ -138,9 +140,6 @@ class PalengkeGoApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Recipe suggestions follow the environment-selected content source.
-    NotificationService.recipeRepository = ref.watch(recipeRepositoryProvider);
-
     return MaterialApp(
       title: 'PalengkeGo',
       debugShowCheckedModeBanner: false,

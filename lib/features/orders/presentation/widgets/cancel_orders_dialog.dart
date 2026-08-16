@@ -119,7 +119,7 @@ class _CancelOrdersDialogState extends State<CancelOrdersDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: Color(0xFF6B7280)),
+            style: TextStyle(color: AppTheme.textSecondary),
           ),
         ),
         ElevatedButton(

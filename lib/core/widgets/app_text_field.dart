@@ -200,7 +200,9 @@ class AppTextField extends StatelessWidget {
       autovalidateMode: autovalidateMode,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
-      maxLines: maxLines,
+      // Flutter asserts that obscured fields are single-line; a null maxLines
+      // slips past that check, so coerce obscured fields to exactly one line.
+      maxLines: obscureText ? 1 : maxLines,
       textAlign: textAlign,
       textCapitalization: textCapitalization,
       style: style,

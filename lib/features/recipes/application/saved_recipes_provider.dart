@@ -3,45 +3,62 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:palengkego/features/recipes/domain/recipe.dart';
 import 'package:palengkego/features/recipes/application/recipe_provider.dart';
 
-class SavedRecipesNotifier extends Notifier<List<Recipe>> {
-  static const _key = 'saved_recipes_titles';
+class SavedRecipesNotifier extends AsyncNotifier<List<Recipe>> {
+  static const _key = 'saved_recipes_ids';
+  static const _legacyTitlesKey = 'saved_recipes_titles';
 
   @override
-  List<Recipe> build() {
-    _init();
-    return [];
-  }
-
-  Future<void> _init() async {
+  Future<List<Recipe>> build() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedTitles = prefs.getStringList(_key) ?? [];
-    if (savedTitles.isNotEmpty) {
+    final savedIds = prefs.getStringList(_key) ?? [];
+    if (savedIds.isNotEmpty) {
       final allRecipes = await ref.read(recipeRepositoryProvider).getRecipes();
-      state = allRecipes.where((r) => savedTitles.contains(r.title)).toList();
+      final restored = allRecipes
+          .where((r) => savedIds.contains(r.id))
+          .toList();
+      // Drop ids that no longer resolve to a recipe.
+      if (restored.length != savedIds.length) {
+        await _save(restored);
+      }
+      return restored;
     }
+
+    // One-time migration from the legacy title-based key.
+    final legacyTitles = prefs.getStringList(_legacyTitlesKey) ?? [];
+    if (legacyTitles.isNotEmpty) {
+      final allRecipes = await ref.read(recipeRepositoryProvider).getRecipes();
+      final migrated = allRecipes
+          .where((r) => legacyTitles.contains(r.title))
+          .toList();
+      await _save(migrated);
+      await prefs.remove(_legacyTitlesKey);
+      return migrated;
+    }
+
+    return [];
   }
 
   Future<void> _save(List<Recipe> recipes) async {
     final prefs = await SharedPreferences.getInstance();
-    final titles = recipes.map((r) => r.title).toList();
-    await prefs.setStringList(_key, titles);
+    await prefs.setStringList(_key, recipes.map((r) => r.id).toList());
   }
 
   bool isSaved(Recipe recipe) {
-    return state.any((r) => r.title == recipe.title);
+    return (state.value ?? const []).any((r) => r.id == recipe.id);
   }
 
   void toggleSave(Recipe recipe) {
+    final current = state.value ?? const <Recipe>[];
     if (isSaved(recipe)) {
-      state = state.where((r) => r.title != recipe.title).toList();
+      state = AsyncData(current.where((r) => r.id != recipe.id).toList());
     } else {
-      state = [...state, recipe];
+      state = AsyncData([...current, recipe]);
     }
-    _save(state);
+    _save(state.value ?? const []);
   }
 }
 
 final savedRecipesProvider =
-    NotifierProvider<SavedRecipesNotifier, List<Recipe>>(() {
-      return SavedRecipesNotifier();
-    });
+    AsyncNotifierProvider<SavedRecipesNotifier, List<Recipe>>(
+      SavedRecipesNotifier.new,
+    );

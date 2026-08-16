@@ -1,6 +1,7 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:palengkego/core/widgets/async_view.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/widgets/empty_state.dart';
@@ -67,12 +68,12 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
+                        child: AdaptiveImage(
                           item.product.imageUrl,
                           width: 64,
                           height: 64,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
+                          placeholder: Container(
                             width: 64,
                             height: 64,
                             color: AppTheme.surfaceContainerLow,
@@ -93,7 +94,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -147,7 +148,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                                   ? () => setModalState(() => quantity--)
                                   : null,
                               icon: const Icon(Icons.remove, size: 18),
-                              color: const Color(0xFF0F172A),
+                              color: AppTheme.textPrimary,
                             ),
                             Text(
                               '$quantity',
@@ -266,7 +267,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -276,7 +277,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
           ),
         ),
         actions: [
@@ -286,7 +287,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(
                   Icons.shopping_cart_outlined,
-                  color: Color(0xFF0F172A),
+                  color: AppTheme.textPrimary,
                 ),
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.cart),
               ),

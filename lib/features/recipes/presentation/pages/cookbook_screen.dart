@@ -1,5 +1,6 @@
 import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/presentation/widgets/adaptive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/utils/page_transitions.dart';
 import 'package:palengkego/features/recipes/application/saved_recipes_provider.dart';
@@ -11,7 +12,8 @@ class CookbookScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final savedRecipes = ref.watch(savedRecipesProvider);
+    final savedRecipes =
+        ref.watch(savedRecipesProvider).value ?? const <Recipe>[];
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     return PopScope(
@@ -19,7 +21,7 @@ class CookbookScreen extends ConsumerWidget {
         scaffoldMessenger.clearSnackBars();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF9FAFB),
+        backgroundColor: AppTheme.scaffoldBackground,
         body: SafeArea(
           child: Column(
             children: [
@@ -146,7 +148,7 @@ class CookbookScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -156,7 +158,7 @@ class CookbookScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: Color(0xFF6B7280),
+                color: AppTheme.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -228,25 +230,23 @@ class CookbookScreen extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
+              child: AdaptiveImage(
                 recipe.imageUrl,
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    color: recipe.backgroundColor,
-                    child: const Center(
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 24,
-                        color: Color(0xFF9CA3AF),
-                      ),
+                placeholder: Container(
+                  width: 80,
+                  height: 80,
+                  color: recipe.backgroundColor,
+                  child: const Center(
+                    child: Icon(
+                      Icons.restaurant,
+                      size: 24,
+                      color: AppTheme.muted,
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -259,7 +259,7 @@ class CookbookScreen extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -268,7 +268,7 @@ class CookbookScreen extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -277,7 +277,7 @@ class CookbookScreen extends ConsumerWidget {
                       const Icon(
                         Icons.access_time_rounded,
                         size: 14,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -285,14 +285,14 @@ class CookbookScreen extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 12),
                       const Icon(
                         Icons.bar_chart_rounded,
                         size: 14,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -300,7 +300,7 @@ class CookbookScreen extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],

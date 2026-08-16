@@ -8,6 +8,7 @@ abstract class OrderRepository {
   /// Place one or more orders from grouped line items.
   /// [groupedItems] maps vendor name -> (vendor image URL, line items).
   /// Returns the list of created orders.
+  /// [paymentMethod] is one of 'cod' | 'cop' | 'gcash' | 'paymaya' | 'card'.
   /// Throws [OrderFailureType.outOfStock] / [OrderFailureType.invalidQuantity]
   /// when a line item cannot be fulfilled exactly from on-hand stock.
   Future<List<MarketOrder>> placeOrders({
@@ -20,6 +21,7 @@ abstract class OrderRepository {
     String? deliveryAddress,
     bool isPriority = false,
     double priorityFee = 0.0,
+    String paymentMethod = 'cod',
   });
 
   /// All orders placed by a specific customer.

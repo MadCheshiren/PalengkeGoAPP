@@ -87,7 +87,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                           : 'Total Sales this month',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -134,7 +134,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF6B7280),
+            color: isSelected ? Colors.white : AppTheme.textSecondary,
           ),
         ),
       ),
@@ -171,7 +171,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
               const SizedBox(height: 8),
               Text(
                 labels[index],
-                style: const TextStyle(fontSize: 10, color: Color(0xFF9CA3AF)),
+                style: const TextStyle(fontSize: 10, color: AppTheme.muted),
               ),
             ],
           );
@@ -225,7 +225,7 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
                   sold,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],

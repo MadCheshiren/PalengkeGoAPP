@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/theme/app_theme.dart';
 
 /// Confirmation dialog before deleting a product. Returns true when confirmed.
 Future<bool?> showVendorProductDeleteDialog(
@@ -17,7 +18,7 @@ Future<bool?> showVendorProductDeleteDialog(
         'Are you sure you want to delete "$productName"? This will remove it from your inventory and the customer view immediately.',
         style: const TextStyle(
           fontSize: 14,
-          color: Color(0xFF6B7280),
+          color: AppTheme.textSecondary,
           height: 1.5,
         ),
       ),
@@ -28,7 +29,7 @@ Future<bool?> showVendorProductDeleteDialog(
             'Cancel',
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: Color(0xFF6B7280),
+              color: AppTheme.textSecondary,
             ),
           ),
         ),
