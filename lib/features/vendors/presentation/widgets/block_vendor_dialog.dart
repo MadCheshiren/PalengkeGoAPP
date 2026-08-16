@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/theme/app_theme.dart';
 
 /// A confirmation dialog that asks the user whether to block a vendor.
 ///
@@ -67,7 +68,7 @@ class BlockVendorDialog extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: Color(0xFF6B7280),
+                color: AppTheme.textSecondary,
                 height: 1.5,
               ),
             ),

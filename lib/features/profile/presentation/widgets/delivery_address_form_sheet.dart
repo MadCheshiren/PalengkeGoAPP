@@ -198,7 +198,7 @@ class _DeliveryAddressFormSheetState
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1F2937),
+                          color: AppTheme.textPrimary,
                         ),
                         onChanged: (val) {
                           setState(() {});

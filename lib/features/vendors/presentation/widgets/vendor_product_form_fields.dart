@@ -69,7 +69,7 @@ class VendorProductImagePicker extends StatelessWidget {
               const Text(
                 'Tap to select a photo of the product',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                style: TextStyle(fontSize: 12, color: AppTheme.muted),
               ),
             ],
             if (imageUrl.isNotEmpty) ...[
@@ -221,11 +221,11 @@ class VendorProductCategorySelector extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 color: selectedCategory.isEmpty
-                    ? const Color(0xFF9CA3AF)
+                    ? AppTheme.muted
                     : const Color(0xFF111827),
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down, color: Color(0xFF9CA3AF)),
+            const Icon(Icons.keyboard_arrow_down, color: AppTheme.muted),
           ],
         ),
       ),
@@ -327,7 +327,7 @@ class VendorProductTextField extends StatelessWidget {
         hintText: hint,
         prefixText: prefixText,
         suffixText: suffixText,
-        hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
         fillColor: AppTheme.surface,
         borderless: true,
         contentPadding: const EdgeInsets.symmetric(

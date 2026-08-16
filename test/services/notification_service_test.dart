@@ -8,45 +8,53 @@ void main() {
 
     setUp(() {
       service = NotificationService(isTest: true);
+      // Seed two notifications: one customer-visible, one vendor-only.
+      service.addNotification(
+        AppNotification(
+          id: 'seed-c',
+          type: NotificationType.promo,
+          target: NotificationTarget.customer,
+          title: 'Organic Week!',
+          body: '20% off leafy greens.',
+          createdAt: DateTime(2026, 7, 7, 10),
+        ),
+      );
+      service.addNotification(
+        AppNotification(
+          id: 'seed-v',
+          type: NotificationType.review,
+          target: NotificationTarget.vendor,
+          title: 'New 5-Star Rating!',
+          body: 'A customer left a review.',
+          createdAt: DateTime(2026, 7, 8, 8),
+        ),
+      );
     });
 
     tearDown(() {
       service.dispose();
     });
 
-    test('starts with seeded demo notifications', () {
-      // The service seeds demo data in the constructor
-      expect(service.all, isNotEmpty);
+    test('starts empty until notifications are added', () {
+      final fresh = NotificationService(isTest: true);
+      expect(fresh.all, isEmpty);
+      fresh.dispose();
     });
 
     test(
       'customerUnreadCount only counts customer/both-targeted notifications',
       () {
-        // All demo notifications should be either customer, vendor, or both.
-        // Just verify the count is a non-negative integer.
-        expect(service.customerUnreadCount, greaterThanOrEqualTo(0));
+        expect(service.customerUnreadCount, 1);
       },
     );
 
-    test(
-      'vendorUnreadCount only counts vendor/both-targeted notifications',
-      () {
-        expect(service.vendorUnreadCount, greaterThanOrEqualTo(0));
-      },
-    );
+    test('vendorUnreadCount only counts vendor/both-targeted notifications', () {
+      expect(service.vendorUnreadCount, 1);
+    });
 
     test('markAsRead reduces unread customer count', () {
-      // Find a customer-visible unread notification
-      final customerNotif = service.all.firstWhere(
-        (n) =>
-            !n.isRead &&
-            (n.target == NotificationTarget.customer ||
-                n.target == NotificationTarget.both),
-        orElse: () => throw StateError('No unread customer notification found'),
-      );
-
       final before = service.customerUnreadCount;
-      service.markRead(customerNotif.id);
+      service.markRead('seed-c');
       expect(service.customerUnreadCount, lessThan(before));
     });
 
@@ -89,8 +97,7 @@ void main() {
       var called = false;
       service.addListener(() => called = true);
 
-      final notif = service.all.first;
-      service.markRead(notif.id);
+      service.markRead('seed-c');
 
       expect(called, isTrue);
     });

@@ -20,6 +20,7 @@ abstract class MarketOrder with _$MarketOrder {
     @Default('Customer') String customerName,
     required OrderStatus status,
     required PaymentStatus paymentStatus,
+    @Default('cod') String paymentMethod,
     required FulfillmentMethod fulfillmentMethod,
     required DateTime placedAt,
     required List<OrderLineItem> items,

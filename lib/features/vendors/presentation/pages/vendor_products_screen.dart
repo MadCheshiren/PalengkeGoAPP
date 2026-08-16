@@ -349,7 +349,7 @@ class _VendorProductsScreenState extends ConsumerState<VendorProductsScreen> {
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF9CA3AF),
+                        color: AppTheme.muted,
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),

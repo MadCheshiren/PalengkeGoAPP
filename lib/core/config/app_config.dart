@@ -8,6 +8,7 @@ class AppConfig {
     this.supabaseUrl = '',
     this.supabaseAnonKey = '',
     this.paymongoPublicKey = 'pk_test_placeholder',
+    this.paymongoBackendUrl = '',
   });
 
   final AppEnvironment environment;
@@ -15,6 +16,11 @@ class AppConfig {
   final String supabaseUrl;
   final String supabaseAnonKey;
   final String paymongoPublicKey;
+
+  /// Server endpoint that creates PayMongo payment intents on the app's
+  /// behalf. Must point at a backend (Firebase Function / Supabase Edge
+  /// Function) — the PayMongo secret key never ships in the app.
+  final String paymongoBackendUrl;
 
   /// Loads configuration from compile-time arguments using `--dart-define`.
   /// Defaults are provided for local development if no flags are passed
@@ -39,6 +45,10 @@ class AppConfig {
       paymongoPublicKey: const String.fromEnvironment(
         'PAYMONGO_PUBLIC_KEY',
         defaultValue: 'pk_test_placeholder', // Placeholder
+      ),
+      paymongoBackendUrl: const String.fromEnvironment(
+        'PAYMONGO_BACKEND_URL',
+        defaultValue: '', // Unset until a payment backend exists
       ),
     );
   }

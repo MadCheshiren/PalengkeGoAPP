@@ -111,7 +111,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -147,7 +147,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1F2937),
+                                    color: AppTheme.textPrimary,
                                   ),
                                 ),
                               ],
@@ -250,7 +250,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF9CA3AF),
+            color: AppTheme.muted,
             letterSpacing: 0.5,
           ),
         ),
@@ -267,7 +267,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               hintStyle: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
               ),
               suffixIcon: IconButton(
                 icon: SvgPicture.asset(
@@ -277,7 +277,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                   width: 20,
                   height: 20,
                   colorFilter: const ColorFilter.mode(
-                    Color(0xFF9CA3AF),
+                    AppTheme.muted,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -294,7 +294,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1F2937),
+              color: AppTheme.textPrimary,
             ),
           ),
         ),

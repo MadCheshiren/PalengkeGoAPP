@@ -44,7 +44,7 @@ class _VendorLicenseRenewSheetState
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF0F172A),
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -69,7 +69,7 @@ class _VendorLicenseRenewSheetState
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF0F172A),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 Text(
@@ -90,7 +90,7 @@ class _VendorLicenseRenewSheetState
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -103,6 +103,15 @@ class _VendorLicenseRenewSheetState
             isSelected: _selectedPaymentMethod == 'paymongo_gcash',
             onTap: () =>
                 setState(() => _selectedPaymentMethod = 'paymongo_gcash'),
+          ),
+          const SizedBox(height: 8),
+          _buildPaymentOption(
+            id: 'paymongo_paymaya',
+            title: 'PayMaya (via PayMongo)',
+            icon: Icons.account_balance_wallet_rounded,
+            isSelected: _selectedPaymentMethod == 'paymongo_paymaya',
+            onTap: () =>
+                setState(() => _selectedPaymentMethod = 'paymongo_paymaya'),
           ),
           const SizedBox(height: 8),
           _buildPaymentOption(
@@ -121,7 +130,7 @@ class _VendorLicenseRenewSheetState
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
+              color: AppTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -282,7 +291,7 @@ class _VendorLicenseRenewSheetState
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppTheme.success : const Color(0xFF0F172A),
+                color: isSelected ? AppTheme.success : AppTheme.textPrimary,
               ),
             ),
             const Spacer(),

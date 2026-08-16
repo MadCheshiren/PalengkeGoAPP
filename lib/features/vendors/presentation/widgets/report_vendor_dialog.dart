@@ -43,7 +43,7 @@ class _ReportVendorDialogState extends State<ReportVendorDialog> {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1F2937),
+              color: AppTheme.textPrimary,
             ),
           ),
         ],

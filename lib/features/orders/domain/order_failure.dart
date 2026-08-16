@@ -24,6 +24,9 @@ enum OrderFailureType {
 
   /// The requested status change is not allowed by the state machine.
   illegalStatusTransition,
+
+  /// The trusted backend throttled the request (per-user rate limit).
+  rateLimited,
 }
 
 /// Typed, user-facing failure for order operations.

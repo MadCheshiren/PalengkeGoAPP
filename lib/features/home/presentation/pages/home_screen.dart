@@ -25,7 +25,7 @@ class HomeScreen extends ConsumerWidget {
     final blockedIds = ref.watch(blockedVendorsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: AppTheme.scaffoldBackground,
       body: SafeArea(
         bottom: false,
         child: Column(

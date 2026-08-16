@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:palengkego/core/infrastructure/firebase_service.dart';
@@ -35,17 +37,20 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 /// Notifier that holds the current user session.
 /// In mock mode (debug), starts pre-authenticated as a customer.
 class AuthNotifier extends Notifier<AppUser?> {
+  StreamSubscription<AppUser?>? _authSubscription;
+
   @override
   AppUser? build() {
-    // Seed from the repository's initial state.
-    // MockAuthRepository auto-sets a customer user in debug mode.
-    // FirebaseAuthRepository returns null until the user logs in.
+    // Mirror the repository's auth state stream so sign-in/out is always
+    // reflected in the notifier. The subscription is owned by this provider
+    // and cancelled on dispose — never a fire-and-forget future.
     final repo = ref.read(authRepositoryProvider);
-    AppUser? initial;
-    repo.authStateChanges().first.then((user) {
-      if (state == null && user != null) state = user;
+    _authSubscription?.cancel();
+    _authSubscription = repo.authStateChanges().listen((user) {
+      state = user;
     });
-    return initial;
+    ref.onDispose(() => _authSubscription?.cancel());
+    return null;
   }
 
   Future<void> loginAs(UserRole role) async {

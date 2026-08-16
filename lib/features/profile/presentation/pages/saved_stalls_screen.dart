@@ -141,7 +141,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                                     ? Icons.favorite_border_rounded
                                     : Icons.block_flipped,
                                 size: 48,
-                                color: const Color(0xFF9CA3AF),
+                                color: AppTheme.muted,
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -149,7 +149,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1F2937),
+                                  color: AppTheme.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -157,7 +157,7 @@ class _SavedStallsScreenState extends ConsumerState<SavedStallsScreen> {
                                 emptyMessage,
                                 style: const TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFF6B7280),
+                                  color: AppTheme.textSecondary,
                                 ),
                               ),
                             ],

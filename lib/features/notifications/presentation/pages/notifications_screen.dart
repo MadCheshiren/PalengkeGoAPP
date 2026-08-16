@@ -219,7 +219,7 @@ class _EmptyNotifications extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             'New order updates will appear here.',
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -295,7 +295,7 @@ class _NotificationCard extends ConsumerWidget {
                                 ? FontWeight.w500
                                 : FontWeight.w700,
                             color: isRead
-                                ? const Color(0xFF6B7280)
+                                ? AppTheme.textSecondary
                                 : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
@@ -322,7 +322,7 @@ class _NotificationCard extends ConsumerWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
-                          ? const Color(0xFF9CA3AF)
+                          ? AppTheme.muted
                           : const Color(0xFF1A5C45),
                       height: 1.45,
                     ),
@@ -348,7 +348,7 @@ class _NotificationCard extends ConsumerWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: isRead
-                            ? const Color(0xFF9CA3AF)
+                            ? AppTheme.muted
                             : const Color(0xFF0B7A50),
                       ),
                     ),
@@ -484,7 +484,7 @@ class _NotificationCard extends ConsumerWidget {
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 2),

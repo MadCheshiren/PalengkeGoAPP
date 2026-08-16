@@ -4,7 +4,6 @@ import 'package:palengkego/features/auth/application/auth_provider.dart';
 import 'package:palengkego/features/auth/domain/app_user.dart';
 import 'package:palengkego/features/orders/application/order_provider.dart';
 import 'package:palengkego/features/orders/data/mock_order_repository.dart';
-import 'package:palengkego/features/orders/data/shared_order_store.dart';
 import 'package:palengkego/features/orders/domain/order_failure.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:palengkego/features/orders/domain/order_status.dart';
@@ -18,8 +17,6 @@ void main() {
   });
 
   setUp(() {
-    SharedOrderStore.orders.clear();
-    SharedOrderStore.history.clear();
     repository = MockOrderRepository();
   });
 

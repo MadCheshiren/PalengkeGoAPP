@@ -148,6 +148,7 @@ void main() {
 
   group('ShoppingCartScreen cook-with-your-cart strip', () {
     const bangusRecipe = Recipe(
+      id: 'sinigang-na-bangus',
       title: 'Sinigang na Bangus',
       category: 'Seafood',
       time: '60 min',

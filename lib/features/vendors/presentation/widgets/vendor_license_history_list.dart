@@ -47,7 +47,7 @@ class VendorLicenseHistoryList extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),

@@ -57,7 +57,7 @@ class RecipeStatsRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF9CA3AF),
+                color: AppTheme.muted,
                 letterSpacing: 0.5,
               ),
             ),
@@ -67,7 +67,7 @@ class RecipeStatsRow extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+                color: AppTheme.textPrimary,
               ),
             ),
           ],

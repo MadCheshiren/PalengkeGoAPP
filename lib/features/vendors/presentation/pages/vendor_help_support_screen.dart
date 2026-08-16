@@ -228,7 +228,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                         _selectedTopic,
                                         style: const TextStyle(
                                           fontSize: 13,
-                                          color: Color(0xFF1F2937),
+                                          color: AppTheme.textPrimary,
                                         ),
                                       ),
                                       const Icon(
@@ -255,7 +255,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
                                 maxLines: 4,
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: Color(0xFF1F2937),
+                                  color: AppTheme.textPrimary,
                                 ),
                                 hintText: 'Explain the issue in detail...',
                                 hintStyle: const TextStyle(
@@ -333,7 +333,7 @@ class _VendorHelpSupportScreenState extends State<VendorHelpSupportScreen> {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1F2937),
+              color: AppTheme.textPrimary,
             ),
           ),
           children: [

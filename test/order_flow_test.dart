@@ -6,14 +6,17 @@ import 'package:palengkego/features/orders/domain/order_line_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late SharedOrderStore store;
+
   setUp(() async {
     FlutterSecureStorage.setMockInitialValues({});
     SharedPreferences.setMockInitialValues({});
-    await SharedOrderStore.load();
+    store = SharedOrderStore();
+    await store.load();
   });
 
   test('place order and get orders for vendor', () async {
-    final repo = MockOrderRepository();
+    final repo = MockOrderRepository(store: store);
 
     // Check initial orders count
     final initialOrders = await repo.getOrdersForVendor('v1');

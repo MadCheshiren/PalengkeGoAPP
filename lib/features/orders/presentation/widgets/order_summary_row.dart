@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:palengkego/core/theme/app_theme.dart';
 
 class OrderSummaryRow extends StatelessWidget {
   const OrderSummaryRow({
@@ -22,7 +23,7 @@ class OrderSummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
-            color: isTotal ? const Color(0xFF1F2937) : const Color(0xFF6B7280),
+            color: isTotal ? AppTheme.textPrimary : AppTheme.textSecondary,
           ),
         ),
         Text(
@@ -30,7 +31,7 @@ class OrderSummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 18 : 14,
             fontWeight: isTotal ? FontWeight.w800 : FontWeight.w600,
-            color: const Color(0xFF1F2937),
+            color: AppTheme.textPrimary,
           ),
         ),
       ],

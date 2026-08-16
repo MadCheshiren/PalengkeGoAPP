@@ -71,7 +71,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: Color(0xFF111827),
             ),
-            hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+            hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
             fillColor: const Color(0xFFF3F4F6),
             borderless: true,
             contentPadding: const EdgeInsets.symmetric(
@@ -134,7 +134,7 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                           const Icon(
                             Icons.description,
                             size: 40,
-                            color: Color(0xFF9CA3AF),
+                            color: AppTheme.muted,
                           ),
                           const SizedBox(height: 8),
                           Padding(
@@ -297,12 +297,12 @@ class OnboardingBusinessInfoStep extends StatelessWidget {
                 value: selectedCategory.isEmpty ? null : selectedCategory,
                 hint: const Text(
                   'Select a category',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+                  style: TextStyle(fontSize: 14, color: AppTheme.muted),
                 ),
                 isExpanded: true,
                 icon: const Icon(
                   Icons.keyboard_arrow_down,
-                  color: Color(0xFF9CA3AF),
+                  color: AppTheme.muted,
                 ),
                 dropdownColor: Colors.white,
                 style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),

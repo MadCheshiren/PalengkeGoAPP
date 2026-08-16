@@ -11,6 +11,7 @@ import 'package:palengkego/features/recipes/presentation/widgets/cart_recipe_sug
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _adobo = Recipe(
+  id: 'adobong-manok',
   title: 'Adobong Manok',
   category: 'Chicken',
   time: '45 min',
@@ -25,6 +26,7 @@ const _adobo = Recipe(
 );
 
 const _sinigang = Recipe(
+  id: 'sinigang-na-bangus',
   title: 'Sinigang na Bangus',
   category: 'Seafood',
   time: '60 min',

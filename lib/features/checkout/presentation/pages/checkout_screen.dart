@@ -34,20 +34,6 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
-  late final CheckoutController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = CheckoutController(ref: ref);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(cartItemsProvider);
@@ -67,14 +53,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     final deliveryAddress = preferences.deliveryAddress;
 
-    return ListenableBuilder(
-      listenable: _controller,
-      builder: (context, _) {
-        final deliveryMethod = _controller.deliveryMethod;
-        final deliveryFee = deliveryMethod == 0 ? FeeConfig.deliveryFee : 0.0;
-        final priorityFee = _controller.priorityFee;
+    final checkout = ref.watch(checkoutProvider);
+    final deliveryMethod = checkout.deliveryMethod;
+    final deliveryFee = deliveryMethod == 0 ? FeeConfig.deliveryFee : 0.0;
+    final priorityFee = checkout.priorityFee;
 
-        return Scaffold(
+    return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
             bottom: false,
@@ -94,7 +78,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         CheckoutMethodToggle(
                           deliveryMethod: deliveryMethod,
                           onChanged: (value) {
-                            _controller.setDeliveryMethod(value);
+                            ref
+                                .read(checkoutProvider.notifier)
+                                .setDeliveryMethod(value);
                             ref
                                 .read(preferencesProvider.notifier)
                                 .updatePaymentMethod(
@@ -134,9 +120,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ),
                           const SizedBox(height: 16),
                           CheckoutDeliveryOptionCard(
-                            isPrioritySelected: _controller.isPriority,
+                            isPrioritySelected: checkout.isPriority,
                             onOptionChanged: (val) {
-                              _controller.setPriority(val);
+                              ref
+                                  .read(checkoutProvider.notifier)
+                                  .setPriority(val);
                             },
                           ),
                         ] else ...[
@@ -208,9 +196,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             padding: const EdgeInsets.only(bottom: 12),
                             child: CheckoutVendorNotes(
                               vendorName: vendorName,
-                              controller: _controller.notesControllerFor(
-                                vendorName,
-                              ),
+                              controller: ref
+                                  .read(checkoutProvider.notifier)
+                                  .notesControllerFor(vendorName),
                             ),
                           );
                         }),
@@ -231,7 +219,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               : AppLocalizations.of(context).feeFree,
                           highlighted: deliveryMethod == 1,
                         ),
-                        if (deliveryMethod == 0 && _controller.isPriority) ...[
+                        if (deliveryMethod == 0 && checkout.isPriority) ...[
                           const SizedBox(height: 8),
                           CheckoutSummaryRow(
                             label: AppLocalizations.of(
@@ -256,15 +244,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
                 CheckoutFooter(
                   enabled:
-                      selectedItems.isNotEmpty && !_controller.placingOrder,
+                      selectedItems.isNotEmpty && !checkout.placingOrder,
                   onPlaceOrder: () async {
                     final confirm = await showCheckoutPlaceOrderDialog(context);
                     if (confirm != true) return;
                     if (!context.mounted) return;
 
-                    final orders = await _controller.placeOrder(
-                      selectedItems: selectedItems,
-                    );
+                    final orders = await ref
+                        .read(checkoutProvider.notifier)
+                        .placeOrder(selectedItems: selectedItems);
                     if (!context.mounted) return;
                     if (orders != null) {
                       Navigator.of(context).pushNamedAndRemoveUntil(
@@ -283,7 +271,5 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
           ),
         );
-      },
-    );
   }
 }

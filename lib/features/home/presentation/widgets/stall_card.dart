@@ -205,7 +205,7 @@ class _StallCardState extends State<StallCard> {
                                       style: const TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF6B7280),
+                                        color: AppTheme.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -219,7 +219,7 @@ class _StallCardState extends State<StallCard> {
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w400,
-                                      color: Color(0xFF9CA3AF),
+                                      color: AppTheme.muted,
                                       fontStyle: FontStyle.italic,
                                     ),
                                   ),

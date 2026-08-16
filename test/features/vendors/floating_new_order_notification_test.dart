@@ -57,13 +57,15 @@ Widget _buildWidget(ProviderContainer container, VoidCallback onViewOrders) {
   );
 }
 
-ProviderContainer _buildContainer() {
+ProviderContainer _buildContainer({SharedOrderStore? store}) {
   final container = ProviderContainer(
     overrides: [
-      orderRepositoryProvider.overrideWithValue(MockOrderRepository()),
+      orderRepositoryProvider.overrideWithValue(
+        MockOrderRepository(store: store),
+      ),
       authProvider.overrideWith(_TestAuthNotifier.new),
       notificationServiceProvider.overrideWithValue(
-        NotificationService(isTest: true),
+        NotificationService(isTest: true, orderStore: store),
       ),
     ],
   );
@@ -80,17 +82,13 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  setUp(() {
-    SharedOrderStore.orders.clear();
-    SharedOrderStore.history.clear();
-  });
-
   group('FloatingNewOrderNotification', () {
     testWidgets('hides the banner when there are no pending orders', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1', status: OrderStatus.completed));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1', status: OrderStatus.completed));
 
       await tester.pumpWidget(_buildWidget(container, () {}));
       await tester.pumpAndSettle();
@@ -102,8 +100,9 @@ void main() {
     testWidgets('shows a single-order banner when a pending order arrives', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await tester.pumpWidget(_buildWidget(container, () {}));
       await tester.pumpAndSettle();
@@ -115,8 +114,9 @@ void main() {
     testWidgets('shows a plural banner for multiple pending orders', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.addAll([_order('#1'), _order('#2')]);
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.addAll([_order('#1'), _order('#2')]);
 
       await tester.pumpWidget(_buildWidget(container, () {}));
       await tester.pumpAndSettle();
@@ -125,8 +125,9 @@ void main() {
     });
 
     testWidgets('ignores non-pending orders when counting', (tester) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.addAll([
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.addAll([
         _order('#1', status: OrderStatus.completed),
         _order('#2', status: OrderStatus.cancelled),
         _order('#3'),
@@ -141,8 +142,9 @@ void main() {
     testWidgets('invokes onViewOrders when the banner is tapped', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       var tapped = false;
       await tester.pumpWidget(_buildWidget(container, () => tapped = true));
@@ -157,8 +159,9 @@ void main() {
     testWidgets('hides the banner after the pending order is accepted', (
       tester,
     ) async {
-      final container = _buildContainer();
-      SharedOrderStore.orders.add(_order('#1'));
+      final store = SharedOrderStore();
+      final container = _buildContainer(store: store);
+      store.orders.add(_order('#1'));
 
       await tester.pumpWidget(_buildWidget(container, () {}));
       await tester.pumpAndSettle();

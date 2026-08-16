@@ -8,6 +8,7 @@ import 'package:palengkego/features/recipes/presentation/widgets/recipe_stats_ro
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _adobo = Recipe(
+  id: 'adobong-manok',
   title: 'Adobong Manok',
   category: 'Beef',
   time: '45 min',
@@ -93,6 +94,7 @@ void main() {
 
     testWidgets('shows explicit serving and calories', (tester) async {
       const recipe = Recipe(
+        id: 'sinigang',
         title: 'Sinigang',
         category: 'Seafood',
         time: '60 min',

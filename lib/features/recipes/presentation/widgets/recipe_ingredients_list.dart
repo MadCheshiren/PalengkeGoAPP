@@ -31,7 +31,7 @@ class RecipeIngredientsList extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(width: 12),
@@ -143,7 +143,7 @@ class RecipeIngredientsList extends StatelessWidget {
                                             fontWeight: FontWeight.w700,
                                             color: isChecked
                                                 ? AppTheme.primaryGreen
-                                                : const Color(0xFF1F2937),
+                                                : AppTheme.textPrimary,
                                             decoration: isChecked
                                                 ? TextDecoration.lineThrough
                                                 : null,
@@ -196,7 +196,7 @@ class RecipeIngredientsList extends StatelessWidget {
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w400,
-                                        color: Color(0xFF9CA3AF),
+                                        color: AppTheme.muted,
                                       ),
                                     ),
                                   ],

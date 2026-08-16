@@ -49,7 +49,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
         : <Recipe>[];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppTheme.scaffoldBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -66,7 +66,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -132,7 +132,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1F2937),
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                         ),
@@ -154,7 +154,7 @@ class _RecipesScreenState extends ConsumerState<RecipesScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1F2937),
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                         ),

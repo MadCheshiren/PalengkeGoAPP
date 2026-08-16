@@ -33,6 +33,7 @@ class RecipeStep {
 
 class Recipe {
   const Recipe({
+    required this.id,
     required this.title,
     required this.category,
     required this.time,
@@ -44,6 +45,10 @@ class Recipe {
     this.ingredients,
     this.steps,
   });
+
+  /// Stable unique identifier. Recipes are matched by [id] — never by title,
+  /// since two recipes can legitimately share a title.
+  final String id;
 
   final String title;
   final String category;

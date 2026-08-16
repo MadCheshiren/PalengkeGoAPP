@@ -99,7 +99,7 @@ class VendorReviewCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF9CA3AF),
+                            color: AppTheme.muted,
                           ),
                         ),
                       ],

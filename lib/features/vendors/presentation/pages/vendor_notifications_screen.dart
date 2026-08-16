@@ -179,7 +179,7 @@ class _EmptyVendorNotifications extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             'New order alerts will appear here.',
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -255,7 +255,7 @@ class _VendorNotificationCard extends StatelessWidget {
                                 ? FontWeight.w500
                                 : FontWeight.w700,
                             color: isRead
-                                ? const Color(0xFF6B7280)
+                                ? AppTheme.textSecondary
                                 : AppTheme.primaryGreen,
                             height: 1.3,
                           ),
@@ -282,7 +282,7 @@ class _VendorNotificationCard extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                       color: isRead
-                          ? const Color(0xFF9CA3AF)
+                          ? AppTheme.muted
                           : const Color(0xFF1A5C45),
                       height: 1.45,
                     ),
@@ -309,7 +309,7 @@ class _VendorNotificationCard extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: isRead
-                                ? const Color(0xFF9CA3AF)
+                                ? AppTheme.muted
                                 : const Color(0xFF0B7A50),
                           ),
                         ),

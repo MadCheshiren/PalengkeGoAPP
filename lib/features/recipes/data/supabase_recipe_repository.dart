@@ -15,7 +15,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Missing/absent fields degrade to documented defaults — never to mock
 /// recipe content (T6.5).
 Recipe recipeFromSupabaseRow(Map<String, dynamic> row) {
+  final rawId = row['id'];
   return Recipe(
+    id: rawId is int
+        ? rawId.toString()
+        : rawId as String? ?? row['title'] as String? ?? '',
     title: row['title'] as String? ?? '',
     category: row['category'] as String? ?? '',
     time: row['time'] as String? ?? '',

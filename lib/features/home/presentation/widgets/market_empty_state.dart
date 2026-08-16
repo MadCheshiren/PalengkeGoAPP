@@ -24,7 +24,7 @@ class MarketEmptyState extends StatelessWidget {
         color: AppTheme.primaryGreen,
       ),
       subtitle: 'Try a different stall name, product, or category.',
-      subtitleStyle: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+      subtitleStyle: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
     );
   }
 }

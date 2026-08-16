@@ -94,7 +94,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -148,7 +148,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
                                   ? () => setModalState(() => quantity--)
                                   : null,
                               icon: const Icon(Icons.remove, size: 18),
-                              color: const Color(0xFF0F172A),
+                              color: AppTheme.textPrimary,
                             ),
                             Text(
                               '$quantity',
@@ -267,7 +267,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -277,7 +277,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
           ),
         ),
         actions: [
@@ -287,7 +287,7 @@ class RecommendedIngredientStoresScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(
                   Icons.shopping_cart_outlined,
-                  color: Color(0xFF0F172A),
+                  color: AppTheme.textPrimary,
                 ),
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.cart),
               ),

@@ -69,7 +69,7 @@ class OnboardingIdCardStep extends StatelessWidget {
                           const Icon(
                             Icons.description,
                             size: 40,
-                            color: Color(0xFF9CA3AF),
+                            color: AppTheme.muted,
                           ),
                           const SizedBox(height: 8),
                           Padding(

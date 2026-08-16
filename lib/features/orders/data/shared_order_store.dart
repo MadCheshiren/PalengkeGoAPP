@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:palengkego/core/config/fee_config.dart';
 import 'package:palengkego/features/orders/domain/market_order.dart';
@@ -9,14 +10,25 @@ import 'package:palengkego/features/orders/domain/fulfillment_method.dart';
 import 'package:palengkego/features/orders/domain/payment_status.dart';
 import 'package:palengkego/features/orders/domain/order_line_item.dart';
 
+/// Injected singleton holding the mock order book. The app root pre-loads one
+/// instance from secure storage and overrides [orderStoreProvider] with it, so
+/// repositories and services share the same store without global statics.
+final orderStoreProvider = Provider<SharedOrderStore>(
+  (ref) => SharedOrderStore(),
+);
+
 class SharedOrderStore {
-  static final List<MarketOrder> orders = [];
-  static final Map<String, List<OrderStatusHistory>> history = {};
+  SharedOrderStore();
+
+  final List<MarketOrder> orders = [];
+  final Map<String, List<OrderStatusHistory>> history = {};
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   static const _ordersKey = 'mock_orders';
   static const _historyKey = 'mock_order_history';
 
+  /// Demo orders shown in mock mode until the user places their own. Kept
+  /// deliberately anonymous — no customer names or addresses.
   static final List<MarketOrder> defaultOrders = [
     MarketOrder(
       id: '#88293',
@@ -25,12 +37,10 @@ class SharedOrderStore {
       vendorName: 'Diosa Fruit Stand',
       vendorImage:
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=200&auto=format&fit=crop',
-      customerName: 'Maria Santos',
       status: OrderStatus.completed,
       placedAt: DateTime.now().subtract(const Duration(days: 2)),
       paymentStatus: PaymentStatus.paid,
       fulfillmentMethod: FulfillmentMethod.delivery,
-      deliveryAddress: '123 Main St, Manila',
       deliveryFee: FeeConfig.deliveryFee,
       serviceFee: FeeConfig.serviceFee,
       items: const [
@@ -52,7 +62,6 @@ class SharedOrderStore {
       vendorName: 'Diosa Fruit Stand',
       vendorImage:
           'https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=200&auto=format&fit=crop',
-      customerName: 'Maria Santos',
       status: OrderStatus.completed,
       placedAt: DateTime.now().subtract(const Duration(minutes: 5)),
       paymentStatus: PaymentStatus.pending,
@@ -110,7 +119,7 @@ class SharedOrderStore {
     ],
   };
 
-  static Future<void> load() async {
+  Future<void> load() async {
     orders.clear();
     history.clear();
 
@@ -188,7 +197,7 @@ class SharedOrderStore {
     }
   }
 
-  static Future<void> save() async {
+  Future<void> save() async {
     try {
       // Explicitly call toJson on nested items to avoid JsonUnsupportedObjectError
       final List<Map<String, dynamic>> serializedOrders = orders.map((o) {
@@ -217,7 +226,7 @@ class SharedOrderStore {
     }
   }
 
-  static Future<void> clear() async {
+  Future<void> clear() async {
     orders.clear();
     history.clear();
     await save();

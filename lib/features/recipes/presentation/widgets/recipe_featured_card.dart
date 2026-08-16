@@ -18,8 +18,9 @@ class RecipeFeaturedCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final savedRecipes = ref.watch(savedRecipesProvider);
-    final isSaved = savedRecipes.any((r) => r.title == recipe.title);
+    final savedRecipes =
+        ref.watch(savedRecipesProvider).value ?? const <Recipe>[];
+    final isSaved = savedRecipes.any((r) => r.id == recipe.id);
 
     return GestureDetector(
       onTap: onTap,
@@ -51,7 +52,7 @@ class RecipeFeaturedCard extends ConsumerWidget {
                     child: Icon(
                       Icons.restaurant,
                       size: 48,
-                      color: Color(0xFF9CA3AF),
+                      color: AppTheme.muted,
                     ),
                   ),
                 ),

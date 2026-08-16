@@ -69,8 +69,8 @@ class OrderDetailsTimeline extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: isCompleted || isActive
-                          ? const Color(0xFF1F2937)
-                          : const Color(0xFF9CA3AF),
+                          ? AppTheme.textPrimary
+                          : AppTheme.muted,
                     ),
                   ),
                   if (step.subtitle.isNotEmpty) ...[
@@ -81,10 +81,10 @@ class OrderDetailsTimeline extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: isCompleted
-                            ? const Color(0xFF6B7280)
+                            ? AppTheme.textSecondary
                             : isActive
                             ? AppTheme.primaryGreen
-                            : const Color(0xFF9CA3AF),
+                            : AppTheme.muted,
                       ),
                     ),
                   ],

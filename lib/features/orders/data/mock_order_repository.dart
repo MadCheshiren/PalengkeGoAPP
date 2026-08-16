@@ -13,14 +13,17 @@ import 'package:palengkego/features/orders/domain/payment_status.dart';
 import 'package:palengkego/features/orders/data/shared_order_store.dart';
 
 class MockOrderRepository implements OrderRepository {
+  MockOrderRepository({SharedOrderStore? store}) : _store = store ?? SharedOrderStore();
+
   static const _cancelWindow = FeeConfig.cancelWindow;
 
+  final SharedOrderStore _store;
+
   // ── Seeded mock orders ────────────────────────────────────────────────────
-  final List<MarketOrder> _orders = SharedOrderStore.orders;
+  List<MarketOrder> get _orders => _store.orders;
 
   // Status history per orderId.
-  final Map<String, List<OrderStatusHistory>> _history =
-      SharedOrderStore.history;
+  Map<String, List<OrderStatusHistory>> get _history => _store.history;
 
   int _seq = 1;
 
@@ -35,13 +38,14 @@ class MockOrderRepository implements OrderRepository {
     String? deliveryAddress,
     bool isPriority = false,
     double priorityFee = 0.0,
+    String paymentMethod = 'cod',
   }) async {
     final now = DateTime.now();
     final dateStr =
         '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
 
     final todayPrefix = '#$dateStr';
-    final maxSeq = SharedOrderStore.orders
+    final maxSeq = _store.orders
         .where((o) => o.id.startsWith(todayPrefix))
         .map((o) => int.tryParse(o.id.replaceFirst(todayPrefix, '')) ?? 0)
         .fold<int>(0, (a, b) => a > b ? a : b);
@@ -103,6 +107,7 @@ class MockOrderRepository implements OrderRepository {
         customerName: customerName,
         status: OrderStatus.pending,
         paymentStatus: PaymentStatus.pending,
+        paymentMethod: paymentMethod,
         fulfillmentMethod: isPickup
             ? FulfillmentMethod.pickup
             : FulfillmentMethod.delivery,
@@ -130,7 +135,7 @@ class MockOrderRepository implements OrderRepository {
 
       created.add(order);
     }
-    await SharedOrderStore.save();
+    await _store.save();
     return created;
   }
 
@@ -187,7 +192,12 @@ class MockOrderRepository implements OrderRepository {
 
     _orders[idx] = _orders[idx].copyWith(
       status: newStatus,
-      paymentStatus: newStatus == OrderStatus.completed
+      // Only cash orders (COD / cash on pickup) are marked paid at completion;
+      // online payments flip to paid via the verified webhook (mirrors the
+      // trusted backend).
+      paymentStatus: (newStatus == OrderStatus.completed &&
+              (_orders[idx].paymentMethod == 'cod' ||
+                  _orders[idx].paymentMethod == 'cop'))
           ? PaymentStatus.paid
           : _orders[idx].paymentStatus,
       estimatedReadyTime: estimatedReadyTime ?? _orders[idx].estimatedReadyTime,
@@ -221,7 +231,7 @@ class MockOrderRepository implements OrderRepository {
         remarks: remarks,
       ),
     );
-    await SharedOrderStore.save();
+    await _store.save();
   }
 
   @override

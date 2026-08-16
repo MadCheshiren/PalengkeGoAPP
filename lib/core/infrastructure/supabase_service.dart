@@ -11,11 +11,14 @@ final supabaseConfiguredProvider = Provider<bool>((ref) {
   return config.supabaseUrl.isNotEmpty && config.supabaseAnonKey.isNotEmpty;
 });
 
-/// Provider for the Supabase Client.
+/// Provider for the Supabase Client, used primarily for the recipes backend
+/// and recommendation engine.
 ///
-/// This provides a singleton instance of the SupabaseClient, which is used
-/// primarily for the recipes backend and recommendation engine.
-final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+/// Returns null when Supabase was never initialized (no URL/anon-key
+/// dart-defines), so consumers can treat it as "not configured" instead of
+/// crashing on an uninitialized singleton.
+final supabaseClientProvider = Provider<SupabaseClient?>((ref) {
+  if (!ref.watch(supabaseConfiguredProvider)) return null;
   return Supabase.instance.client;
 });
 

@@ -57,7 +57,7 @@ class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen>
                 child: TabBar(
                   controller: _tabController,
                   labelColor: AppTheme.primaryGreen,
-                  unselectedLabelColor: const Color(0xFF9CA3AF),
+                  unselectedLabelColor: AppTheme.muted,
                   indicatorColor: AppTheme.primaryGreen,
                   indicatorWeight: 2,
                   labelStyle: const TextStyle(
@@ -234,14 +234,57 @@ class _VendorOrdersTab extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person_outline_rounded,
+                          size: 14,
+                          color: AppTheme.primaryGreen,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          order.customerName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 4),
-                    Text(
-                      order.customerName,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryGreen,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          order.isPickup
+                              ? Icons.storefront_outlined
+                              : Icons.location_on_outlined,
+                          size: 14,
+                          color: order.isPickup
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFFD97706),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            order.isPickup
+                                ? 'Store Pickup (Customer will pick up at stall)'
+                                : (order.deliveryAddress?.isNotEmpty == true
+                                    ? order.deliveryAddress!
+                                    : 'San Felipe, Naga City'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: order.isPickup
+                                  ? const Color(0xFF1D4ED8)
+                                  : const Color(0xFF475569),
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const Divider(height: 16, color: AppTheme.border),
                     Text(

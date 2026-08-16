@@ -31,7 +31,7 @@ class CheckoutOrderItem extends StatelessWidget {
                 color: const Color(0xFFE5E7EB),
                 child: const Icon(
                   Icons.image_rounded,
-                  color: Color(0xFF9CA3AF),
+                  color: AppTheme.muted,
                 ),
               ),
             ),

@@ -72,7 +72,7 @@ class RecipeStepsList extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -81,7 +81,7 @@ class RecipeStepsList extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                         height: 1.6,
                       ),
                     ),

@@ -153,7 +153,7 @@ class RecommendedProductCard extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                           ],
@@ -171,7 +171,7 @@ class RecommendedProductCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
+                        color: AppTheme.textPrimary,
                         height: 1.2,
                       ),
                     ),

@@ -68,6 +68,13 @@ service cloud.firestore {
       return userDoc(userId).isBlocked == false;
     }
 
+    // Cash orders (COD / cash on pickup) are settled at delivery/pickup, so a
+    // vendor may mark them paid at completion. Online methods (gcash/paymaya/
+    // card) are only ever marked paid by the verified PayMongo webhook.
+    function isCashMethod(method) {
+      return method == 'cod' || method == 'cop';
+    }
+
     // ── users/{uid} ────────────────────────────────────────────────────────────
 
     match /users/{uid} {
@@ -153,17 +160,50 @@ service cloud.firestore {
         && request.resource.data.customerUid == request.auth.uid
         && request.resource.data.status == 'pending'
         && request.resource.data.paymentStatus == 'pending'
+        && request.resource.data.paymentMethod is string
+        && request.resource.data.paymentMethod in
+             ['cod', 'cop', 'gcash', 'paymaya', 'card']
         && request.resource.data.items is list
-        && request.resource.data.items.size() > 0;
+        && request.resource.data.items.size() > 0
+        // Prices must be non-negative numbers. Rules cannot sum line items,
+        // so exact amounts are enforced on the trusted path (placeOrder);
+        // this closes the trivial negative-fee/negative-price write.
+        && request.resource.data.deliveryFee is number
+        && request.resource.data.deliveryFee >= 0
+        && request.resource.data.serviceFee is number
+        && request.resource.data.serviceFee >= 0
+        && request.resource.data.priorityFee is number
+        && request.resource.data.priorityFee >= 0
+        // Free-text length caps (mirrors the trusted backend) against
+        // storage abuse from unbounded client strings.
+        && (!('customerName' in request.resource.data)
+            || (request.resource.data.customerName is string
+                && request.resource.data.customerName.size() <= 100))
+        && (!('deliveryAddress' in request.resource.data)
+            || (request.resource.data.deliveryAddress is string
+                && request.resource.data.deliveryAddress.size() <= 200))
+        && (!('notes' in request.resource.data)
+            || (request.resource.data.notes is string
+                && request.resource.data.notes.size() <= 500));
 
       allow update: if signedIn()
         && unblocked(request.auth.uid)
         && (
-          // Vendor advancing the workflow on their own stall.
+          // Vendor advancing the workflow on their own stall. `paymentStatus`
+          // is immutable on this path EXCEPT the legitimate cash-on-delivery
+          // completion, where a vendor may mark a COD order paid at the same
+          // time they complete it. Online payments are only ever marked paid
+          // by the verified PayMongo webhook.
           (isVendor()
             && ownsStall(resource.data.stallId)
             && request.resource.data.diff(resource.data)
-                 .affectedKeys().hasAny(['customerUid', 'items']) == false)
+                 .affectedKeys().hasAny(['customerUid', 'items']) == false
+            && (request.resource.data.diff(resource.data)
+                     .affectedKeys().hasAny(['paymentStatus']) == false
+                || (request.resource.data.paymentStatus == 'paid'
+                    && (isCashMethod(resource.data.paymentMethod)
+                        || !('paymentMethod' in resource.data))
+                    && request.resource.data.status == 'completed')))
           ||
           // Customer cancelling their own pending order.
           (isCustomer()
@@ -172,7 +212,8 @@ service cloud.firestore {
             && request.resource.data.status == 'cancelled'
             && request.resource.data.diff(resource.data)
                  .affectedKeys().hasAny(
-                    ['customerUid', 'items', 'stallId', 'placedAt']) == false)
+                    ['customerUid', 'items', 'stallId', 'placedAt',
+                     'paymentStatus']) == false)
         ) && request.resource.data.paymentStatus is string
           && request.resource.data.status is string;
 
@@ -183,17 +224,12 @@ service cloud.firestore {
         allow read: if signedIn()
           && (resource.data.customerUid == request.auth.uid
               || ownsStall(resource.data.stallId));
-        // Append-only log written by the order flow clients / functions;
-        // entries are immutable once created. Each entry must be stamped by
-        // the acting user for audit trail. The legacy 'customer' stamp is
-        // accepted while the client cancel path still uses it.
-        allow create: if signedIn()
-          && unblocked(request.auth.uid)
-          && request.resource.data.orderId == orderId
-          && (request.resource.data.changedBy == request.auth.uid
-              || request.resource.data.changedBy == 'system'
-              || (request.resource.data.changedBy == 'customer'
-                  && isCustomer()));
+        // Append-only audit log. Clients never write it directly — every
+        // entry is created by a Cloud Function (placeOrder, applyStatus
+        // Transition, createRefund) via the Admin SDK, which stamps the real
+        // acting uid. This kills the `changedBy: 'system'` forgery vector:
+        // no client can forge an audit entry.
+        allow create: if false;
         allow update: if false;
         allow delete: if false;
       }
@@ -212,6 +248,10 @@ service cloud.firestore {
         && request.resource.data.rating is number
         && request.resource.data.rating >= 1
         && request.resource.data.rating <= 5
+        // Free-text caps against storage abuse (mirrors the trusted backend).
+        && (!('comment' in request.resource.data)
+            || (request.resource.data.comment is string
+                && request.resource.data.comment.size() <= 500))
         && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId))
              .data.customerUid == request.auth.uid
         && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId))

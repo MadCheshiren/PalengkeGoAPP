@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:palengkego/core/navigation/app_routes.dart';
 import 'package:palengkego/core/navigation/app_router.dart';
+import 'package:palengkego/core/theme/app_theme.dart';
 import 'package:palengkego/features/vendors/domain/vendor_review.dart';
 
 class MouseDragScrollBehavior extends MaterialScrollBehavior {
@@ -184,7 +185,7 @@ class _VendorReviewsCarouselState extends State<VendorReviewsCarousel>
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
-                            color: Color(0xFF6B7280),
+                            color: AppTheme.textSecondary,
                             fontStyle: FontStyle.italic,
                           ),
                         ),

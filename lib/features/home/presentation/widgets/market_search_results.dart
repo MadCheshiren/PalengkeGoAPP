@@ -47,7 +47,7 @@ class MarketCombinedSearchResults extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF6B7280),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -137,7 +137,7 @@ class MarketProductTile extends StatelessWidget {
                     product.category,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF6B7280),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -247,7 +247,7 @@ class MarketVendorTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   const Text(
                     'Stall Holder',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                   ),
                 ],
               ),
@@ -261,7 +261,7 @@ class MarketVendorTile extends StatelessWidget {
                   vendor.category,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                   ),
                 ),
                 Container(

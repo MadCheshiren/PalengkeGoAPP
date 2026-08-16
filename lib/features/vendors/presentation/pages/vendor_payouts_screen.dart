@@ -97,7 +97,7 @@ class VendorPayoutsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                     letterSpacing: 0.3,
                   ),
                 ),
@@ -252,7 +252,7 @@ class _PayoutCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF9CA3AF),
+                    color: AppTheme.muted,
                   ),
                 ),
               ],

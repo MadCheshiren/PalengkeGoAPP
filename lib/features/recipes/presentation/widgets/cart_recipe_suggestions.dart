@@ -154,7 +154,7 @@ class _RecipeSuggestionCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+                color: AppTheme.textPrimary,
               ),
             ),
           ],

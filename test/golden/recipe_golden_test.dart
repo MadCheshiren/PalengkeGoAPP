@@ -5,6 +5,7 @@ import 'package:palengkego/features/recipes/presentation/widgets/recipe_steps_li
 import 'package:palengkego/features/recipes/presentation/widgets/recipe_stats_row.dart';
 
 const _recipe = Recipe(
+  id: 'adobong-manok',
   title: 'Adobong Manok',
   category: 'Beef',
   time: '45 min',

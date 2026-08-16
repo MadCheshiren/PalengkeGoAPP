@@ -285,7 +285,7 @@ class _AddCreditCardScreenState extends State<AddCreditCardScreen> {
       validator: validator,
       style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
       hintText: hint,
-      hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+      hintStyle: const TextStyle(fontSize: 14, color: AppTheme.muted),
       fillColor: const Color(0xFFF3F4F6),
       borderless: true,
       errorBorderColor: const Color(0xFFEF4444),

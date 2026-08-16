@@ -39,6 +39,8 @@ class CustomerPreferencesState {
     switch (paymentMethod) {
       case 'gcash':
         return 'GCash';
+      case 'paymaya':
+        return 'PayMaya';
       case 'card':
         return cardLabel ?? 'Saved Card';
       case 'cop':
@@ -52,6 +54,8 @@ class CustomerPreferencesState {
     switch (paymentMethod) {
       case 'gcash':
         return 'Pay with GCash via Paymongo';
+      case 'paymaya':
+        return 'Pay with PayMaya via Paymongo';
       case 'card':
         return 'Pay with your saved debit or credit card';
       default:
@@ -67,6 +71,11 @@ const _kPaymentMethodKey = 'pref_payment_method';
 /// Addresses are PII: persisted in keychain-backed secure storage, while the
 /// non-sensitive payment-method choice stays in SharedPreferences.
 class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
+  /// Bumped on every user mutation. The async secure-storage load started in
+  /// [build] only applies its result when no mutation happened in the meantime,
+  /// so a slow load can never overwrite a change the user just made.
+  int _mutationCount = 0;
+
   @override
   CustomerPreferencesState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
@@ -96,8 +105,14 @@ class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
       blockedStallIds: [],
     );
 
+    _mutationCount = 0;
+    final countAtLoad = _mutationCount;
     _loadAddressesFromSecure().then((loaded) {
-      if (loaded != null && ref.mounted) state = loaded;
+      if (loaded != null &&
+          ref.mounted &&
+          _mutationCount == countAtLoad) {
+        state = loaded;
+      }
     });
 
     return initial;
@@ -167,6 +182,7 @@ class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
   }
 
   void saveDeliveryAddress(DeliveryAddress address) {
+    _mutationCount++;
     final updatedList =
         state.savedAddresses
             .where(
@@ -203,18 +219,21 @@ class CustomerPreferencesNotifier extends Notifier<CustomerPreferencesState> {
   }
 
   void selectAddress(DeliveryAddress address) {
+    _mutationCount++;
     final next = state.copyWith(deliveryAddress: address);
     state = next;
     _persistState(next);
   }
 
   void updatePaymentMethod(String method, {String? cardLabel}) {
+    _mutationCount++;
     final next = state.copyWith(paymentMethod: method, cardLabel: cardLabel);
     state = next;
     _persistState(next);
   }
 
   void blockStall(String stallNameOrId) {
+    _mutationCount++;
     if (!state.blockedStallIds.contains(stallNameOrId)) {
       state = state.copyWith(
         blockedStallIds: [...state.blockedStallIds, stallNameOrId],

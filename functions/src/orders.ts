@@ -6,7 +6,13 @@ import {
   OrderItemInput,
   TERMINAL_STATUSES,
   canTransition,
+  computeFees,
+  isCashPayment,
+  PAYMENT_METHODS,
+  validateOptionalText,
+  FIELD_LIMITS,
 } from './constants';
+import { APP_CHECK_ENFORCED, rateLimit } from './security';
 
 const db = admin.firestore();
 
@@ -15,7 +21,13 @@ async function roleOf(uid: string): Promise<string | null> {
   return snap.exists ? (snap.data()?.role as string | null) : null;
 }
 
-async function stallOwnerUid(stallId: string): Promise<string | null> {
+/** True when the user doc explicitly marks the account blocked. */
+async function isBlocked(uid: string): Promise<boolean> {
+  const snap = await db.collection('users').doc(uid).get();
+  return snap.exists ? snap.data()?.isBlocked === true : false;
+}
+
+export async function stallOwnerUid(stallId: string): Promise<string | null> {
   const snap = await db.collection('vendorStalls').doc(stallId).get();
   return snap.exists ? (snap.data()?.ownerUid as string | null) : null;
 }
@@ -44,13 +56,19 @@ export interface ResolvedItem {
  * price or write below-zero stock. Deducts stock atomically inside a
  * transaction and stamps an immutable audit log.
  */
-export const placeOrder = onCall(async (request) => {
+export const placeOrder = onCall(
+  { enforceAppCheck: APP_CHECK_ENFORCED, timeoutSeconds: 30 },
+  async (request) => {
   const uid = request.auth?.uid;
   if (!uid) {
     throw new HttpsError('unauthenticated', 'Sign in required');
   }
   const role = await roleOf(uid);
   assertRole(role, ['customer']);
+  if (await isBlocked(uid)) {
+    throw new HttpsError('permission-denied', 'Your account is blocked');
+  }
+  await rateLimit(uid, 'placeOrder', 10);
 
   const data = request.data ?? {};
   const stallId: string | undefined = data.stallId;
@@ -67,6 +85,18 @@ export const placeOrder = onCall(async (request) => {
     !['pickup', 'delivery'].includes(data.fulfillmentMethod)
   ) {
     throw new HttpsError('invalid-argument', 'Invalid fulfillmentMethod');
+  }
+
+  const paymentMethod: string = data.paymentMethod ?? 'cod';
+  if (!PAYMENT_METHODS.includes(paymentMethod as never)) {
+    throw new HttpsError('invalid-argument', 'Invalid paymentMethod');
+  }
+  const textError =
+    validateOptionalText(data.customerName, FIELD_LIMITS.customerName, 'customerName') ??
+    validateOptionalText(data.deliveryAddress, FIELD_LIMITS.deliveryAddress, 'deliveryAddress') ??
+    validateOptionalText(data.notes, FIELD_LIMITS.notes, 'notes');
+  if (textError) {
+    throw new HttpsError('invalid-argument', textError);
   }
 
   const stallRef = db.collection('vendorStalls').doc(stallId);
@@ -103,7 +133,11 @@ export const placeOrder = onCall(async (request) => {
         );
       }
       const stock = typeof p.stockQuantity === 'number' ? p.stockQuantity : 0;
-      const quantity = typeof item.quantity === 'number' ? item.quantity : 0;
+      // Number.isFinite guards NaN/Infinity, which pass <= / > comparisons.
+      const quantity =
+        typeof item.quantity === 'number' && Number.isFinite(item.quantity)
+          ? item.quantity
+          : 0;
       if (quantity <= 0 || quantity > stock) {
         throw new HttpsError(
           'out-of-range',
@@ -122,11 +156,13 @@ export const placeOrder = onCall(async (request) => {
     }
 
     const itemsTotal = resolved.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const deliveryFee =
-      data.fulfillmentMethod === 'pickup' ? 0 : (data.deliveryFee ?? 25);
-    const serviceFee = data.serviceFee ?? 5;
+    // Fees are derived server-side (mirrors FeeConfig) — the client never
+    // dictates amounts on the trusted path.
     const isPriority = data.isPriority === true;
-    const priorityFee = isPriority ? (data.priorityFee ?? 35) : 0;
+    const { deliveryFee, serviceFee, priorityFee } = computeFees(
+      data.fulfillmentMethod,
+      isPriority,
+    );
 
     tx.set(orderRef, {
       customerUid: uid,
@@ -136,6 +172,7 @@ export const placeOrder = onCall(async (request) => {
       customerName: data.customerName ?? 'Customer',
       status: 'pending',
       paymentStatus: 'pending',
+      paymentMethod,
       fulfillmentMethod: data.fulfillmentMethod,
       deliveryAddress: data.deliveryAddress ?? null,
       deliveryFee,
@@ -168,7 +205,8 @@ export const placeOrder = onCall(async (request) => {
   });
 
   return { orderId: orderRef.id };
-});
+  },
+);
 
 /**
  * Trusted status transition.
@@ -177,7 +215,9 @@ export const placeOrder = onCall(async (request) => {
  * Terminal statuses are immutable; the allowed graph is the single source of
  * truth (mirrors Flutter OrderStatus).
  */
-export const updateOrderStatus = onCall(async (request) => {
+export const updateOrderStatus = onCall(
+  { enforceAppCheck: APP_CHECK_ENFORCED },
+  async (request) => {
   const uid = request.auth?.uid;
   if (!uid) {
     throw new HttpsError('unauthenticated', 'Sign in required');
@@ -200,13 +240,16 @@ export const updateOrderStatus = onCall(async (request) => {
   });
 
   return { orderId, status: newStatus };
-});
+  },
+);
 
 /**
  * Customer-facing cancel — thin wrapper so callers don't need to know
  * status names.
  */
-export const cancelOrder = onCall(async (request) => {
+export const cancelOrder = onCall(
+  { enforceAppCheck: APP_CHECK_ENFORCED },
+  async (request) => {
   const uid = request.auth?.uid;
   if (!uid) {
     throw new HttpsError('unauthenticated', 'Sign in required');
@@ -223,7 +266,8 @@ export const cancelOrder = onCall(async (request) => {
   });
 
   return { orderId: data.orderId, status: 'cancelled' };
-});
+  },
+);
 
 interface TransitionInput {
   orderId: string;
@@ -236,6 +280,18 @@ async function applyStatusTransition(
   uid: string,
   input: TransitionInput,
 ): Promise<void> {
+  if (await isBlocked(uid)) {
+    throw new HttpsError('permission-denied', 'Your account is blocked');
+  }
+  await rateLimit(uid, 'orderStatus', 60);
+  const textError = validateOptionalText(
+    input.remarks,
+    FIELD_LIMITS.remarks,
+    'remarks',
+  );
+  if (textError) {
+    throw new HttpsError('invalid-argument', textError);
+  }
   const role = await roleOf(uid);
 
   const orderRef = db.collection('orders').doc(input.orderId);
@@ -252,7 +308,11 @@ async function applyStatusTransition(
       `Order is already ${prevStatus} and can no longer change`,
     );
   }
-  if (!canTransition(prevStatus, input.newStatus)) {
+  // Same-status re-record (e.g. a vendor updating the estimated ready time on
+  // an order they are already preparing) is not a transition — it bypasses the
+  // graph but still persists the payload fields, mirroring the old client path.
+  const isReRecord = prevStatus === input.newStatus;
+  if (!isReRecord && !canTransition(prevStatus, input.newStatus)) {
     throw new HttpsError(
       'failed-precondition',
       `Illegal transition ${prevStatus} -> ${input.newStatus}`,
@@ -298,7 +358,11 @@ async function applyStatusTransition(
     status: input.newStatus,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
-  if (input.newStatus === 'completed') {
+  // Only cash orders (COD / cash on pickup) are marked paid at completion by
+  // the vendor. Online methods are flipped to 'paid' exclusively by the
+  // verified PayMongo webhook (functions/src/payments.ts). Legacy orders
+  // without a paymentMethod field are treated as cash.
+  if (input.newStatus === 'completed' && isCashPayment(order.paymentMethod ?? 'cod')) {
     update.paymentStatus = 'paid';
   }
   if (

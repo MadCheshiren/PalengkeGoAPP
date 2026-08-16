@@ -43,7 +43,7 @@ class OrderDetailsHeader extends StatelessWidget {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1F2937),
+              color: AppTheme.textPrimary,
             ),
           ),
         ],

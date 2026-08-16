@@ -92,7 +92,7 @@ class CartItemCard extends StatelessWidget {
                   item.quantityLabel,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF6B7280),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),

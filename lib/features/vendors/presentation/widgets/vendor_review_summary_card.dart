@@ -55,7 +55,7 @@ class VendorReviewSummaryCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF9CA3AF),
+                  color: AppTheme.muted,
                 ),
               ),
             ],
@@ -77,7 +77,7 @@ class VendorReviewSummaryCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF6B7280),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -109,7 +109,7 @@ class VendorReviewSummaryCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF9CA3AF),
+                            color: AppTheme.muted,
                           ),
                         ),
                       ),
